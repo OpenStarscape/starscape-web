@@ -14,6 +14,7 @@ export default {
       scene: null,
       camera: null,
       renderer: null,
+      shio: null,
     };
   },
 
@@ -26,6 +27,7 @@ export default {
     },
 
     addStars: function() {
+      console.log("ADD STARS");
       const RAND_RANGE_START = -1000;
       const RAND_RANGE_END = 1000;
 
@@ -60,16 +62,15 @@ export default {
 
       this.element.appendChild(renderer.domElement);
       
-      const geometry = new THREE.ConeGeometry(2, 10, 50);
-      const material = new THREE.MeshLambertMaterial({color: 0xff00ff});
-      const mesh = new THREE.Mesh(geometry, material);
+      const ship = new THREE.ConeGeometry(2, 10, 50, 10);
+      const material = new THREE.MeshStandardMaterial({color: 0xff00ff, side: THREE.DoubleSide});
+      const mesh = new THREE.Mesh(ship, material);
      
-      geometry.rotateX(90);
-      geometry.rotateY(90);
-      
+      this.ship = ship;
+
       scene.add(mesh);
 
-      const light = new THREE.PointLight(0xffffff, 1, 1000);
+      const light = new THREE.PointLight(0xffffff, 1, 500);
 
       light.position.z = 5;
       scene.add(light);
@@ -82,8 +83,17 @@ export default {
         camera.updateProjectionMatrix();
       });
 
-
-
+      window.addEventListener("keydown", event => {
+        if(event.key == "ArrowUp") {
+          ship.rotateX(0.1);
+        } else if(event.key == "ArrowDown") {
+          ship.rotateX(-0.1);
+        } else if(event.key == "ArrowLeft") {
+          ship.rotateY(-0.1);
+        } else if(event.key == "ArrowRight") {
+          ship.rotateY(0.1);
+        }
+      });
 
       function render() {
         renderer.render(scene, camera);
