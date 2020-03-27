@@ -9,7 +9,9 @@ import ShipView from './components/ShipView.vue';
 
 export default {
   name: 'OpenStarscape',
-  data() {},
+  data() {
+    return {};
+  },
   components: {
     ShipView
   }
@@ -17,4 +19,12 @@ export default {
 </script>
 
 <style>
+  body {
+    margin: 0;
+    height: 100%;
+  }
+
+  canvas {
+    display:block;
+  }
 </style>
