@@ -5,6 +5,7 @@
 
 <script>
 import * as THREE from "three";
+import { TrackballControls } from "../lib/TrackballControls.js";
 
 export default {
   name: 'ShipView',
@@ -14,7 +15,10 @@ export default {
       scene: null,
       camera: null,
       renderer: null,
-      shio: null,
+      ship: null,
+      light: null,
+      lightController: null,
+      cameraController: null,
     };
   },
 
@@ -46,35 +50,60 @@ export default {
       }
     },
 
+		createShip: function() {
+      const ship = new THREE.ConeGeometry(2, 10, 50, 10);
+      const material = new THREE.MeshStandardMaterial({color: 0xff00ff, side: THREE.DoubleSide});
+      const mesh = new THREE.Mesh(ship, material);
+     
+      this.ship = mesh;
+      this.scene.add(mesh);
+		},
+
+    addLights: function() {
+      console.log("ADDED LIGHTS");
+      this.light = new THREE.PointLight(0xffffff, 1, 1000);
+      this.light.position.z = 10;
+      this.scene.add(this.light);
+    },
+
+    addControllers: function() {
+      console.log("ADDED CONTROLLER");
+      this.lightController = new TrackballControls(this.light);
+      this.cameraController = new TrackballControls(this.camera);
+    },
+
+    move: function(obj, direction) {
+      obj.position.x += direction.x;
+      obj.position.y += direction.y;
+      obj.position.z += direction.z;
+    },
+
+    render: function() {
+      this.lightController.update();
+      this.cameraController.update();
+      this.renderer.render(this.scene, this.camera);
+      requestAnimationFrame(this.render);
+    },
+    
     init: function() {
       const scene = new THREE.Scene();
       const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
       const renderer = new THREE.WebGLRenderer({antialias: true});
-   
+      
       this.scene = scene;
       this.camera = camera;
       this.renderer = renderer;
 
-      camera.position.z = 30;
+      camera.position.z = 100;
 
       renderer.setClearColor("#000000");
       renderer.setSize(window.innerWidth, window.innerHeight);
 
       this.element.appendChild(renderer.domElement);
       
-      const ship = new THREE.ConeGeometry(2, 10, 50, 10);
-      const material = new THREE.MeshStandardMaterial({color: 0xff00ff, side: THREE.DoubleSide});
-      const mesh = new THREE.Mesh(ship, material);
-     
-      this.ship = ship;
-
-      scene.add(mesh);
-
-      const light = new THREE.PointLight(0xffffff, 1, 500);
-
-      light.position.z = 5;
-      scene.add(light);
-
+      this.createShip();
+      this.addLights();
+      this.addControllers();
       this.addStars();
 
       document.addEventListener("resize", () => {
@@ -83,24 +112,7 @@ export default {
         camera.updateProjectionMatrix();
       });
 
-      window.addEventListener("keydown", event => {
-        if(event.key == "ArrowUp") {
-          ship.rotateX(0.1);
-        } else if(event.key == "ArrowDown") {
-          ship.rotateX(-0.1);
-        } else if(event.key == "ArrowLeft") {
-          ship.rotateY(-0.1);
-        } else if(event.key == "ArrowRight") {
-          ship.rotateY(0.1);
-        }
-      });
-
-      function render() {
-        renderer.render(scene, camera);
-        requestAnimationFrame(render);
-      }
-
-      render();
+      this.render();
 
     }
   },

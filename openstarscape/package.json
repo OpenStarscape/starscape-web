@@ -8,6 +8,7 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
+    "@vue/test-utils": "^1.0.0-beta.32",
     "core-js": "^3.6.4",
     "three": "^0.114.0",
     "vue": "^2.6.11"
