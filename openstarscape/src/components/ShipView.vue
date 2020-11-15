@@ -50,14 +50,14 @@ export default {
       }
     },
 
-		createShip: function() {
+    createShip: function() {
       const ship = new THREE.ConeGeometry(2, 10, 50, 10);
       const material = new THREE.MeshStandardMaterial({color: 0xff00ff, side: THREE.DoubleSide});
       const mesh = new THREE.Mesh(ship, material);
      
       this.ship = mesh;
       this.scene.add(mesh);
-		},
+    },
 
     addLights: function() {
       console.log("ADDED LIGHTS");
