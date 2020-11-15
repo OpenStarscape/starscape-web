@@ -42,9 +42,15 @@ export default {
         
         dotGeometry.vertices.push(new THREE.Vector3());
 
-        dot.position.x = this.randRange(RAND_RANGE_START, RAND_RANGE_END);
-        dot.position.y = this.randRange(RAND_RANGE_START, RAND_RANGE_END);
-        dot.position.z = this.randRange(RAND_RANGE_START, RAND_RANGE_END);
+        let position = new THREE.Vector3(
+          this.randRange(RAND_RANGE_START, RAND_RANGE_END),
+          this.randRange(RAND_RANGE_START, RAND_RANGE_END),
+          this.randRange(RAND_RANGE_START, RAND_RANGE_END));
+        position.normalize()
+        position.multiplyScalar(this.randRange(300, 1000));
+        dot.position.x = position.x;
+        dot.position.y = position.y;
+        dot.position.z = position.z;
         
         this.scene.add(dot);
       }
