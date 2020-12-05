@@ -6,6 +6,7 @@
 <script>
 import * as THREE from "three";
 import { TrackballControls } from "../lib/TrackballControls.js";
+import Starscape from "../lib/Starscape.js";
 
 export default {
   name: 'ShipView',
@@ -19,6 +20,7 @@ export default {
       light: null,
       lightController: null,
       cameraController: null,
+      starscape: null,
     };
   },
 
@@ -111,6 +113,21 @@ export default {
       this.addLights();
       this.addControllers();
       this.addStars();
+
+      this.starscape = new Starscape();
+      this.starscape.god.get('bodies', bodies => {
+        bodies.forEach(body => {
+          body.get('position', pos => {
+            const dotGeometry = new THREE.Geometry();
+            const dotMaterial = new THREE.PointsMaterial({ color: 0x00FF00 });
+            const dot = new THREE.Points(dotGeometry, dotMaterial);
+            pos = pos.multiplyScalar(0.00001);
+            console.log('Position:', pos);
+            dotGeometry.vertices.push();
+            this.scene.add(dot)
+          });
+        });
+      });
 
       document.addEventListener("resize", () => {
         renderer.setSize(window.innerWidth, window.innerHeight);
