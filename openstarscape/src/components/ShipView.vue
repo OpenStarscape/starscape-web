@@ -108,8 +108,7 @@ export default {
       renderer.setSize(window.innerWidth, window.innerHeight);
 
       this.element.appendChild(renderer.domElement);
-      
-      this.createShip();
+
       this.addLights();
       this.addControllers();
       this.addStars();
@@ -117,15 +116,25 @@ export default {
       this.starscape = new Starscape();
       this.starscape.god.get('bodies', bodies => {
         bodies.forEach(body => {
-          const dotGeometry = new THREE.Geometry();
-          dotGeometry.vertices.push(new THREE.Vector3());
-          const dotMaterial = new THREE.PointsMaterial({ color: 0x00FF00 });
-          const dot = new THREE.Points(dotGeometry, dotMaterial);
-          this.scene.add(dot)
+          const geom = new THREE.PlaneBufferGeometry(0.1, 0.1);
+          const material = new THREE.MeshBasicMaterial({color: 0x000000});
+          const mesh = new THREE.Mesh(geom, material);
+          this.scene.add(mesh);
+          body.get('mass', mass => {
+            const size = Math.pow(mass / 1.0e+12, 0.3333333) + 0.3;
+            mesh.geometry = new THREE.SphereBufferGeometry(size, 16, 16);
+            if (size > 5) {
+              material.color.setHex(0xFFA020);
+            } else if (size > 1) {
+              material.color.setHex(0x6090FF);
+            } else {
+              material.color.setHex(0xFFFFFF);
+            }
+          });
           body.subscribe('position', pos => {
             pos = pos.multiplyScalar(0.001);
-            dot.position = pos
-            console.log('Position:', pos.toArray());
+            mesh.position = pos;
+            //console.log('Position:', pos.toArray());
           });
         });
       });
