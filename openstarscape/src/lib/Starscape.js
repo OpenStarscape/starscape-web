@@ -26,7 +26,6 @@ class RTCSession {
         // let array = new Uint8Array(evt.data);
         // TODO: use decoder instead of .toString
         let str = evt.data.toString();
-        console.log('received packet: "' + str + '"');
         this.handlePacket(str);
       };
       this.isOpen = true
@@ -112,7 +111,6 @@ class Obj {
   }
 
   propertyUpdate(prop, value) {
-    console.log(this.id + '.' + prop + ' = ' + value.toString());
     if (prop in this.oneshots) {
       this.oneshots[prop].forEach(handler => handler(value));
       delete this.oneshots[prop];
@@ -133,6 +131,21 @@ class Obj {
       this.oneshots[prop] = [handler];
     }
     this.starscape.getProperty(this.id, prop);
+  }
+
+  subscribe(prop, handler) {
+    if (prop in this.subscribers) {
+      console.error('Can not subscribe to ' + this.id + '.' + prop + ' multiple times');
+    } else {
+      this.subscribers[prop] = handler;
+      // TODO: what happens if unsub + sub arrive out of order?
+      this.starscape.subscribeTo(this.id, prop);
+    }
+  }
+
+  unsubscribe(prop) {
+    delete this.subscribers[prop];
+    this.starscape.unsubscribeFrom(this.id, prop);
   }
 }
 
@@ -206,6 +219,16 @@ export default class Starscape {
 
   getProperty(obj, prop) {
     let json = JSON.stringify({mtype: 'get', object: obj, property: prop}) + '\n';
+    this.session.sendPacket(json);
+  }
+
+  subscribeTo(obj, prop) {
+    let json = JSON.stringify({mtype: 'subscribe', object: obj, property: prop}) + '\n';
+    this.session.sendPacket(json);
+  }
+
+  unsubscribeFrom(obj, prop) {
+    let json = JSON.stringify({mtype: 'unsubscribe', object: obj, property: prop}) + '\n';
     this.session.sendPacket(json);
   }
 }

@@ -117,14 +117,15 @@ export default {
       this.starscape = new Starscape();
       this.starscape.god.get('bodies', bodies => {
         bodies.forEach(body => {
-          body.get('position', pos => {
-            const dotGeometry = new THREE.Geometry();
-            const dotMaterial = new THREE.PointsMaterial({ color: 0x00FF00 });
-            const dot = new THREE.Points(dotGeometry, dotMaterial);
-            pos = pos.multiplyScalar(0.00001);
-            console.log('Position:', pos);
-            dotGeometry.vertices.push();
-            this.scene.add(dot)
+          const dotGeometry = new THREE.Geometry();
+          dotGeometry.vertices.push(new THREE.Vector3());
+          const dotMaterial = new THREE.PointsMaterial({ color: 0x00FF00 });
+          const dot = new THREE.Points(dotGeometry, dotMaterial);
+          this.scene.add(dot)
+          body.subscribe('position', pos => {
+            pos = pos.multiplyScalar(0.001);
+            dot.position = pos
+            console.log('Position:', pos.toArray());
           });
         });
       });
