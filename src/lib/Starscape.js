@@ -134,13 +134,11 @@ class Obj {
   }
 
   subscribe(prop, handler) {
-    if (prop in this.subscribers) {
-      console.error('Can not subscribe to ' + this.id + '.' + prop + ' multiple times');
-    } else {
-      this.subscribers[prop] = handler;
-      // TODO: what happens if unsub + sub arrive out of order?
-      this.starscape.subscribeTo(this.id, prop);
-    }
+    // TODO: what happens if unsub + sub arrive out of order?
+    // Overwrite any previous subscriber
+    this.subscribers[prop] = handler;
+    // This should probably be dropped if already subscribed, but we're unreliable so screw it
+    this.starscape.subscribeTo(this.id, prop);
   }
 
   unsubscribe(prop) {
