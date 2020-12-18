@@ -37,9 +37,13 @@ class Ship extends Body {
     super(obj)
     this.mat.color.setHex(0xFFFFFF);
     this.mesh.geometry = new THREE.ConeGeometry(0.5, 2, 16);
+    this.previousVel = new THREE.Vector3();
+    this.thrustDir = new THREE.Vector3();
     this.obj.subscribe('velocity', vel => {
-      vel.normalize();
-      this.mesh.quaternion.setFromUnitVectors(upVec, vel);
+      this.thrustDir.subVectors(vel, this.previousVel);
+      this.thrustDir.normalize();
+      this.previousVel = vel;
+      this.mesh.quaternion.setFromUnitVectors(upVec, this.thrustDir);
     });
   }
 }
