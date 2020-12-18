@@ -1,6 +1,7 @@
 import * as THREE from "three";
 
 const emptyGeom = new THREE.BufferGeometry();
+const upVec = new THREE.Vector3(0, 1, 0);
 
 class Body {
   constructor(obj) {
@@ -36,6 +37,10 @@ class Ship extends Body {
     super(obj)
     this.mat.color.setHex(0xFFFFFF);
     this.mesh.geometry = new THREE.ConeGeometry(0.5, 2, 16);
+    this.obj.subscribe('velocity', vel => {
+      vel.normalize();
+      this.mesh.quaternion.setFromUnitVectors(upVec, vel);
+    });
   }
 }
 
