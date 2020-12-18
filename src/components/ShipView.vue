@@ -7,6 +7,7 @@
 import * as THREE from "three";
 import { TrackballControls } from "../lib/TrackballControls.js";
 import Starscape from "../lib/Starscape.js";
+import { makeBody } from "../graphics/Body.js";
 
 export default {
   name: 'ShipView',
@@ -115,26 +116,9 @@ export default {
 
       this.starscape = new Starscape();
       this.starscape.god.get('bodies', bodies => {
-        bodies.forEach(body => {
-          const geom = new THREE.PlaneBufferGeometry(0.1, 0.1);
-          const material = new THREE.MeshBasicMaterial({color: 0x000000});
-          const mesh = new THREE.Mesh(geom, material);
-          this.scene.add(mesh);
-          body.get('mass', mass => {
-            const size = Math.pow(mass / 1.0e+12, 0.3333333) + 0.3;
-            mesh.geometry = new THREE.SphereBufferGeometry(size, 16, 16);
-            if (size > 5) {
-              material.color.setHex(0xFFA020);
-            } else if (size > 1) {
-              material.color.setHex(0x6090FF);
-            } else {
-              material.color.setHex(0xFFFFFF);
-            }
-          });
-          body.subscribe('position', pos => {
-            pos = pos.multiplyScalar(0.001);
-            mesh.position = pos;
-            //console.log('Position:', pos.toArray());
+        bodies.forEach(obj => {
+          makeBody(obj, (body) => {
+            this.scene.add(body.mesh);
           });
         });
       });

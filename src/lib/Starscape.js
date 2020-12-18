@@ -86,12 +86,12 @@ class RTCSession {
   sendPacket(packet) {
     if (this.isOpen) {
       // The connection is open
-      console.log('Sending packet:', packet);
+      console.log('sending packet:', packet);
       let array = this.encoder.encode(packet);
       this.channel.send(array);
     } else {
       // The connection is not yet open
-      console.log('Queueing packet:', packet);
+      console.log('sueueing packet:', packet);
       this.queuedPackets.push(packet);
     }
   }

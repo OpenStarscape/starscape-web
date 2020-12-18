@@ -1,0 +1,52 @@
+import * as THREE from "three";
+
+const emptyGeom = new THREE.BufferGeometry();
+
+class Body {
+  constructor(obj) {
+    this.obj = obj;
+    this.mat = new THREE.MeshBasicMaterial({color: 'white'});
+    this.mesh = new THREE.Mesh(emptyGeom, this.mat);
+    this.obj.subscribe('position', pos => {
+      pos = pos.multiplyScalar(0.001);
+      this.mesh.position = pos;
+    });
+  }
+}
+
+class Celestial extends Body {
+  constructor(obj) {
+    super(obj)
+    this.obj.get('mass', mass => {
+      const size = Math.pow(mass / 1.0e+12, 1 / 3.0) + 0.3;
+      if (size > 5) {
+        // Star
+        this.mat.color.setHex(0xFFA020);
+      } else {
+        // Planet/moon
+        this.mat.color.setHex(0x6090FF);
+      }
+      this.mesh.geometry = new THREE.SphereBufferGeometry(size, 16, 16);
+    });
+  }
+}
+
+class Ship extends Body {
+  constructor(obj) {
+    super(obj)
+    this.mat.color.setHex(0xFFFFFF);
+    this.mesh.geometry = new THREE.ConeGeometry(0.5, 2, 16);
+  }
+}
+
+export function makeBody(obj, callback) {
+  obj.get('class', cls => {
+    if (cls == 'celestial') {
+      callback(new Celestial(obj));
+    } else if (cls == 'ship') {
+      callback(new Ship(obj));
+    } else {
+      console.error('unknown body class ', cls);
+    }
+  });
+}
