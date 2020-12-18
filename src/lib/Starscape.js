@@ -91,7 +91,7 @@ class RTCSession {
       this.channel.send(array);
     } else {
       // The connection is not yet open
-      console.log('sueueing packet:', packet);
+      console.log('queueing packet:', packet);
       this.queuedPackets.push(packet);
     }
   }
@@ -187,6 +187,7 @@ export default class Starscape {
   }
 
   handlePacket(packet) {
+    // console.log('got packet', packet);
     try {
       let message = JSON.parse(packet);
       // message.mtype instanceof String does not work!??
