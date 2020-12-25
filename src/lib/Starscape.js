@@ -186,15 +186,27 @@ export default class Starscape {
     }
   }
 
+  encodeValue(value) {
+    if (value instanceof Vector3) {
+      return value.toArray();
+    } else if (value instanceof Obj) {
+      return [value.id];
+    } else if (Array.isArray(value)) {
+      return [value.map(i => this.encodeValue(i))];
+    } else {
+      return value;
+    }
+  }
+
   handlePacket(packet) {
     // console.log('got packet', packet);
     try {
       let message = JSON.parse(packet);
       // message.mtype instanceof String does not work!??
       if (typeof message.mtype !== 'string') {
-        throw 'mtype is ' + typeof(message.mtype) + ' instead of string';
+        throw 'mtype is ' + typeof message.mtype + ' instead of string';
       }
-      if (message.mtype == 'update' || message.mtype == 'value') {
+      if (message.mtype == 'update' || message.mtype == 'value' || message.mtype == 'event') {
         if (typeof message.object !== 'number') {
           throw 'object not a number';
         }
@@ -204,6 +216,8 @@ export default class Starscape {
         let obj = this.getObj(message.object);
         let value = this.resolveValue(message.value);
         obj.propertyUpdate(message.property, value);
+      } else {
+        throw 'unknown mtype ' + message.mtype;
       }
     }
     catch(err) {
@@ -212,6 +226,7 @@ export default class Starscape {
   }
 
   setProperty(obj, prop, value) {
+    value = this.encodeValue(value);
     let json = JSON.stringify({mtype: 'set', object: obj, property: prop, value: value}) + '\n';
     this.session.sendPacket(json);
   }

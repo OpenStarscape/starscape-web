@@ -22,6 +22,7 @@ export default {
       lightController: null,
       cameraController: null,
       starscape: null,
+      attachedToShip: null,
     };
   },
 
@@ -88,8 +89,8 @@ export default {
     },
 
     render: function() {
-      this.lightController.update();
-      this.cameraController.update();
+      //this.lightController.update();
+      //this.cameraController.update();
       this.renderer.render(this.scene, this.camera);
       requestAnimationFrame(this.render);
     },
@@ -110,18 +111,36 @@ export default {
 
       this.element.appendChild(renderer.domElement);
 
-      this.addLights();
-      this.addControllers();
+      //this.addLights();
+      //this.addControllers();
       this.addStars();
 
       this.starscape = new Starscape();
       this.starscape.god.get('bodies', bodies => {
         bodies.forEach(obj => {
-          makeBody(obj, (body) => {
+          makeBody(obj, body => {
             this.scene.add(body.mesh);
+            //if (!this.currentShip && body.isShip()) {
+              //body.mesh.attach(this.camera);
+              //this.currentShip = body;
+              //this.camera.position.set(0.0, 0.0, 20.0);
+              //this.camera.rotation.set(0.0, 0.0, 0.0);
+            //}
           });
         });
       });
+      this.starscape.god.subscribe('ship_created', obj => {
+        makeBody(obj, body => {
+          this.scene.add(body.mesh);
+          if (!this.currentShip && body.isShip()) {
+            body.mesh.attach(this.camera);
+            this.currentShip = body;
+            this.camera.position.set(0.0, 0.0, 20.0);
+            this.camera.rotation.set(0.0, 0.0, 0.0);
+          }
+        });
+      });
+      this.starscape.god.set('create_ship', new THREE.Vector3(20000, 60000, 0));
 
       document.addEventListener("resize", () => {
         renderer.setSize(window.innerWidth, window.innerHeight);
