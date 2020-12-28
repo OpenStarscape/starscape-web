@@ -19,7 +19,6 @@ export default {
       renderer: null,
       ship: null,
       light: null,
-      lightController: null,
       cameraController: null,
       starscape: null,
       attachedToShip: null,
@@ -69,17 +68,8 @@ export default {
       this.scene.add(mesh);
     },
 
-    addLights: function() {
-      console.log("ADDED LIGHTS");
-      this.light = new THREE.PointLight(0xffffff, 1, 1000);
-      this.light.position.z = 10;
-      this.scene.add(this.light);
-    },
-
     addControllers: function() {
       console.log("ADDED CONTROLLER");
-      this.lightController = new TrackballControls(this.light);
-      this.cameraController = new TrackballControls(this.camera);
     },
 
     move: function(obj, direction) {
@@ -89,8 +79,6 @@ export default {
     },
 
     render: function() {
-      //this.lightController.update();
-      //this.cameraController.update();
       this.renderer.render(this.scene, this.camera);
       requestAnimationFrame(this.render);
     },
@@ -111,8 +99,7 @@ export default {
 
       this.element.appendChild(renderer.domElement);
 
-      //this.addLights();
-      //this.addControllers();
+      this.addControllers();
       this.addStars();
 
       this.starscape = new Starscape();
