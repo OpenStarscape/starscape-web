@@ -198,14 +198,8 @@ export default class Starscape {
     }
   }
 
-  handlePacket(packet) {
-    // console.log('got packet', packet);
+  handleMessage(message) {
     try {
-      let message = JSON.parse(packet);
-      // message.mtype instanceof String does not work!??
-      if (typeof message.mtype !== 'string') {
-        throw 'mtype is ' + typeof message.mtype + ' instead of string';
-      }
       if (message.mtype == 'update' || message.mtype == 'value' || message.mtype == 'event') {
         if (typeof message.object !== 'number') {
           throw 'object not a number';
@@ -218,6 +212,25 @@ export default class Starscape {
         obj.propertyUpdate(message.property, value);
       } else {
         throw 'unknown mtype ' + message.mtype;
+      }
+    }
+    catch(err) {
+      console.error('error handling message: ' + err + ' (message: ' + message + ')');
+    }
+  }
+
+  handlePacket(packet) {
+    // console.log('got packet', packet);
+    try {
+      let bundle = JSON.parse(packet);
+      if (Array.isArray(bundle)) {
+        for (let i = 0; i < bundle.length; i++) {
+          this.handleMessage(bundle[i]);
+        }
+      } else if (typeof bundle === 'object') {
+        this.handleMessage(bundle);
+      } else {
+        throw 'bundle ' + packet.toString() + ' has invalid type';
       }
     }
     catch(err) {
