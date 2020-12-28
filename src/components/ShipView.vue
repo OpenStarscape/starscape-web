@@ -5,7 +5,7 @@
 
 <script>
 import * as THREE from "three";
-import { TrackballControls } from "../lib/TrackballControls.js";
+import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls'
 import Starscape from "../lib/Starscape.js";
 import { makeBody } from "../graphics/Body.js";
 
@@ -70,6 +70,7 @@ export default {
 
     addControllers: function() {
       console.log("ADDED CONTROLLER");
+      this.cameraController = new TrackballControls(this.camera, this.renderer.domElement);
     },
 
     move: function(obj, direction) {
@@ -79,6 +80,7 @@ export default {
     },
 
     render: function() {
+      this.cameraController.update();
       this.renderer.render(this.scene, this.camera);
       requestAnimationFrame(this.render);
     },
