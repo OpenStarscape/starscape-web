@@ -117,6 +117,10 @@ export default {
             //}
           });
         });
+        this.starscape.god.set('create_ship', [
+          new THREE.Vector3(20000, 60000, 0),
+          new THREE.Vector3(0, 0, 10000),
+        ]);
       });
       this.starscape.god.subscribe('ship_created', obj => {
         makeBody(obj, body => {
@@ -129,10 +133,6 @@ export default {
           }
         });
       });
-      this.starscape.god.set('create_ship', [
-        new THREE.Vector3(20000, 60000, 0),
-        new THREE.Vector3(0, 0, 10000),
-      ]);
 
       document.addEventListener("resize", () => {
         renderer.setSize(window.innerWidth, window.innerHeight);
