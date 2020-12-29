@@ -334,18 +334,20 @@ export default class StarscapeConnection {
     return obj;
   }
 
-  resolveValue(value) {
+  decodeValue(value) {
     if (Array.isArray(value)) {
       if (value.length == 1) {
         if (typeof value[0] === 'number') {
           return this.getObj(value[0]);
         } else if (Array.isArray(value[0])) {
-          return value[0].map(item => this.resolveValue(item));
+          return value[0].map(item => this.decodeValue(item));
         } else {
           throw 'array-wrapped value is not a number or array';
         }
       } else if (value.length == 3) {
         return new Vector3(value[0], value[1], value[2]);
+      } else {
+        throw 'array-wrapped value has invalid length ' + value.length;
       }
     } else {
       return value;
@@ -374,7 +376,7 @@ export default class StarscapeConnection {
           throw 'property is a ' + typeof message.proprty + ' not a string';
         }
         let obj = this.getObj(message.object);
-        let value = this.resolveValue(message.value);
+        let value = this.decodeValue(message.value);
         if (message.mtype == 'update') {
           obj.handleUpdate(message.property, value);
         } else if (message.mtype == 'value') {
