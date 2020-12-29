@@ -1,4 +1,5 @@
 import {Vector3} from 'three';
+import {Subscriber, Element} from '../lib/Element.js';
 
 class StarscapeRTCSession {
   constructor(handlePacket) {
@@ -102,168 +103,214 @@ class StarscapeRTCSession {
   }
 }
 
-/*
-class Subscriber {
-  notifyUpdate() {}
-  notifyDestroyed() {}
-}
-*/
+class GetSubscriber extends Subscriber {
+  elementUpdate(value) {
+    if (this.callback !== null) {
+      this.callback(value);
+    }
+    this.callback = null;
+    this.group.deleteSubscriber(this);
+    this.element.deleteSubscriber(this);
+  }
 
-class StarscapeElement {
+  isPending() {
+    return this.callback !== null;
+  }
+}
+
+export class StarscapeProperty extends Element {
   constructor(obj, name) {
-    this.connection = obj.connection;
+    super();
     this.obj = obj;
     this.name = name;
-    this.value = undefined;
-    this.subscribers = new Set();
     this.isSubscribed = false;
-    this.oneshots = [];
-    this.hasPendingOneshot = false;
+    this.hasPendingGet = false;
   }
 
-  addOneshot(oneshot) {
-    if (this.obj === null) {
-      throw 'addOneshot() called after object destroyed';
-    }
-    this.oneshots.push(oneshot);
-    if (this.isSubscribed && this.value !== undefined) {
-      this.handleOneshot(this.this.value);
-    } else if (!this.hasPendingOneshot) {
-      this.hasPendingOneshot = true;
-      this.connection.getProperty(this.obj.id, this.name);
-    }
+  set(value) {
+    this.obj.connection.setProperty(this.obj.id, this.name, value);
   }
 
-  addSubscriber(subscriber) {
-    if (this.obj === null) {
-      throw 'addSubscriber() called after object destroyed';
-    }
-    this.subscribers.add(subscriber);
-    if (!this.isSubscribed) {
-      this.isSubscribed = true;
-      this.connection.subscribeTo(this.obj.id, this.name);
-    }
-    if (this.value !== undefined) {
-      subscriber.notifyUpdate(this.value);
+  setter() {
+    return value => { this.set(value); };
+  }
+
+  getThen(group, callback) {
+    const subscriber = new GetSubscriber(this, group, callback);
+    // Note that we call the super version, we don't want to call connection.subscribeTo()
+    super.addSubscriber(subscriber);
+    // May have already fired and cleaned itself up, in which case isPending() is false
+    if (!this.hasPendingGet && subscriber.isPending()) {
+      this.hasPendingGet = true;
+      this.obj.connection.getProperty(this.obj.id, this.name);
     }
   }
 
-  removeSubscriber(subscriber) {
-    this.subscribers.delete(subscriber);
-    if (this.subscribers.size == 0 && this.isSubscribed) {
-      this.isSubscribed = false;
-      this.value = undefined;
-      this.connection.unsubscribeFrom(this.obj.id, this.name);
-    }
+  getter(group) {
+    const subscriber = Subscriber(group, null);
+    this.addSubscriber(subscriber);
+    return () => {
+      group.verifyAcrive();
+      return this.cachedValue();
+    };
   }
 
   cachedValue() {
+    if (!this.isAlive()) {
+      throw 'cachedValue() called after object destroyed';
+    }
     return this.value;
   }
 
-  setProperty(value) {
-    this.connection.setProperty(this.obj.id, this.name, value);
+  addSubscriber(subscriber) {
+    super.addSubscriber(subscriber);
+    if (!this.isSubscribed) {
+      this.isSubscribed = true;
+      this.obj.connection.subscribeTo(this.obj.id, this.name);
+    }
   }
 
-  fireAction(value) {
-    this.connection.fireAction(this.obj.id, this.name, value);
-  }
-
-  isAlive() {
-    return this.obj !== null;
+  deleteSubscriber(subscriber) {
+    super.deleteSubscriber(subscriber);
+    if (this.subscribers.size == 0 && this.isSubscribed) {
+      this.isSubscribed = false;
+      this.value = undefined;
+      this.obj.connection.unsubscribeFrom(this.obj.id, this.name);
+    }
   }
 
   handleUpdate(value) {
     if (this.isSubscribed) {
       this.value = value;
-      for (const sub of this.subscribers) {
-        sub.notifyUpdate(value);
-      }
     }
-    if (this.oneshots.length) {
-      let oneshots = this.oneshots;
-      this.oneshots = [];
-      for (let i = 0; i < oneshots.length; i++) {
-        oneshots[i].notifyUpdate(value);
-      }
-    }
+    // get request subscribers need to be notified even when not subscribed
+    this.sendUpdates(value);
   }
 
-  handleOneshot(value) {
+  handleGetReply(value) {
     this.hasPendingOneshot = false;
     this.handleUpdate(value);
   }
 
-  handleEvent(value) {
-    if (this.isSubscribed) {
-      this.value = undefined;
-      for (const sub of this.subscribers) {
-        sub.notifyUpdate(value);
-      }
-    }
-  }
-
   handleObjectDestroyed() {
-    this.objectDestroyed = true;
-
-    for (let i = 0; i < this.oneshots.length; i++) {
-      this.oneshots[i].notifyDestroyed();
-    }
-    for (const sub of this.subscribers) {
-      sub.notifyDestroyed();
-    }
-    this.oneshots = [];
-    this.subscribers.clear();
-    this.hasPendingOneshot = false;
-    this.isSubscribed = false;
-    this.value = undefined;
     this.obj = null;
+    this.isSubscribed = false;
+    this.hasPendingGet = false;
+    this.notifyDestroued();
   }
 }
 
-class StarscapeObject {
+export class StarscapeEvent extends Element {
+  constructor(obj, name) {
+    super();
+    this.obj = obj;
+    this.name = name;
+    this.isSubscribed = false;
+  }
+
+  addSubscriber(subscriber) {
+    super.addSubscriber(subscriber);
+    if (!this.isSubscribed) {
+      this.isSubscribed = true;
+      this.obj.connection.subscribeTo(this.obj.id, this.name);
+    }
+  }
+
+  deleteSubscriber(subscriber) {
+    super.deleteSubscriber(subscriber);
+    if (this.subscribers.size == 0 && this.isSubscribed) {
+      this.isSubscribed = false;
+      this.obj.connection.unsubscribeFrom(this.obj.id, this.name);
+    }
+  }
+
+  handleEvent(value) {
+    this.sendUpdates(value);
+  }
+}
+
+export class StarscapeAction extends Element {
+  constructor(obj, name) {
+    super();
+    this.obj = obj;
+    this.name = name;
+  }
+
+  fire(value) {
+    if (!this.isAlive()) {
+      throw 'fire() called after object destroyed';
+    }
+    this.obj.connection.fireAction(this.obj.id, this.name, value);
+    this.sendUpdates(value);
+  }
+
+  firer() {
+    return value => { this.fire(value) };
+  }
+}
+
+export class StarscapeObject {
   constructor(connection, id) {
     this.connection = connection;
     this.id = id;
-    this.properties = new Map();
+    this.members = new Map();
+  }
+
+  member(name, memberClass) {
+    let member = this.members.get(name);
+    if (!member) {
+      member = new memberClass(this, name);
+      this.members.set(name, member);
+    } else if (!(member instanceof memberClass)) {
+      throw (this.id + '.' + name +
+        ' can not be created as a ' + memberClass.constructor.name +
+        ' because it was already created as a ' + member.constructor.name);
+    }
+    return member;
   }
 
   property(name) {
-    let prop = this.properties.get(name);
-    if (!prop) {
-      prop = new StarscapeElement(this, name);
-      this.properties.set(name, prop);
-    }
-    // note: once created, can not be removed because a non-active view may still hold a ref
-    return prop;
+    return this.member(name, StarscapeProperty);
   }
 
   action(name) {
-    return this.property(name);
+    return this.member(name, StarscapeAction);
   }
 
   event(name) {
-    return this.property(name);
+    return this.member(name, StarscapeEvent);
   }
 
   handleUpdate(name, value) {
-    const prop = this.properties.get(name);
-    if (prop) {
-      prop.handleUpdate(value);
+    const member = this.members.get(name);
+    if (member) {
+      if (!(member instanceof StarscapeProperty)) {
+        throw ('can not process update for ' + this.id + '.' + name +
+          'because it is a ' + member.constructor.name);
+      }
+      member.handleUpdate(value);
     }
   }
 
-  handleOneshot(name, value) {
-    const prop = this.properties.get(name);
-    if (prop) {
-      prop.handleOneshot(value);
+  handleGetReply(name, value) {
+    const member = this.members.get(name);
+    if (member) {
+      if (!(member instanceof StarscapeProperty)) {
+        throw ('can not process get reply for ' + this.id + '.' + name +
+          'because it is a ' + member.constructor.name);
+      }
+      member.handleGetReply(value);
     }
   }
 
   handleEvent(name, value) {
-    const prop = this.properties.get(name);
-    if (prop) {
-      prop.handleEvent(value);
+    const member = this.members.get(name);
+    if (member) {
+      if (!(member instanceof StarscapeEvent)) {
+        throw ('can not process event for ' + this.id + '.' + name +
+          'because it is a ' + member.constructor.name);
+      }
+      member.handleEvent(value);
     }
   }
 }
@@ -331,7 +378,7 @@ export default class StarscapeConnection {
         if (message.mtype == 'update') {
           obj.handleUpdate(message.property, value);
         } else if (message.mtype == 'value') {
-          obj.handleOneshot(message.property, value);
+          obj.handleGetReply(message.property, value);
         } else if (message.mtype == 'event') {
           obj.handleEvent(message.property, value);
         } else {

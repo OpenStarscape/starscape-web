@@ -4,12 +4,12 @@ const emptyGeom = new THREE.BufferGeometry();
 const upVec = new THREE.Vector3(0, 1, 0);
 
 class Body {
-  constructor(state, obj) {
-    this.state = state;
+  constructor(group, obj) {
+    this.group = group;
     this.obj = obj;
     this.mat = new THREE.MeshBasicMaterial({color: 'white'});
     this.mesh = new THREE.Mesh(emptyGeom, this.mat);
-    this.state.subscribeProperty(this.obj.property('position'), pos => {
+    this.obj.property('position').subscribe(this.group, pos => {
       pos = pos.multiplyScalar(0.001);
       this.mesh.position = pos;
     });
@@ -21,9 +21,9 @@ class Body {
 }
 
 class Celestial extends Body {
-  constructor(state, obj) {
-    super(state, obj)
-    this.state.getProperty(this.obj.property('mass'), mass => {
+  constructor(group, obj) {
+    super(group, obj)
+    this.obj.property('mass').getThen(this.group, mass => {
       const size = Math.pow(mass / 1.0e+13, 1 / 3.0) + 0.1;
       if (size > 3) {
         // Star
@@ -38,13 +38,13 @@ class Celestial extends Body {
 }
 
 class Ship extends Body {
-  constructor(state, obj) {
-    super(state, obj)
+  constructor(group, obj) {
+    super(group, obj)
     this.mat.color.setHex(0xFFFFFF);
     this.mesh.geometry = new THREE.ConeGeometry(0.5, 2, 16);
     this.previousVel = new THREE.Vector3();
     //this.thrustDir = new THREE.Vector3();
-    this.state.subscribeProperty(this.obj.property('velocity'), vel => {
+    this.obj.property('velocity').subscribe(this.group, vel => {
       //this.thrustDir.subVectors(vel, this.previousVel);
       //this.thrustDir.normalize();
       //this.previousVel = vel;
@@ -58,12 +58,12 @@ class Ship extends Body {
   }
 }
 
-export function makeBody(state, obj, callback) {
-  state.getProperty(obj.property('class'), cls => {
+export function makeBody(group, obj, callback) {
+  obj.property('class').getThen(group, cls => {
     if (cls == 'celestial') {
-      callback(new Celestial(state, obj));
+      callback(new Celestial(group, obj));
     } else if (cls == 'ship') {
-      callback(new Ship(state, obj));
+      callback(new Ship(group, obj));
     } else {
       console.error('unknown body class ', cls);
     }

@@ -7,7 +7,7 @@
 import * as THREE from "three";
 import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls'
 import StarscapeConnection from "../lib/Starscape.js";
-import State from "../lib/State.js";
+import CallbackGroup from "../lib/CallbackGroup.js";
 import { makeBody } from "../graphics/Body.js";
 
 export default {
@@ -21,7 +21,7 @@ export default {
       ship: null,
       cameraController: null,
       connection: null,
-      state: null,
+      group: null,
       attachedToShip: null,
     };
   },
@@ -106,10 +106,10 @@ export default {
       this.addStars();
 
       this.connection = new StarscapeConnection();
-      this.state = new State();
-      this.state.getProperty(this.connection.god.property('bodies'), bodies => {
+      this.group = new CallbackGroup();
+      this.connection.god.property('bodies').getThen(this.group, bodies => {
         bodies.forEach(obj => {
-          makeBody(this.state, obj, body => {
+          makeBody(this.group, obj, body => {
             this.scene.add(body.mesh);
             //if (!this.currentShip && body.isShip()) {
               //body.mesh.attach(this.camera);
@@ -119,13 +119,13 @@ export default {
             //}
           });
         });
-        this.state.fireAction(this.connection.god.action('create_ship'), [
+        this.connection.god.action('create_ship').fire([
           new THREE.Vector3(20000, 60000, 0),
           new THREE.Vector3(0, 0, 10000),
         ]);
       });
-      this.state.subscribeProperty(this.connection.god.event('ship_created'), obj => {
-        makeBody(this.state, obj, body => {
+      this.connection.god.event('ship_created').subscribe(this.group, obj => {
+        makeBody(this.group, obj, body => {
           this.scene.add(body.mesh);
           if (!this.currentShip && body.isShip()) {
             body.mesh.attach(this.camera);
