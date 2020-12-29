@@ -6,7 +6,7 @@ function randRange(start, end) {
   return Math.floor(Math.random() * (end - start + 1)) + start;
 }
 
-/// Adds a stary background to the 3D scene
+/// Adds a stary background to a 3D scene.
 export default class Starfield {
   constructor(scene) {
     const RAND_RANGE_START = -1000;

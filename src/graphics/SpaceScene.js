@@ -4,6 +4,7 @@ import Lifetime from "../lib/Lifetime.js";
 import Starfield from '../graphics/Starfield.js';
 import { makeBody } from "../graphics/Body.js";
 
+/// Manages everything required to render a 3D space view with three.js.
 export default class SpaceScene {
   constructor(connection) {
     const scene = new THREE.Scene();
