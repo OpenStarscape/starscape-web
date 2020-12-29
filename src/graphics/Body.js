@@ -3,6 +3,7 @@ import * as THREE from "three";
 const emptyGeom = new THREE.BufferGeometry();
 const upVec = new THREE.Vector3(0, 1, 0);
 
+/// The parent class for all 3D body types.
 class Body {
   constructor(group, obj) {
     this.group = group;
