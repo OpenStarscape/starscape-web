@@ -4,11 +4,12 @@ const emptyGeom = new THREE.BufferGeometry();
 const upVec = new THREE.Vector3(0, 1, 0);
 
 class Body {
-  constructor(obj) {
+  constructor(state, obj) {
+    this.state = state;
     this.obj = obj;
     this.mat = new THREE.MeshBasicMaterial({color: 'white'});
     this.mesh = new THREE.Mesh(emptyGeom, this.mat);
-    this.obj.subscribe('position', pos => {
+    this.state.subscribeProperty(this.obj.property('position'), pos => {
       pos = pos.multiplyScalar(0.001);
       this.mesh.position = pos;
     });
@@ -20,9 +21,9 @@ class Body {
 }
 
 class Celestial extends Body {
-  constructor(obj) {
-    super(obj)
-    this.obj.get('mass', mass => {
+  constructor(state, obj) {
+    super(state, obj)
+    this.state.getProperty(this.obj.property('mass'), mass => {
       const size = Math.pow(mass / 1.0e+13, 1 / 3.0) + 0.1;
       if (size > 3) {
         // Star
@@ -37,13 +38,13 @@ class Celestial extends Body {
 }
 
 class Ship extends Body {
-  constructor(obj) {
-    super(obj)
+  constructor(state, obj) {
+    super(state, obj)
     this.mat.color.setHex(0xFFFFFF);
     this.mesh.geometry = new THREE.ConeGeometry(0.5, 2, 16);
     this.previousVel = new THREE.Vector3();
     //this.thrustDir = new THREE.Vector3();
-    this.obj.subscribe('velocity', vel => {
+    this.state.subscribeProperty(this.obj.property('velocity'), vel => {
       //this.thrustDir.subVectors(vel, this.previousVel);
       //this.thrustDir.normalize();
       //this.previousVel = vel;
@@ -57,12 +58,12 @@ class Ship extends Body {
   }
 }
 
-export function makeBody(obj, callback) {
-  obj.get('class', cls => {
+export function makeBody(state, obj, callback) {
+  state.getProperty(obj.property('class'), cls => {
     if (cls == 'celestial') {
-      callback(new Celestial(obj));
+      callback(new Celestial(state, obj));
     } else if (cls == 'ship') {
-      callback(new Ship(obj));
+      callback(new Ship(state, obj));
     } else {
       console.error('unknown body class ', cls);
     }
