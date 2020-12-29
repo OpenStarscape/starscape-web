@@ -109,7 +109,7 @@ class GetSubscriber extends Subscriber {
       this.callback(value);
     }
     this.callback = null;
-    this.group.deleteSubscriber(this);
+    this.lifetime.delete(this);
     this.element.deleteSubscriber(this);
   }
 
@@ -135,8 +135,8 @@ export class StarscapeProperty extends Element {
     return value => { this.set(value); };
   }
 
-  getThen(group, callback) {
-    const subscriber = new GetSubscriber(this, group, callback);
+  getThen(lifetime, callback) {
+    const subscriber = new GetSubscriber(this, lifetime, callback);
     // Note that we call the super version, we don't want to call connection.subscribeTo()
     super.addSubscriber(subscriber);
     // May have already fired and cleaned itself up, in which case isPending() is false
@@ -146,11 +146,11 @@ export class StarscapeProperty extends Element {
     }
   }
 
-  getter(group) {
-    const subscriber = Subscriber(group, null);
+  getter(lifetime) {
+    const subscriber = Subscriber(lifetime, null);
     this.addSubscriber(subscriber);
     return () => {
-      group.verifyAcrive();
+      lifetime.verifyAlive();
       return this.cachedValue();
     };
   }

@@ -1,12 +1,12 @@
 export class Subscriber {
-  constructor(element, group, callback) {
+  constructor(element, lifetime, callback) {
     this.element = element;
-    this.group = group;
+    this.lifetime = lifetime;
     this.callback = callback;
   }
 
   addToGroup() {
-    this.group.addSubscriber(this);
+    this.lifetime.add(this);
   }
 
   elementUpdate(value) {
@@ -17,10 +17,11 @@ export class Subscriber {
 
   elementDestroyed() {
     this.callback = null;
-    this.group.deleteSubscriber(this);
+    this.lifetime.delete(this);
   }
 
-  groupFinalized() {
+  /// This is called by the lifetime when it is killed
+  dispose() {
     this.callback = null;
     this.element.deleteSubscriber(this);
   }
@@ -33,8 +34,8 @@ export class Element {
     this.alive = true
   }
 
-  subscribe(group, callback) {
-    this.addSubscriber(new Subscriber(this, group, callback));
+  subscribe(lifetime, callback) {
+    this.addSubscriber(new Subscriber(this, lifetime, callback));
   }
 
   sendUpdates(value) {

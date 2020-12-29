@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls'
-import CallbackGroup from "../lib/CallbackGroup.js";
+import Lifetime from "../lib/Lifetime.js";
 import Starfield from '../graphics/Starfield.js';
 import { makeBody } from "../graphics/Body.js";
 
@@ -23,10 +23,10 @@ export default class SpaceScene {
     this.starfield = new Starfield(this.scene);
 
     this.connection = connection;
-    this.group = new CallbackGroup();
-    this.connection.god.property('bodies').getThen(this.group, bodies => {
+    this.lt = new Lifetime();
+    this.connection.god.property('bodies').getThen(this.lt, bodies => {
       bodies.forEach(obj => {
-        makeBody(this.group, obj, body => {
+        makeBody(this.lt, obj, body => {
           this.scene.add(body.mesh);
           //if (!this.currentShip && body.isShip()) {
             //body.mesh.attach(this.camera);
@@ -41,8 +41,8 @@ export default class SpaceScene {
         new THREE.Vector3(0, 0, 10000),
       ]);
     });
-    this.connection.god.event('ship_created').subscribe(this.group, obj => {
-      makeBody(this.group, obj, body => {
+    this.connection.god.event('ship_created').subscribe(this.lt, obj => {
+      makeBody(this.lt, obj, body => {
         this.scene.add(body.mesh);
         if (!this.currentShip && body.isShip()) {
           body.mesh.attach(this.camera);
