@@ -6,7 +6,8 @@
 <script>
 import * as THREE from "three";
 import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls'
-import Starscape from "../lib/Starscape.js";
+import StarscapeConnection from "../lib/Starscape.js";
+import State from "../lib/State.js";
 import { makeBody } from "../graphics/Body.js";
 
 export default {
@@ -18,9 +19,9 @@ export default {
       camera: null,
       renderer: null,
       ship: null,
-      light: null,
       cameraController: null,
-      starscape: null,
+      connection: null,
+      state: null,
       attachedToShip: null,
     };
   },
@@ -104,10 +105,11 @@ export default {
       this.addControllers();
       this.addStars();
 
-      this.starscape = new Starscape();
-      this.starscape.god.get('bodies', bodies => {
+      this.connection = new StarscapeConnection();
+      this.state = new State();
+      this.state.getProperty(this.connection.god.property('bodies'), bodies => {
         bodies.forEach(obj => {
-          makeBody(obj, body => {
+          makeBody(this.state, obj, body => {
             this.scene.add(body.mesh);
             //if (!this.currentShip && body.isShip()) {
               //body.mesh.attach(this.camera);
@@ -117,13 +119,13 @@ export default {
             //}
           });
         });
-        this.starscape.god.set('create_ship', [
+        this.state.fireAction(this.connection.god.action('create_ship'), [
           new THREE.Vector3(20000, 60000, 0),
           new THREE.Vector3(0, 0, 10000),
         ]);
       });
-      this.starscape.god.subscribe('ship_created', obj => {
-        makeBody(obj, body => {
+      this.state.subscribeProperty(this.connection.god.event('ship_created'), obj => {
+        makeBody(this.state, obj, body => {
           this.scene.add(body.mesh);
           if (!this.currentShip && body.isShip()) {
             body.mesh.attach(this.camera);

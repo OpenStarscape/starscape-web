@@ -1,6 +1,6 @@
 import {Vector3} from 'three';
 
-class RTCSession {
+class StarscapeRTCSession {
   constructor(handlePacket) {
     this.connection = new RTCPeerConnection({
       iceServers: [{
@@ -29,7 +29,7 @@ class RTCSession {
         this.handlePacket(str);
       };
       this.isOpen = true
-      console.log('Queued packets:', this.queuedPackets);
+      // console.log('Queued packets:', this.queuedPackets);
       for (let i = 0; i < this.queuedPackets.length; i++) {
         this.sendPacket(this.queuedPackets[i])
       }
@@ -86,12 +86,12 @@ class RTCSession {
   sendPacket(packet) {
     if (this.isOpen) {
       // The connection is open
-      console.log('sending packet:', packet);
+      // console.log('sending packet:', packet);
       let array = this.encoder.encode(packet);
       this.channel.send(array);
     } else {
       // The connection is not yet open
-      console.log('queueing packet:', packet);
+      // console.log('queueing packet:', packet);
       this.queuedPackets.push(packet);
     }
   }
@@ -102,68 +102,187 @@ class RTCSession {
   }
 }
 
-class Obj {
-  constructor(starscape, id) {
-    this.starscape = starscape;
-    this.id = id;
-    this.oneshots = {}
-    this.subscribers = {}
+/*
+class Subscriber {
+  notifyUpdate() {}
+  notifyDestroyed() {}
+}
+*/
+
+class StarscapeElement {
+  constructor(obj, name) {
+    this.connection = obj.connection;
+    this.obj = obj;
+    this.name = name;
+    this.value = undefined;
+    this.subscribers = new Set();
+    this.isSubscribed = false;
+    this.oneshots = [];
+    this.hasPendingOneshot = false;
   }
 
-  propertyUpdate(prop, value) {
-    if (prop in this.oneshots) {
-      this.oneshots[prop].forEach(handler => handler(value));
-      delete this.oneshots[prop];
+  addOneshot(oneshot) {
+    if (this.obj === null) {
+      throw 'addOneshot() called after object destroyed';
     }
-    if (prop in this.subscribers) {
-      this.subscribers[prop](value);
+    this.oneshots.push(oneshot);
+    if (this.isSubscribed && this.value !== undefined) {
+      this.handleOneshot(this.this.value);
+    } else if (!this.hasPendingOneshot) {
+      this.hasPendingOneshot = true;
+      this.connection.getProperty(this.obj.id, this.name);
     }
   }
 
-  set(prop, value) {
-    this.starscape.setProperty(this.id, prop, value);
-  }
-
-  get(prop, handler) {
-    if (prop in this.oneshots) {
-      this.oneshots[prop].push(handler);
-    } else {
-      this.oneshots[prop] = [handler];
+  addSubscriber(subscriber) {
+    if (this.obj === null) {
+      throw 'addSubscriber() called after object destroyed';
     }
-    this.starscape.getProperty(this.id, prop);
+    this.subscribers.add(subscriber);
+    if (!this.isSubscribed) {
+      this.isSubscribed = true;
+      this.connection.subscribeTo(this.obj.id, this.name);
+    }
+    if (this.value !== undefined) {
+      subscriber.notifyUpdate(this.value);
+    }
   }
 
-  subscribe(prop, handler) {
-    // TODO: what happens if unsub + sub arrive out of order?
-    // Overwrite any previous subscriber
-    this.subscribers[prop] = handler;
-    // This should probably be dropped if already subscribed, but we're unreliable so screw it
-    this.starscape.subscribeTo(this.id, prop);
+  removeSubscriber(subscriber) {
+    this.subscribers.delete(subscriber);
+    if (this.subscribers.size == 0 && this.isSubscribed) {
+      this.isSubscribed = false;
+      this.value = undefined;
+      this.connection.unsubscribeFrom(this.obj.id, this.name);
+    }
   }
 
-  unsubscribe(prop) {
-    delete this.subscribers[prop];
-    this.starscape.unsubscribeFrom(this.id, prop);
+  cachedValue() {
+    return this.value;
+  }
+
+  setProperty(value) {
+    this.connection.setProperty(this.obj.id, this.name, value);
+  }
+
+  fireAction(value) {
+    this.connection.fireAction(this.obj.id, this.name, value);
+  }
+
+  isAlive() {
+    return this.obj !== null;
+  }
+
+  handleUpdate(value) {
+    if (this.isSubscribed) {
+      this.value = value;
+      for (const sub of this.subscribers) {
+        sub.notifyUpdate(value);
+      }
+    }
+    if (this.oneshots.length) {
+      let oneshots = this.oneshots;
+      this.oneshots = [];
+      for (let i = 0; i < oneshots.length; i++) {
+        oneshots[i].notifyUpdate(value);
+      }
+    }
+  }
+
+  handleOneshot(value) {
+    this.hasPendingOneshot = false;
+    this.handleUpdate(value);
+  }
+
+  handleEvent(value) {
+    if (this.isSubscribed) {
+      this.value = undefined;
+      for (const sub of this.subscribers) {
+        sub.notifyUpdate(value);
+      }
+    }
+  }
+
+  handleObjectDestroyed() {
+    this.objectDestroyed = true;
+
+    for (let i = 0; i < this.oneshots.length; i++) {
+      this.oneshots[i].notifyDestroyed();
+    }
+    for (const sub of this.subscribers) {
+      sub.notifyDestroyed();
+    }
+    this.oneshots = [];
+    this.subscribers.clear();
+    this.hasPendingOneshot = false;
+    this.isSubscribed = false;
+    this.value = undefined;
+    this.obj = null;
   }
 }
 
-export default class Starscape {
+class StarscapeObject {
+  constructor(connection, id) {
+    this.connection = connection;
+    this.id = id;
+    this.properties = new Map();
+  }
+
+  property(name) {
+    let prop = this.properties.get(name);
+    if (!prop) {
+      prop = new StarscapeElement(this, name);
+      this.properties.set(name, prop);
+    }
+    // note: once created, can not be removed because a non-active view may still hold a ref
+    return prop;
+  }
+
+  action(name) {
+    return this.property(name);
+  }
+
+  event(name) {
+    return this.property(name);
+  }
+
+  handleUpdate(name, value) {
+    const prop = this.properties.get(name);
+    if (prop) {
+      prop.handleUpdate(value);
+    }
+  }
+
+  handleOneshot(name, value) {
+    const prop = this.properties.get(name);
+    if (prop) {
+      prop.handleOneshot(value);
+    }
+  }
+
+  handleEvent(name, value) {
+    const prop = this.properties.get(name);
+    if (prop) {
+      prop.handleEvent(value);
+    }
+  }
+}
+
+export default class StarscapeConnection {
   constructor() {
-    this.session = new RTCSession((packet) => this.handlePacket(packet));
-    this.god = new Obj(this, 1);
-    this.objects = {1: this.god};
+    this.session = new StarscapeRTCSession((packet) => this.handlePacket(packet));
+    this.objects = new Map();
+    this.god = this.getObj(1);
   }
 
   getObj(id) {
     if (typeof id !== 'number' || !Number.isInteger(id)) {
       throw 'ID ' + id + ' is not an int';
     }
-    let obj;
-    if (id in this.objects) {
-      obj = this.objects[id];
-    } else {
-      obj = new Obj(this, id);
-      this.objects[id] = obj;
+    let obj = this.objects.get(id);
+    if (!obj) {
+      obj = new StarscapeObject(this, id);
+      this.objects.set(id, obj);
     }
     return obj;
   }
@@ -189,7 +308,7 @@ export default class Starscape {
   encodeValue(value) {
     if (value instanceof Vector3) {
       return value.toArray();
-    } else if (value instanceof Obj) {
+    } else if (value instanceof StarscapeObject) {
       return [value.id];
     } else if (Array.isArray(value)) {
       return [value.map(i => this.encodeValue(i))];
@@ -209,7 +328,15 @@ export default class Starscape {
         }
         let obj = this.getObj(message.object);
         let value = this.resolveValue(message.value);
-        obj.propertyUpdate(message.property, value);
+        if (message.mtype == 'update') {
+          obj.handleUpdate(message.property, value);
+        } else if (message.mtype == 'value') {
+          obj.handleOneshot(message.property, value);
+        } else if (message.mtype == 'event') {
+          obj.handleEvent(message.property, value);
+        } else {
+          throw 'should be unreachable';
+        }
       } else {
         throw 'unknown mtype ' + message.mtype;
       }
@@ -242,6 +369,11 @@ export default class Starscape {
     value = this.encodeValue(value);
     let json = JSON.stringify({mtype: 'set', object: obj, property: prop, value: value}) + '\n';
     this.session.sendPacket(json);
+  }
+
+  fireAction(obj, prop, value) {
+    // using the same protocol message as set is just a temporary hack, but it works
+    this.setProperty(obj, prop, value);
   }
 
   getProperty(obj, prop) {
