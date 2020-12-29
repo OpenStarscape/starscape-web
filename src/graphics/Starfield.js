@@ -1,35 +1,44 @@
 import * as THREE from "three";
 
-function randRange(start, end) {
-  start = Math.floor(start);
-  end = Math.ceil(end);
-  return Math.floor(Math.random() * (end - start + 1)) + start;
-}
-
 /// Adds a stary background to a 3D scene.
 export default class Starfield {
-  constructor(scene) {
-    const RAND_RANGE_START = -1000;
-    const RAND_RANGE_END = 1000;
-    const dotGeometry = new THREE.Geometry();
-    const dotMaterial = new THREE.PointsMaterial();
+  constructor(lifetime, scene) {
+    this.closest = 600;
+    this.farthest = 800;
+    this.lt = lifetime;
+    this.scene = scene;
+    this.geom = new THREE.Geometry();
+    this.lt.add(this.geom);
+    this.geom.vertices.push(new THREE.Vector3());
+    this.smallMat = new THREE.PointsMaterial({ color: 0xffffff, size: 1.5 });
+    this.bigMat = new THREE.PointsMaterial({ color: 0xffffff, size: 2.0 });
+    this.lt.add(this.mat);
+    this.stars = [];
+    this.isAdded = false;
 
-    for(let i = 0; i < 500; i++) {
-      const dot = new THREE.Points(dotGeometry, dotMaterial);
+    for(let i = 0; i < 300; i++) {
+      this.newStar(this.bigMat);
+    }
+    for(let i = 0; i < 800; i++) {
+      this.newStar(this.smallMat);
+    }
 
-      dotGeometry.vertices.push(new THREE.Vector3());
-
-      let position = new THREE.Vector3(
-        randRange(RAND_RANGE_START, RAND_RANGE_END),
-        randRange(RAND_RANGE_START, RAND_RANGE_END),
-        randRange(RAND_RANGE_START, RAND_RANGE_END));
-      position.normalize()
-      position.multiplyScalar(randRange(300, 1000));
-      dot.position.x = position.x;
-      dot.position.y = position.y;
-      dot.position.z = position.z;
-
-      scene.add(dot);
+    for (let i = 0; i < this.stars.length; i++) {
+      this.scene.add(this.stars[i]);
     }
   }
+
+  newStar(mat) {
+    const star = new THREE.Points(this.geom, mat);
+    star.position.set(
+      Math.random() - 0.5,
+      Math.random() - 0.5,
+      Math.random() - 0.5);
+    star.position.normalize()
+    const distance = Math.random() * (this.farthest - this.closest) + this.closest;
+    star.position.multiplyScalar(distance);
+    this.stars.push(star);
+  }
+
+  /// removing from scene can be easily implemented if needed
 }

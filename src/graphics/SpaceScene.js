@@ -11,6 +11,7 @@ export default class SpaceScene {
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({antialias: true});
 
+    this.lt = new Lifetime();
     this.scene = scene;
     this.camera = camera;
     this.renderer = renderer;
@@ -21,10 +22,9 @@ export default class SpaceScene {
     renderer.setSize(window.innerWidth, window.innerHeight);
 
     this.addControllers();
-    this.starfield = new Starfield(this.scene);
+    this.starfield = new Starfield(this.lt, this.scene);
 
     this.connection = connection;
-    this.lt = new Lifetime();
     this.connection.god.property('bodies').getThen(this.lt, bodies => {
       bodies.forEach(obj => {
         makeBody(this.lt, obj, body => {
