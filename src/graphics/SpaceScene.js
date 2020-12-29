@@ -1,14 +1,8 @@
 import * as THREE from "three";
 import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls'
 import CallbackGroup from "../lib/CallbackGroup.js";
+import Starfield from '../graphics/Starfield.js';
 import { makeBody } from "../graphics/Body.js";
-
-function randRange(start, end) {
-  start = Math.floor(start);
-  end = Math.ceil(end);
-
-  return Math.floor(Math.random() * (end - start + 1)) + start;
-}
 
 export default class SpaceScene {
   constructor(connection) {
@@ -26,7 +20,7 @@ export default class SpaceScene {
     renderer.setSize(window.innerWidth, window.innerHeight);
 
     this.addControllers();
-    this.addStars();
+    this.starfield = new Starfield(this.scene);
 
     this.connection = connection;
     this.group = new CallbackGroup();
@@ -70,32 +64,6 @@ export default class SpaceScene {
 
   domElement() {
     return this.renderer.domElement;
-  }
-
-  addStars() {
-    console.log("ADDED STARS");
-    const RAND_RANGE_START = -1000;
-    const RAND_RANGE_END = 1000;
-
-    for(let i = 0; i < 500; i++) {
-      const dotGeometry = new THREE.Geometry();
-      const dotMaterial = new THREE.PointsMaterial();
-      const dot = new THREE.Points(dotGeometry, dotMaterial);
-
-      dotGeometry.vertices.push(new THREE.Vector3());
-
-      let position = new THREE.Vector3(
-        randRange(RAND_RANGE_START, RAND_RANGE_END),
-        randRange(RAND_RANGE_START, RAND_RANGE_END),
-        randRange(RAND_RANGE_START, RAND_RANGE_END));
-      position.normalize()
-      position.multiplyScalar(randRange(300, 1000));
-      dot.position.x = position.x;
-      dot.position.y = position.y;
-      dot.position.z = position.z;
-
-      this.scene.add(dot);
-    }
   }
 
   createShip() {
