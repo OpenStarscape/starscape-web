@@ -6,14 +6,16 @@ import { makeBody } from "../graphics/Body.js";
 
 /// Manages everything required to render a 3D space view with three.js.
 export default class SpaceScene {
-  constructor(connection) {
+  constructor(connection, domParent) {
     this.lt = new Lifetime();
     this.connection = connection;
+    this.domParent = domParent;
     this.scene = new THREE.Scene();
 
     this.renderer = new THREE.WebGLRenderer({antialias: true});
     this.renderer.setClearColor('black');
     this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.domParent.appendChild(this.renderer.domElement);
 
     this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     this.cameraController = new TrackballControls(this.camera, this.renderer.domElement);
@@ -50,10 +52,6 @@ export default class SpaceScene {
     });
 
     this.render();
-  }
-
-  domElement() {
-    return this.renderer.domElement;
   }
 
   render() {
