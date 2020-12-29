@@ -37,6 +37,8 @@ export default class Starfield {
     star.position.normalize()
     const distance = Math.random() * (this.farthest - this.closest) + this.closest;
     star.position.multiplyScalar(distance);
+    star.matrixAutoUpdate = false;
+    star.updateMatrix();
     this.stars.push(star);
   }
 
