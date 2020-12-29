@@ -11,10 +11,10 @@ export default class Starfield {
   constructor(scene) {
     const RAND_RANGE_START = -1000;
     const RAND_RANGE_END = 1000;
+    const dotGeometry = new THREE.Geometry();
+    const dotMaterial = new THREE.PointsMaterial();
 
     for(let i = 0; i < 500; i++) {
-      const dotGeometry = new THREE.Geometry();
-      const dotMaterial = new THREE.PointsMaterial();
       const dot = new THREE.Points(dotGeometry, dotMaterial);
 
       dotGeometry.vertices.push(new THREE.Vector3());
