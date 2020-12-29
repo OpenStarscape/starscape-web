@@ -20,8 +20,7 @@ export default {
   methods: {
     init: function() {
       this.connection = new StarscapeConnection();
-      this.scene = new SpaceScene(this.connection);
-      this.element.appendChild(this.scene.domElement());
+      this.scene = new SpaceScene(this.connection, this.element);
     }
   },
 
