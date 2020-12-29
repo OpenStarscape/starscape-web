@@ -16,10 +16,10 @@ export default class Starfield {
     this.stars = [];
     this.isAdded = false;
 
-    for(let i = 0; i < 300; i++) {
+    for(let i = 0; i < 100; i++) {
       this.newStar(this.bigMat);
     }
-    for(let i = 0; i < 800; i++) {
+    for(let i = 0; i < 300; i++) {
       this.newStar(this.smallMat);
     }
 
