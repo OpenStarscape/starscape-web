@@ -10,8 +10,8 @@ class Body {
     this.mat = new THREE.MeshBasicMaterial({color: 'white'});
     this.mesh = new THREE.Mesh(emptyGeom, this.mat);
     this.obj.property('position').subscribe(this.group, pos => {
-      pos = pos.multiplyScalar(0.001);
-      this.mesh.position = pos;
+      this.mesh.position.copy(pos);
+      this.mesh.position.multiplyScalar(0.001);
     });
   }
 
@@ -42,14 +42,16 @@ class Ship extends Body {
     super(group, obj)
     this.mat.color.setHex(0xFFFFFF);
     this.mesh.geometry = new THREE.ConeGeometry(0.5, 2, 16);
-    this.previousVel = new THREE.Vector3();
+    this.velocity = new THREE.Vector3();
+    //this.previousVel = new THREE.Vector3();
     //this.thrustDir = new THREE.Vector3();
     this.obj.property('velocity').subscribe(this.group, vel => {
       //this.thrustDir.subVectors(vel, this.previousVel);
       //this.thrustDir.normalize();
       //this.previousVel = vel;
-      vel.normalize();
-      this.mesh.quaternion.setFromUnitVectors(upVec, vel);
+      this.velocity.copy(vel);
+      this.velocity.normalize();
+      this.mesh.quaternion.setFromUnitVectors(upVec, this.velocity);
     });
   }
 
