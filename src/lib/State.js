@@ -55,8 +55,8 @@ class PlaceholderSubscriber {
 
 export default class State {
   constructor() {
-    this.pendingOneshots = {};
-    this.subscribers = {};
+    this.pendingOneshots = [];
+    this.subscribers = new Map();
     this.isEnabled = true;
   }
 
@@ -69,14 +69,14 @@ export default class State {
   getProperty(element, callback) {
     this.verifyEnabled();
     const oneshot = new OneshotSubscriber(this, callback);
-    this.pendingOneshots[oneshot] = null;
+    this.pendingOneshots.push(oneshot);
     element.addOneshot(oneshot);
   }
 
   propertyGetter(element) {
     this.verifyEnabled();
     const subscriber = new PlaceholderSubscriber(this);
-    this.subscribers[subscriber] = null;
+    this.subscribers.set(subscriber, element);
     element.addSubscriber(subscriber);
     return () => {
       this.verifyEnabled();
@@ -87,7 +87,7 @@ export default class State {
   subscribeProperty(element, callback) {
     this.verifyEnabled();
     const subscriber = new CallbackSubscriber(this, callback);
-    this.subscribers[subscriber] = null;
+    this.subscribers.set(subscriber, element);
     element.addSubscriber(subscriber);
   }
 
@@ -104,7 +104,7 @@ export default class State {
   subscribeEvent(element, callback) {
     this.verifyEnabled();
     const subscriber = new CallbackSubscriber(this, callback);
-    this.subscribers[subscriber] = null;
+    this.subscribers.set(subscriber, element);
     element.addSubscriber(subscriber);
   }
 
@@ -123,12 +123,12 @@ export default class State {
       return;
     }
     this.isEnabled = false;
-    for (const oneshot in this.pendingOneshots) {
+    for (const oneshot of this.pendingOneshots) {
       oneshot.cancel();
     }
-    this.pendingOneshots = {};
-    for (const subscriber in this.subscribers) {
-      this.subscribers[subscriber].removeSubscriber(subscriber);
+    this.pendingOneshots = [];
+    for (const [subscriber, element] of this.subscribers) {
+      element.removeSubscriber(subscriber);
     }
   }
 
@@ -137,11 +137,11 @@ export default class State {
       return;
     }
     this.isEnabled = true;
-    for (const subscriber in this.subscribers) {
-      if (!this.subscribers[subscriber].isAlive()) {
-        delete this.subscribers[subscriber];
+    for (const [subscriber, element] of this.subscribers) {
+      if (element.isAlive()) {
+        element.addSubscriber(subscriber);
       } else {
-        this.subscribers[subscriber].addSubscriber(subscriber);
+        this.subscribers.delete(subscriber);
       }
     }
   }
