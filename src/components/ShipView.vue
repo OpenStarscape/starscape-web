@@ -4,7 +4,7 @@
 </template>
 
 <script>
-import StarscapeConnection from '../lib/Starscape.js';
+import State from '../lib/State.js';
 import SpaceScene from '../graphics/SpaceScene.js';
 
 export default {
@@ -12,15 +12,15 @@ export default {
   data() {
     return {
       element: null,
-      connection: null,
+      state: null,
       scene: null,
     };
   },
 
   methods: {
     init: function() {
-      this.connection = new StarscapeConnection();
-      this.scene = new SpaceScene(this.connection, this.element);
+      this.state = new State();
+      this.scene = new SpaceScene(this.state, this.element);
     }
   },
 
