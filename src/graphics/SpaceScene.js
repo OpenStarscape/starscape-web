@@ -6,14 +6,16 @@ import { makeBody } from "../graphics/Body.js";
 
 /// Manages everything required to render a 3D space view with three.js.
 export default class SpaceScene {
-  constructor(connection, domParent) {
+  constructor(state, domParent) {
     this.lt = new Lifetime();
-    this.connection = connection;
+    this.state = state;
+    this.god = state.connection.god;
     this.domParent = domParent;
     this.scene = new THREE.Scene();
 
     this.renderer = new THREE.WebGLRenderer({antialias: true});
     this.renderer.setClearColor('black');
+    // TODO?: renderer.setPixelRatio( window.devicePixelRatio );
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.domParent.appendChild(this.renderer.domElement);
 
@@ -22,18 +24,19 @@ export default class SpaceScene {
 
     this.starfield = new Starfield(this.lt, this.scene);
 
-    this.connection.god.property('bodies').getThen(this.lt, bodies => {
+    this.god.property('bodies').getThen(this.lt, bodies => {
       bodies.forEach(obj => {
         makeBody(this.lt, obj, body => {
           this.scene.add(body.mesh);
         });
       });
-      this.connection.god.action('create_ship').fire([
+      this.god.action('create_ship').fire([
         new THREE.Vector3(20000, 60000, 0),
         new THREE.Vector3(0, 0, 10000),
       ]);
     });
-    this.connection.god.event('ship_created').subscribe(this.lt, obj => {
+    this.god.event('ship_created').subscribe(this.lt, obj => {
+      this.state.currentShip.set(obj);
       makeBody(this.lt, obj, body => {
         this.scene.add(body.mesh);
         if (!this.currentShip && body.isShip()) {
