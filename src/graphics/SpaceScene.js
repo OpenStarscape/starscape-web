@@ -1,8 +1,8 @@
 import * as THREE from "three";
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import Lifetime from "../lib/Lifetime.js";
 import Starfield from '../graphics/Starfield.js';
 import BodyManager from '../graphics/BodyManager.js';
+import CameraManager from '../graphics/CameraManager.js';
 
 /// Manages everything required to render a 3D space view with three.js.
 export default class SpaceScene {
@@ -19,15 +19,18 @@ export default class SpaceScene {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.domParent.appendChild(this.renderer.domElement);
 
-    this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    this.cameraController = new OrbitControls(this.camera, this.renderer.domElement);
-    this.cameraController.target.set(0, 0, -50);
-
     this.starfield = new Starfield(this.lt, this.scene);
     this.bodies = new BodyManager(this.lt, this.scene, this.god);
+    this.cameraManager = new CameraManager(
+      this.lt,
+      this.scene,
+      this.renderer.domElement,
+      this.bodies,
+      state);
+    this.cameraManager.setAspect(window.innerWidth / window.innerHeight);
 
     this.god.event('ship_created').subscribe(this.lt, obj => {
-      this.currentShip.set(obj);
+      state.currentShip.set(obj);
     });
 
     this.god.action('create_ship').fire([
@@ -37,29 +40,15 @@ export default class SpaceScene {
 
     document.addEventListener("resize", () => {
       this.renderer.setSize(window.innerWidth, window.innerHeight);
-      this.camera.aspect = window.innerWidth / window.innerHeight;
-      this.camera.updateProjectionMatrix();
+      this.cameraManager.setAspect(window.innerWidth / window.innerHeight);
     });
 
     this.render();
   }
 
-  updateCamera() {
-    let body = this.bodies.get(this.currentShip.get());
-    let pos = new THREE.Vector3();
-    if (body) {
-      pos.copy(body.position());
-    }
-    let delta = new THREE.Vector3();
-    delta.subVectors(pos, this.cameraController.target);
-    this.camera.position.add(delta);
-    this.cameraController.target.copy(pos);
-    this.cameraController.update();
-  }
-
   render() {
-    this.updateCamera();
-    this.renderer.render(this.scene, this.camera);
+    this.cameraManager.update();
+    this.renderer.render(this.scene, this.cameraManager.camera);
     requestAnimationFrame(() => this.render());
   }
 }
