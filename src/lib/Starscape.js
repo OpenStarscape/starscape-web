@@ -143,12 +143,6 @@ export class StarscapeProperty extends Element {
     this.obj.connection.setProperty(this.obj.id, this.name, value);
   }
 
-  /// Returns a callable which can be used to set the value. No particular benefit over .set(), but
-  /// may be more ergonomic.
-  setter() {
-    return value => { this.set(value); };
-  }
-
   /// If the current value is not known (.cachedValue() == undefined) sends a get request, and
   /// invokes the given callback when it's completed. If the current value is known no request is
   /// made and the callback is called immediately. If the object is destroyed or the lifetime is
@@ -281,12 +275,6 @@ export class StarscapeAction extends Element {
     }
     this.obj.connection.fireAction(this.obj.id, this.name, value);
     this.sendUpdates(value);
-  }
-
-  /// Returns a callable which can be used to fire the action. No particular benefit over .fire(),
-  /// but may be more ergonomic.
-  firer() {
-    return value => { this.fire(value) };
   }
 }
 
