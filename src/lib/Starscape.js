@@ -217,11 +217,11 @@ export class StarscapeProperty extends Element {
   }
 
   /// Called by this property's object when the object is destroyed.
-  handleObjectDestroyed() {
+  dispose() {
     this.obj = null;
     this.isSubscribed = false;
     this.hasPendingGet = false;
-    this.notifyDestroued();
+    super.dispose();
   }
 }
 
@@ -257,6 +257,13 @@ export class StarscapeEvent extends Element {
   handleEvent(value) {
     this.sendUpdates(value);
   }
+
+  /// Called by this property's object when the object is destroyed.
+  dispose() {
+    this.obj = null;
+    this.isSubscribed = false;
+    super.dispose();
+  }
 }
 
 /// An action we can send to the server. We can also subscribe to it locally. Is created and
@@ -275,6 +282,12 @@ export class StarscapeAction extends Element {
     }
     this.obj.connection.fireAction(this.obj.id, this.name, value);
     this.sendUpdates(value);
+  }
+
+  /// Called by this property's object when the object is destroyed.
+  dispose() {
+    this.obj = null;
+    super.dispose();
   }
 }
 
