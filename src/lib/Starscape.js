@@ -1,5 +1,6 @@
 import {Vector3} from 'three';
 import {Subscriber, Element} from '../lib/Element.js';
+import Lifetime from "../lib/Lifetime.js";
 
 /// Opens a WebRTC session with a Starscape server and exchanges packets.
 class StarscapeRTCSession {
@@ -109,16 +110,37 @@ class StarscapeRTCSession {
   }
 }
 
+/// A generic element for a Starscape object member (property/action/event). Should not be added
+/// to any lifetime except that of it's objects.
+export class StarscapeElement extends Element {
+  constructor(obj, name) {
+    super();
+    this.obj = obj;
+    this.name = name;
+  }
+
+  lifetime() {
+    return this.obj.lifetime();
+  }
+
+  /// Called by this property's object when the object is destroyed.
+  dispose() {
+    if (this.lifetime().isAlive()) {
+      throw ('Element ' + this.obj + '.' + this.name + ' disposed before object\'s lifetime. ' +
+        ' this indicates it was added to another lifetime or disposed manually, ' +
+        ' neither of which should happen.');
+    }
+    this.obj = null;
+    super.dispose();
+  }
+}
+
 /// A specialized subscriber used for receiving property get requests. Unlike a normal subscriber,
 /// it's only supposed to be notified once and so removes itself from the element and lifetime.
 class GetSubscriber extends Subscriber {
   elementUpdate(value) {
-    if (this.callback !== null) {
-      this.callback(value);
-    }
-    this.callback = null;
-    this.lifetime.delete(this);
-    this.element.deleteSubscriber(this);
+    super.elementUpdate(value);
+    this.dispose();
   }
 
   isPending() {
@@ -128,7 +150,7 @@ class GetSubscriber extends Subscriber {
 
 /// The element type used for properties exposed by the server. Is created and returned by
 /// StarscapeObject.property()
-export class StarscapeProperty extends Element {
+export class StarscapeProperty extends StarscapeElement {
   constructor(obj, name) {
     super();
     this.obj = obj;
@@ -218,7 +240,6 @@ export class StarscapeProperty extends Element {
 
   /// Called by this property's object when the object is destroyed.
   dispose() {
-    this.obj = null;
     this.isSubscribed = false;
     this.hasPendingGet = false;
     super.dispose();
@@ -227,7 +248,7 @@ export class StarscapeProperty extends Element {
 
 /// An event sent from the server to us. It can be subscribed to but not fired by us. Is created and
 /// returned by StarscapeObject.event()
-export class StarscapeEvent extends Element {
+export class StarscapeEvent extends StarscapeElement {
   constructor(obj, name) {
     super();
     this.obj = obj;
@@ -260,7 +281,6 @@ export class StarscapeEvent extends Element {
 
   /// Called by this property's object when the object is destroyed.
   dispose() {
-    this.obj = null;
     this.isSubscribed = false;
     super.dispose();
   }
@@ -268,7 +288,7 @@ export class StarscapeEvent extends Element {
 
 /// An action we can send to the server. We can also subscribe to it locally. Is created and
 /// returned by StarscapeObject.action().
-export class StarscapeAction extends Element {
+export class StarscapeAction extends StarscapeElement {
   constructor(obj, name) {
     super();
     this.obj = obj;
@@ -283,20 +303,19 @@ export class StarscapeAction extends Element {
     this.obj.connection.fireAction(this.obj.id, this.name, value);
     this.sendUpdates(value);
   }
-
-  /// Called by this property's object when the object is destroyed.
-  dispose() {
-    this.obj = null;
-    super.dispose();
-  }
 }
 
 /// A handle to an object on the server. Is automatically created by the connection.
 export class StarscapeObject {
   constructor(connection, id) {
+    this.lt = connection.lifetime().child();
     this.connection = connection;
     this.id = id;
     this.members = new Map();
+  }
+
+  lifetime() {
+    return this.lt;
   }
 
   /// Object must have a property with the given name. This is not automatically checked.
@@ -319,6 +338,7 @@ export class StarscapeObject {
     let member = this.members.get(name);
     if (!member) {
       member = new memberClass(this, name);
+      this.lt.add(member);
       this.members.set(name, member);
     } else if (!(member instanceof memberClass)) {
       throw (this.id + '.' + name +
@@ -330,38 +350,26 @@ export class StarscapeObject {
 
   /// Called by the connection.
   handleUpdate(name, value) {
-    const member = this.members.get(name);
-    if (member) {
-      if (!(member instanceof StarscapeProperty)) {
-        throw ('can not process update for ' + this.id + '.' + name +
-          'because it is a ' + member.constructor.name);
-      }
-      member.handleUpdate(value);
-    }
+    const member = this.member(name, StarscapeProperty);
+    member.handleUpdate(value);
   }
 
   /// Called by the connection.
   handleGetReply(name, value) {
-    const member = this.members.get(name);
-    if (member) {
-      if (!(member instanceof StarscapeProperty)) {
-        throw ('can not process get reply for ' + this.id + '.' + name +
-          'because it is a ' + member.constructor.name);
-      }
-      member.handleGetReply(value);
-    }
+    const member = this.member(name, StarscapeProperty);
+    member.handleGetReply(value);
   }
 
   /// Called by the connection.
   handleEvent(name, value) {
-    const member = this.members.get(name);
-    if (member) {
-      if (!(member instanceof StarscapeEvent)) {
-        throw ('can not process event for ' + this.id + '.' + name +
-          'because it is a ' + member.constructor.name);
-      }
-      member.handleEvent(value);
-    }
+    const member = this.member(name, StarscapeEvent);
+    member.handleEvent(value);
+  }
+
+  dispose() {
+    this.id = 0;
+    this.members = null;
+    this.lt.dispose();
   }
 }
 
@@ -369,9 +377,14 @@ export class StarscapeObject {
 /// entry point to accessing everything.
 export default class StarscapeConnection {
   constructor() {
+    this.lt = new Lifetime();
     this.session = new StarscapeRTCSession((packet) => this.handlePacket(packet));
     this.objects = new Map();
     this.god = this.getObj(1);
+  }
+
+  lifetime() {
+    return this.lt;
   }
 
   /// Used internally to get or create an object with a given object ID.
@@ -380,11 +393,24 @@ export default class StarscapeConnection {
       throw 'ID ' + id + ' is not an int';
     }
     let obj = this.objects.get(id);
-    if (!obj) {
+    if (obj === undefined) {
       obj = new StarscapeObject(this, id);
+      this.lt.add(obj);
       this.objects.set(id, obj);
+    } else if (obj === null) {
+      throw 'object ' + id + ' has already been destroyed';
     }
     return obj;
+  }
+
+  /// Used internally when an object should be destroyed (not yet implemented)
+  destroyObj(id) {
+    const obj = this.objects.get(id);
+    if (obj) {
+      this.lt.disposeOf(obj);
+    }
+    /// Set to null instead of removing so a new object can't be made with the same ID
+    this.objects.set(id, null);
   }
 
   /// Turns a value decoded from JSON into one suitable to send to the rest of the app. In many
@@ -503,5 +529,9 @@ export default class StarscapeConnection {
   unsubscribeFrom(obj_id, prop) {
     let json = JSON.stringify({mtype: 'unsubscribe', object: obj_id, property: prop}) + '\n';
     this.session.sendPacket(json);
+  }
+
+  dispose() {
+    this.lt.dispose();
   }
 }
