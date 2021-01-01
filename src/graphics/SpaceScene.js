@@ -1,9 +1,8 @@
 import * as THREE from "three";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import Lifetime from "../lib/Lifetime.js";
-import StarscapeSet from "../lib/StarscapeSet.js";
 import Starfield from '../graphics/Starfield.js';
-import { makeBody } from "../graphics/Body.js";
+import BodyManager from '../graphics/BodyManager.js';
 
 /// Manages everything required to render a 3D space view with three.js.
 export default class SpaceScene {
@@ -25,18 +24,7 @@ export default class SpaceScene {
     this.cameraController.target.set(0, 0, -50);
 
     this.starfield = new Starfield(this.lt, this.scene);
-
-    this.bodyMap = new Map();
-    this.bodyListProp = new StarscapeSet(this.god.property('bodies'), this.lt, (itemLt, obj) => {
-      console.log('obj is of type ' + obj.constructor.name);
-      makeBody(itemLt, this.scene, obj, body => {
-        this.bodyMap.set(obj, body);
-        itemLt.addCallback(() => {
-          this.bodyMap.delete(obj);
-        });
-      });
-
-    });
+    this.bodies = new BodyManager(this.lt, this.scene, this.god);
 
     this.god.event('ship_created').subscribe(this.lt, obj => {
       this.currentShip.set(obj);
@@ -57,7 +45,7 @@ export default class SpaceScene {
   }
 
   updateCamera() {
-    let body = this.bodyMap.get(this.currentShip.get());
+    let body = this.bodies.get(this.currentShip.get());
     let pos = new THREE.Vector3();
     if (body) {
       pos.copy(body.position());
