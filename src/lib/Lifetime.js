@@ -19,6 +19,14 @@ export default class Lifetime {
     }
   }
 
+  /// Create a new lifetime that is added to this one. That means it will be disposed along with
+  /// this one, or can be disposed earlier.
+  child() {
+    const lt = new Lifetime();
+    this.add(lt);
+    return lt;
+  }
+
   /// Adds an object with a .dispose() method. .dispose() will be called when this lifetime is
   /// disposed of unless the object is deleted from it before then.
   add(disposable) {
