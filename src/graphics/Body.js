@@ -19,6 +19,10 @@ class Body {
   isShip() {
     return false;
   }
+
+  position() {
+    return this.mesh.position;
+  }
 }
 
 class Celestial extends Body {

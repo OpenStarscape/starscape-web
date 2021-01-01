@@ -17,6 +17,7 @@ export class Subscriber {
 
   /// Called by the element when it is destroyed.
   elementDestroyed() {
+    this.callback(undefined);
     this.callback = null;
     this.lifetime.delete(this);
   }
@@ -88,6 +89,11 @@ export class Element {
   /// Deletes a subscriber from the internal list. Does NOT remove it from the lifetime.
   deleteSubscriber(subscriber) {
     this.subscribers.delete(subscriber);
+  }
+
+  /// Make compatible with lifetimes.
+  dispose() {
+    this.notifyDestroyed();
   }
 }
 
