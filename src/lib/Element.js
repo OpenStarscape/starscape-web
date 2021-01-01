@@ -15,16 +15,10 @@ export class Subscriber {
     }
   }
 
-  /// Called by the element when it is destroyed.
-  elementDestroyed() {
-    this.callback(undefined);
-    this.callback = null;
-    this.lifetime.delete(this);
-  }
-
-  /// Called by the lifetime when it dies.
+  /// Called by the lifetime when it dies or the element when it's object is destroyed.
   dispose() {
     this.callback = null;
+    this.lifetime.delete(this);
     this.element.deleteSubscriber(this);
   }
 }
@@ -54,23 +48,11 @@ export class Element {
     return this.alive;
   }
 
-  // --- Below methods should only be called called by subclasses ---
-
   /// Should be called by subclasses, sends updates to all subscribers.
   sendUpdates(value) {
     for (const subscriber of this.subscribers) {
       subscriber.elementUpdate(value);
     }
-  }
-
-  /// Called by the subclass when it's destroyed. Notifies all subscribers.
-  notifyDestroyed() {
-    this.alive = false;
-    this.value = undefined;
-    for (const subscriber of this.subscribers) {
-      subscriber.elementDestroyed();
-    }
-    this.subscribers.clear()
   }
 
   /// Adds a Subscriber, both to this class and to the subscriber's lifetime. Sends an initial
@@ -91,9 +73,14 @@ export class Element {
     this.subscribers.delete(subscriber);
   }
 
-  /// Make compatible with lifetimes.
   dispose() {
-    this.notifyDestroyed();
+    this.alive = false;
+    this.value = undefined;
+    const subscribers = this.subscribers;
+    this.subscribers = new Set();
+    for (const subscriber of subscribers) {
+      subscriber.dispose();
+    }
   }
 }
 

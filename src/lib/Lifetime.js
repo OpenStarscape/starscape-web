@@ -53,7 +53,9 @@ export default class Lifetime {
       return;
     }
     this.dead = true;
-    for (const disposable of this.disposables) {
+    const disposables = this.disposables;
+    this.disposables = new Set();
+    for (const disposable of disposables) {
       disposable.dispose();
     }
   }
