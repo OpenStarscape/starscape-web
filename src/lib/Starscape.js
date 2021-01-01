@@ -145,8 +145,8 @@ export class StarscapeProperty extends Element {
 
   /// If the current value is not known (.cachedValue() == undefined) sends a get request, and
   /// invokes the given callback when it's completed. If the current value is known no request is
-  /// made and the callback is called immediately. If the object is destroyed or the lifetime is
-  /// killed before the request completes, the callback may never be called.
+  /// made and the callback is called immediately. If the object or lifetime die before the request
+  /// completes, the callback may never be called.
   getThen(lifetime, callback) {
     const subscriber = new GetSubscriber(this, lifetime, callback);
     // Note that we call the super version, we don't want to call connection.subscribeTo()
@@ -159,7 +159,7 @@ export class StarscapeProperty extends Element {
   }
 
   /// Returns a callable which returns the current value. To make sure values are available, this
-  /// subscribes to the property and stays subscribed until the given lifetime is killed. Note that
+  /// subscribes to the property and stays subscribed as long as the given lifetime lives. Note that
   /// if there were no previous subscribers the returned getter will return undefined until the
   /// initial request completes.
   getter(lifetime) {
@@ -485,8 +485,8 @@ export default class StarscapeConnection {
     this.session.sendPacket(json);
   }
 
-  /// Low level, do not call directly. Is called automatically when required (assuming you kill your
-  /// lifetimes when needed)
+  /// Low level, do not call directly. Is called automatically when required (assuming you dispose
+  /// of your lifetimes when needed)
   unsubscribeFrom(obj_id, prop) {
     let json = JSON.stringify({mtype: 'unsubscribe', object: obj_id, property: prop}) + '\n';
     this.session.sendPacket(json);
