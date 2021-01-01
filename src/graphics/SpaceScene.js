@@ -16,7 +16,7 @@ export default class SpaceScene {
 
     this.renderer = new THREE.WebGLRenderer({antialias: true});
     this.renderer.setClearColor('black');
-    // TODO?: renderer.setPixelRatio( window.devicePixelRatio );
+    this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.domParent.appendChild(this.renderer.domElement);
 
