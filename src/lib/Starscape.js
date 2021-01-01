@@ -308,7 +308,8 @@ export class StarscapeAction extends StarscapeElement {
 /// A handle to an object on the server. Is automatically created by the connection.
 export class StarscapeObject {
   constructor(connection, id) {
-    this.lt = connection.lifetime().child();
+    this.lt = new Lifetime();
+    connection.lifetime().add(this.lt);
     this.connection = connection;
     this.id = id;
     this.members = new Map();

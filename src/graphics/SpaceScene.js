@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import Lifetime from "../lib/Lifetime.js";
-import ListProperty from "../lib/ListProperty.js";
+import StarscapeSet from "../lib/StarscapeSet.js";
 import Starfield from '../graphics/Starfield.js';
 import { makeBody } from "../graphics/Body.js";
 
@@ -26,13 +26,16 @@ export default class SpaceScene {
 
     this.starfield = new Starfield(this.lt, this.scene);
 
-    this.bodyList = new ListProperty(this.god.property('bodies'), this.lt)
-    this.bodyList.itemAdded.subscribe(this.lt, obj => {
-      makeBody(this.lt, obj, body => {
-        this.lt.add(body);
-        this.bodyList.set(obj, body);
-        this.scene.add(body.mesh);
+    this.bodyMap = new Map();
+    this.bodyListProp = new StarscapeSet(this.god.property('bodies'), this.lt, (itemLt, obj) => {
+      console.log('obj is of type ' + obj.constructor.name);
+      makeBody(itemLt, this.scene, obj, body => {
+        this.bodyMap.set(obj, body);
+        itemLt.addCallback(() => {
+          this.bodyMap.delete(obj);
+        });
       });
+
     });
 
     this.god.event('ship_created').subscribe(this.lt, obj => {
@@ -54,7 +57,7 @@ export default class SpaceScene {
   }
 
   updateCamera() {
-    let body = this.bodyList.get(this.currentShip.get());
+    let body = this.bodyMap.get(this.currentShip.get());
     let pos = new THREE.Vector3();
     if (body) {
       pos.copy(body.position());

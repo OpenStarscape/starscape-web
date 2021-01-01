@@ -1,3 +1,16 @@
+export class CallbackDisposable {
+  constructor(callback) {
+    this.callback = callback;
+  }
+
+  dispose() {
+    if (this.callback) {
+      this.callback();
+    }
+    this.callback = null;
+  }
+}
+
 /// A group of objects which are all disposed of at once. Any object which has a .dispose() method
 /// may be added to a lifetime. This includes three.js types which need to be disposed of, as well
 /// as element subscribers (these are created automatically when elements are subscribed to).
@@ -19,12 +32,9 @@ export default class Lifetime {
     }
   }
 
-  /// Create a new lifetime that is added to this one. That means it will be disposed along with
-  /// this one, or can be disposed earlier.
-  child() {
-    const lt = new Lifetime();
-    this.add(lt);
-    return lt;
+  /// Add a callback to be called when disposed of.
+  addCallback(callback) {
+    this.add(new CallbackDisposable(callback));
   }
 
   /// Adds an object with a .dispose() method. .dispose() will be called when this lifetime is
