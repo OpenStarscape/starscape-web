@@ -22,7 +22,7 @@ export class Subscriber {
     this.lifetime.delete(this);
   }
 
-  /// Called by the lifetime when it is killed.
+  /// Called by the lifetime when it dies.
   dispose() {
     this.callback = null;
     this.element.deleteSubscriber(this);
@@ -44,7 +44,7 @@ export class Element {
 
   /// The callback will be called with values as they become available. These values could be
   /// updates to a property or the values associated with actions, depending on the element type.
-  /// The callback stops fireing as soon as the lifetime is killed.
+  /// The callback stops fireing as soon as the lifetime dies.
   subscribe(lifetime, callback) {
     this.addSubscriber(new Subscriber(this, lifetime, callback));
   }

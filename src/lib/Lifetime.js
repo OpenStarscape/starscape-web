@@ -7,20 +7,20 @@ export default class Lifetime {
     this.dead = false;
   }
 
-  /// Returns true if the lifetime has not been killed.
+  /// Returns true if the lifetime has not been disposed.
   isAlive() {
     return !this.dead;
   }
 
-  /// Throws if this lifetime has been killed.
+  /// Throws if this lifetime has been disposed.
   verifyAlive() {
     if (this.dead) {
-      throw 'relevant Lifetime has been killed';
+      throw 'relevant Lifetime is dead';
     }
   }
 
-  /// Adds an object with a .dispose() method. .dispose() will be called when the lifetime is killed
-  /// unless the object is deleted from it before then.
+  /// Adds an object with a .dispose() method. .dispose() will be called when this lifetime is
+  /// disposed of unless the object is deleted from it before then.
   add(disposable) {
     this.verifyAlive()
     this.disposables.add(disposable);
@@ -39,8 +39,8 @@ export default class Lifetime {
   }
 
   /// Calls .dispose() on all added objects. This marks the lifetime as dead and it should not be
-  /// used afterwards.
-  kill() {
+  /// used afterwards, except to dispose again (which does nothing but is allowed)
+  dispose() {
     if (this.dead) {
       return;
     }
