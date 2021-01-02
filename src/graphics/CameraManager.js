@@ -7,6 +7,7 @@ export default class CameraManager {
     this.lt = lifetime;
     this.scene = scene;
     this.camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+    this.scene.add(this.camera); // only required so children of the camera are visible
     this.cameraController = new OrbitControls(this.camera, domElement);
     this.cameraController.target.set(0, 0, -50);
     this.bodies = bodies;
