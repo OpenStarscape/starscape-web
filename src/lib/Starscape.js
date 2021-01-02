@@ -1,5 +1,5 @@
 import {Vector3} from 'three';
-import {Subscriber, Element} from '../lib/Element.js';
+import {Subscriber, Element, valuesEqual} from '../lib/Element.js';
 import Lifetime from "../lib/Lifetime.js";
 
 /// Opens a WebRTC session with a Starscape server and exchanges packets.
@@ -162,7 +162,10 @@ export class StarscapeProperty extends StarscapeElement {
   /// Sends a set request to the server. The value is only updates and subscribers are only notified
   /// if and when the server responds to the request.
   set(value) {
-    this.obj.connection.setProperty(this.obj.id, this.name, value);
+    if (!valuesEqual(value, this.value)) {
+      this.obj.connection.setProperty(this.obj.id, this.name, value);
+      this.handleUpdate(value);
+    }
   }
 
   /// If the current value is not known (.cachedValue() == undefined) sends a get request, and
