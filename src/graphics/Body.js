@@ -14,6 +14,7 @@ class Body {
     this.mesh = new THREE.Mesh(emptyGeom, this.mat);
     this.size = 1;
     this.getRawPos = this.obj.property('position').getter(this.lt);
+    this.scene.add(this.mesh);
   }
 
   isShip() {
@@ -53,17 +54,15 @@ class Body {
 class Celestial extends Body {
   constructor(lifetime, scene, obj) {
     super(lifetime, scene, obj)
+    this.obj.property('color').getThen(this.lt, color => {
+      if (!color) {
+        color = '0xffffff';
+      }
+      this.mat.color.setHex(color);
+    });
     this.obj.property('size').getThen(this.lt, km => {
       this.size = km * sceneScale;
-      if (this.size > 0.1) {
-        // Star
-        this.mat.color.setHex(0xFFE060);
-      } else {
-        // Planet/moon
-        this.mat.color.setHex(0x6090FF);
-      }
       this.mesh.geometry = new THREE.SphereBufferGeometry(this.size, 16, 16);
-      this.scene.add(this.mesh);
     });
   }
 }
@@ -85,7 +84,6 @@ class Ship extends Body {
       this.velocity.normalize();
       this.mesh.quaternion.setFromUnitVectors(upVec, this.velocity);
     });
-    this.scene.add(this.mesh);
   }
 
   isShip() {
