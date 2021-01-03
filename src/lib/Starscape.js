@@ -188,7 +188,7 @@ export class StarscapeProperty extends StarscapeElement {
   /// if there were no previous subscribers the returned getter will return undefined until the
   /// initial request completes.
   getter(lifetime) {
-    const subscriber = Subscriber(lifetime, null);
+    const subscriber = new Subscriber(this, lifetime, null);
     this.addSubscriber(subscriber);
     return () => {
       lifetime.verifyAlive();
