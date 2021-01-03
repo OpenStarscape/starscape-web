@@ -13,7 +13,7 @@ class Body {
     this.mesh = new THREE.Mesh(emptyGeom, this.mat);
     this.obj.property('position').subscribe(this.lt, pos => {
       this.mesh.position.copy(pos);
-      this.mesh.position.multiplyScalar(0.001);
+      this.mesh.position.multiplyScalar(1);
     });
   }
 
@@ -33,8 +33,8 @@ class Body {
 class Celestial extends Body {
   constructor(lifetime, scene, obj) {
     super(lifetime, scene, obj)
-    this.obj.property('mass').getThen(this.lt, mass => {
-      const size = Math.pow(mass / 1.0e+13, 1 / 3.0) + 0.1;
+    this.obj.property('size').getThen(this.lt, km => {
+      const size = km * 100;
       if (size > 3) {
         // Star
         this.mat.color.setHex(0xFFE060);
@@ -52,7 +52,7 @@ class Ship extends Body {
   constructor(lifetime, scene, obj) {
     super(lifetime, scene, obj)
     this.mat.color.setHex(0xFFFFFF);
-    this.mesh.geometry = new THREE.ConeGeometry(0.5, 2, 16);
+    this.mesh.geometry = new THREE.ConeGeometry(0.2, 0.5, 16);
     this.velocity = new THREE.Vector3();
     //this.previousVel = new THREE.Vector3();
     //this.thrustDir = new THREE.Vector3();

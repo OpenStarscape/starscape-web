@@ -68,8 +68,8 @@ export default class SpaceScene {
     });
 
     this.god.action('create_ship').fire([
-      new THREE.Vector3(20000, 60000, 0),
-      new THREE.Vector3(0, 0, 10000),
+      new THREE.Vector3(1.496e+2, 10.0, 0.0),
+      new THREE.Vector3(0, 0, 30),
     ]);
 
     document.addEventListener("resize", () => {
@@ -89,7 +89,7 @@ export default class SpaceScene {
     if (!vec.equals(this.cachedThrust)) {
       this.cachedThrust.copy(vec);
       if (this.currentShip.get()) {
-        this.currentShip.get().property('thrust').set(vec);
+        //this.currentShip.get().property('thrust').set(vec);
       }
     }
 
