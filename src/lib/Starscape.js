@@ -455,7 +455,7 @@ export default class StarscapeConnection {
 
   /// Handle a single protocol message, deserialized from JSON
   handleMessage(message) {
-    try {
+    //try {
       if (message.mtype == 'update' || message.mtype == 'value' || message.mtype == 'event') {
         if (typeof message.object !== 'number') {
           throw 'object not a number';
@@ -477,16 +477,17 @@ export default class StarscapeConnection {
       } else {
         throw 'unknown mtype ' + message.mtype;
       }
-    }
-    catch(err) {
-      console.error('error handling message: ' + err + ' (message: ' + message + ')');
-    }
+    //}
+    //catch(err) {
+    //  console.error('error handling message: ' + err + ' (message: ' + message + ')');
+    //  console.trace();
+    //}
   }
 
   /// Handle a packet string, which could contain one or more message.
   handlePacket(packet) {
-    // console.log('got packet', packet);
-    try {
+    //console.log('got packet', packet);
+    //try {
       let bundle = JSON.parse(packet);
       if (Array.isArray(bundle)) {
         for (let i = 0; i < bundle.length; i++) {
@@ -497,10 +498,11 @@ export default class StarscapeConnection {
       } else {
         throw 'bundle ' + packet.toString() + ' has invalid type';
       }
-    }
-    catch(err) {
-      console.error('error handling packet: ' + err + ' (packet: ' + packet + ')');
-    }
+    //}
+    //catch(err) {
+    //  console.error('error handling packet: ' + err + ' (packet: ' + packet + ')');
+    //  console.trace();
+    //}
   }
 
   /// Low level, do not call directly. Use obj.property().set() instead.
