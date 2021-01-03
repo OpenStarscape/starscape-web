@@ -23,9 +23,9 @@ export default class BodyManager {
     return this.bodyMap.get(obj);
   }
 
-  update() {
+  update(cameraPosition) {
     for (const body of this.bodyMap.values()) {
-      body.update();
+      body.update(cameraPosition);
     }
   }
 }
