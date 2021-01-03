@@ -94,7 +94,7 @@ export default class SpaceScene {
     }
 
     this.cameraManager.update();
-    this.bodies.update();
+    this.bodies.update(this.cameraManager.camera.position);
 
     let body = this.bodies.get(this.currentShip.get());
     if (body) {
