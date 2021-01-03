@@ -93,12 +93,14 @@ export default class SpaceScene {
       }
     }
 
+    this.cameraManager.update();
+    this.bodies.update();
+
     let body = this.bodies.get(this.currentShip.get());
     if (body) {
       this.thrustMesh.position.copy(body.position());
     }
 
-    this.cameraManager.update();
     this.renderer.render(this.scene, this.cameraManager.camera);
     requestAnimationFrame(() => this.render());
   }

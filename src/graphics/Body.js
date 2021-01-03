@@ -11,18 +11,29 @@ class Body {
     this.obj = obj;
     this.mat = new THREE.MeshBasicMaterial({color: 'white'});
     this.mesh = new THREE.Mesh(emptyGeom, this.mat);
-    this.obj.property('position').subscribe(this.lt, pos => {
-      this.mesh.position.copy(pos);
-      this.mesh.position.multiplyScalar(1);
-    });
+    this.getRawPos = this.obj.property('position').getter(this.lt);
   }
 
   isShip() {
     return false;
   }
 
+  setToPosition(vec) {
+    const raw = this.getRawPos();
+    if (raw) {
+      vec.copy(this.getRawPos());
+      vec.multiplyScalar(1);
+    }
+  }
+
   position() {
-    return this.mesh.position;
+    const result = new THREE.Vector3();
+    this.setToPosition(result);
+    return result;
+  }
+
+  update() {
+    this.setToPosition(this.mesh.position);
   }
 
   dispose() {

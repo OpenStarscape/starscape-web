@@ -22,4 +22,10 @@ export default class BodyManager {
   get(obj) {
     return this.bodyMap.get(obj);
   }
+
+  update() {
+    for (const body of this.bodyMap.values()) {
+      body.update();
+    }
+  }
 }
