@@ -10,8 +10,9 @@ class Body {
     this.lt = lifetime;
     this.scene = scene;
     this.obj = obj;
-    this.mat = new THREE.MeshBasicMaterial({color: 'white'});
-    this.mesh = new THREE.Mesh(emptyGeom, this.mat);
+    this.solidMat = new THREE.MeshBasicMaterial({color: 'white'});
+    this.wireMat = new THREE.MeshBasicMaterial({color: 'white', wireframe: true});
+    this.mesh = new THREE.Mesh(emptyGeom, this.wireMat);
     this.size = 1;
     this.getRawPos = this.obj.property('position').getter(this.lt);
     this.scene.add(this.mesh);
@@ -35,14 +36,24 @@ class Body {
     return result;
   }
 
+  setColor(color) {
+    if (!color) {
+      color = 0xFFFFFF;
+    }
+    this.wireMat.color.setHex(color);
+    this.solidMat.color.setHex(color);
+  }
+
   update(cameraPosition) {
     this.setToPosition(this.mesh.position);
     const dist = this.mesh.position.distanceTo(cameraPosition);
     const scale = dist / 100 / this.size;
     if (scale > 1) {
       this.mesh.scale.setScalar(scale);
+      this.mesh.material = this.solidMat;
     } else {
       this.mesh.scale.setScalar(1);
+      this.mesh.material = this.wireMat;
     }
   }
 
@@ -54,12 +65,7 @@ class Body {
 class Celestial extends Body {
   constructor(lifetime, scene, obj) {
     super(lifetime, scene, obj)
-    this.obj.property('color').getThen(this.lt, color => {
-      if (!color) {
-        color = '0xffffff';
-      }
-      this.mat.color.setHex(color);
-    });
+    this.obj.property('color').subscribe(this.lt, color => this.setColor(color));
     this.obj.property('size').getThen(this.lt, km => {
       this.size = km * sceneScale;
       this.mesh.geometry = new THREE.SphereBufferGeometry(this.size, 16, 16);
@@ -69,8 +75,8 @@ class Celestial extends Body {
 
 class Ship extends Body {
   constructor(lifetime, scene, obj) {
-    super(lifetime, scene, obj)
-    this.mat.color.setHex(0xFFFFFF);
+    super(lifetime, scene, obj);
+    this.setColor(0xFFFFFF);
     this.size = 0.25;
     this.mesh.geometry = new THREE.ConeGeometry(0.2, 0.5, 16);
     this.velocity = new THREE.Vector3();
