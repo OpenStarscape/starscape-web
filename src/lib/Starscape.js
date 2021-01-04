@@ -2,9 +2,67 @@ import {Vector3} from 'three';
 import {Subscriber, Element, valuesEqual} from '../lib/Element.js';
 import Lifetime from "../lib/Lifetime.js";
 
-/// Opens a WebRTC session with a Starscape server and exchanges packets.
-class StarscapeRTCSession {
+class StarscapeSession {
   constructor(handlePacket) {
+    this.isOpen = false;
+    this.queuedPackets = []; // Used before the channel is open
+    this.handlePacket = handlePacket;
+    this.encoder = new TextEncoder(); // utf-8 by defailt
+    this.decoder = new TextDecoder(); // utf-8 by default
+  }
+
+  onOpen() {
+    console.log(this.constructor.name + ' opened');
+    this.isOpen = true
+    // console.log('Queued packets:', this.queuedPackets);
+    for (let i = 0; i < this.queuedPackets.length; i++) {
+      this.sendPacket(this.queuedPackets[i])
+    }
+    this.queuedPackets = []
+  }
+
+  onPacket(packet) {
+    // let array = new Uint8Array(evt.data);
+    // TODO: use decoder instead of .toString
+    let str = packet.toString();
+    this.handlePacket(str);
+  }
+
+  onClose() {
+    console.log(this.constructor.name + ' closed');
+  }
+
+  onError(message) {
+    console.error(this.constructor.name + ' error:', message);
+  }
+
+  maxPacketLen() {
+    return Infinity;
+  }
+
+  sendPacketInternal() {
+    throw 'sendPacketInternal() not implemented';
+  }
+
+  /// Send a packet containing the given string to the server
+  sendPacket(packet) {
+    if (this.isOpen) {
+      // The connection is open
+      // console.log('sending packet:', packet);
+      let array = this.encoder.encode(packet);
+      this.sendPacketInternal(array);
+    } else {
+      // The connection is not yet open
+      // console.log('queueing packet:', packet);
+      this.queuedPackets.push(packet);
+    }
+  }
+}
+
+/// Opens a WebRTC session with a Starscape server and exchanges packets.
+class StarscapeRTCSession extends StarscapeSession {
+  constructor(handlePacket) {
+    super(handlePacket);
     this.connection = new RTCPeerConnection({
       iceServers: [{
         urls: ['stun:stun.l.google.com:19302']
@@ -17,43 +75,11 @@ class StarscapeRTCSession {
     });
 
     this.channel.binaryType = 'arraybuffer';
-    this.encoder = new TextEncoder(); // utf-8 by defailt
-    this.decoder = new TextDecoder(); // utf-8 by default
-    this.isOpen = false;
-    this.queuedPackets = []; // Used before the channel is open
-    this.handlePacket = handlePacket;
 
-    this.channel.onopen = () => {
-      console.log('WebRTC channel opened');
-      this.channel.onmessage = (evt) => {
-        // let array = new Uint8Array(evt.data);
-        // TODO: use decoder instead of .toString
-        let str = evt.data.toString();
-        this.handlePacket(str);
-      };
-      this.isOpen = true
-      // console.log('Queued packets:', this.queuedPackets);
-      for (let i = 0; i < this.queuedPackets.length; i++) {
-        this.sendPacket(this.queuedPackets[i])
-      }
-      this.queuedPackets = []
-    };
-
-    this.channel.onerror = (evt) => {
-      let message = 'WebRTC channel error: ' + evt.message
-      console.error(message);
-      window.alert(message);
-    };
-
-    /*
-    this.channel.onicecandidate = (evt) => {
-      if (evt.candidate) {
-        console.log("received ice candidate", evt.candidate);
-      } else {
-        console.log("all local candidates received");
-      }
-    };
-    */
+    this.channel.onopen = () => { this.onOpen(); };
+    this.channel.onmessage = evt => { this.onPacket(evt.data); };
+    this.channel.onclose = () => { this.onClose(); };
+    this.channel.onerror = evt => { this.onError(evt.message); };
 
     this.connection.createOffer().then((offer) => {
       return this.connection.setLocalDescription(offer);
@@ -89,23 +115,12 @@ class StarscapeRTCSession {
     return 2020;
   }
 
-  /// Send a packet containing the given string to the server
-  sendPacket(packet) {
-    if (this.isOpen) {
-      // The connection is open
-      // console.log('sending packet:', packet);
-      let array = this.encoder.encode(packet);
-      this.channel.send(array);
-    } else {
-      // The connection is not yet open
-      // console.log('queueing packet:', packet);
-      this.queuedPackets.push(packet);
-    }
+  sendPacketInternal(data) {
+    this.channel.send(data);
   }
 
   /// Shut down this session
   dispose() {
-    console.log('closing connection');
     this.channel.close();
   }
 }
