@@ -22,7 +22,7 @@ class StarscapeSession {
   }
 
   onPacket(packet) {
-    console.log('got packet', packet, typeof packet);
+    //console.log('got packet', packet, typeof packet);
     const str = this.decoder.decode(packet);
     this.handlePacket(str);
   }
@@ -121,6 +121,36 @@ class StarscapeRTCSession extends StarscapeSession {
   /// Shut down this session
   dispose() {
     this.channel.close();
+  }
+}
+
+/// Opens a WebRTC session with a Starscape server and exchanges packets.
+class StarscapeWebSocketSession extends StarscapeSession {
+  constructor(handlePacket) {
+    super(handlePacket);
+    this.socket = new WebSocket(this.getUrl());
+    this.socket.binaryType = 'arraybuffer';
+    this.socket.onopen = () => { this.onOpen(); };
+    this.socket.onmessage = evt => { this.onPacket(evt.data); };
+    this.socket.onclose = () => { this.onClose() };
+    this.socket.onerror = evt => { this.onError(evt.message); };
+  }
+
+  getUrl() {
+    return (
+      ((window.location.protocol === "https:") ? "wss://" : "ws://") +
+      window.location.host +
+      "/websocket"
+    );
+  }
+
+  sendPacketInternal(data) {
+    this.socket.send(data);
+  }
+
+  /// Shut down this session
+  dispose() {
+    this.socket.close();
   }
 }
 
@@ -391,12 +421,22 @@ export class StarscapeObject {
   }
 }
 
-/// The toplevel object of a connection to an OpenStarscape server. The .god object property is the
-/// entry point to accessing everything.
+/// The toplevel object of a connection to an OpenStarscape server. sessionType should be either
+/// 'webrtc' or 'websocket'. The .god object property is the entry point to accessing everything.
 export default class StarscapeConnection {
-  constructor() {
+  constructor(sessionType) {
+    const handlePacket = packet => this.handlePacket(packet);
+    if (sessionType === 'webrtc') {
+      this.session = new StarscapeRTCSession(handlePacket);
+    } else if (sessionType === 'websocket') {
+      this.session = new StarscapeWebSocketSession(handlePacket);
+    } else {
+      throw 'unknown session type "' + sessionType + '"';
+    }
+    StarscapeWebSocketSession;
+    StarscapeRTCSession;
+    //
     this.lt = new Lifetime();
-    this.session = new StarscapeRTCSession((packet) => this.handlePacket(packet));
     this.objects = new Map();
     this.god = this.getObj(1);
   }

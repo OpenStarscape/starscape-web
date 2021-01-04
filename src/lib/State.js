@@ -3,7 +3,7 @@ import {ValueElement} from '../lib/Element.js';
 
 export default class State {
   constructor() {
-    this.connection = new StarscapeConnection();
+    this.connection = new StarscapeConnection('websocket');
     /// The Starscape object of the currently controlled ship
     this.currentShip = new ValueElement(null);
   }
