@@ -22,9 +22,8 @@ class StarscapeSession {
   }
 
   onPacket(packet) {
-    // let array = new Uint8Array(evt.data);
-    // TODO: use decoder instead of .toString
-    let str = packet.toString();
+    console.log('got packet', packet, typeof packet);
+    const str = this.decoder.decode(packet);
     this.handlePacket(str);
   }
 
