@@ -37,8 +37,8 @@ export default class SpaceScene {
         console.log('Switching to ship ', obj.id);
         this.thrustLt = new Lifetime();
         this.lt.add(this.thrustLt);
-        obj.property('thrust').subscribe(this.thrustLt, thrust => {
-          const vec = thrust.clone();
+        obj.property('accel').subscribe(this.thrustLt, accel => {
+          const vec = accel.clone();
           vec.normalize();
           this.thrustMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), vec);
         });
@@ -89,7 +89,7 @@ export default class SpaceScene {
     if (!vec.equals(this.cachedThrust)) {
       this.cachedThrust.copy(vec);
       if (this.currentShip.get()) {
-        //this.currentShip.get().property('thrust').set(vec);
+        //this.currentShip.get().property('accel').set(vec);
       }
     }
 
