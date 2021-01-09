@@ -106,7 +106,7 @@ export default class SpaceScene {
 
     let body = this.bodies.get(this.currentShip.get());
     if (body) {
-      this.thrustMesh.position.copy(body.position());
+      this.thrustMesh.position.copy(body.getPosition());
     }
 
     this.renderer.render(this.scene, this.cameraManager.camera);

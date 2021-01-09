@@ -39,7 +39,7 @@ class Body {
     }
   }
 
-  position() {
+  getPosition() {
     const result = new THREE.Vector3();
     this.setToPosition(result);
     return result;
