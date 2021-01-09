@@ -23,7 +23,7 @@ export default class CameraManager {
     let body = this.bodies.get(this.currentShip.get());
     let pos = new THREE.Vector3();
     if (body) {
-      pos.copy(body.position());
+      pos.copy(body.getPosition());
     }
     let delta = new THREE.Vector3();
     delta.subVectors(pos, this.cameraController.target);
