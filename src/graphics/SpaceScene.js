@@ -79,6 +79,17 @@ export default class SpaceScene {
       new THREE.Vector3(0, 0, 30),
     ]);
 
+    window.setTimeout(() => {
+      const body = this.bodies.get(this.currentShip.get());
+      const earth = this.bodies.getByName('Earth');
+      if (body && earth) {
+        body.obj.property('ap_scheme').set('orbit');
+        body.obj.property('ap_target').set(earth.obj);
+      } else {
+        console.error('Could not set up autopilot');
+      }
+    }, 1000);
+
     document.addEventListener("resize", () => {
       this.renderer.setSize(window.innerWidth, window.innerHeight);
       this.overlayRenderer.setSize(window.innerWidth, window.innerHeight);
