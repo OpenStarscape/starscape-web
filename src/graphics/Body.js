@@ -11,6 +11,7 @@ class Body {
     this.lt = lifetime;
     this.scene = scene;
     this.obj = obj;
+    this.name = null; // Instead of us subscribing, the manager subscribes and uses the setter
     this.solidMat = new THREE.MeshBasicMaterial({color: 'white'});
     this.wireMat = new THREE.MeshBasicMaterial({color: 'white', wireframe: true});
     this.mesh = new THREE.Mesh(emptyGeom, this.wireMat);
@@ -20,9 +21,9 @@ class Body {
 
     this.labelDiv = document.createElement('div');
     this.labelDiv.className = 'body-label';
-    this.labelDiv.textContent = 'Body';
     this.labelDiv.style.marginTop = '1em';
     this.label = new CSS2DObject(this.labelDiv);
+    this.label.visible = false;
     this.mesh.add(this.label);
   }
 
@@ -50,6 +51,20 @@ class Body {
     }
     this.wireMat.color.setHex(color);
     this.solidMat.color.setHex(color);
+  }
+
+  getName() {
+    return this.name;
+  }
+
+  setName(name) {
+    this.name = name;
+    if (name !== null) {
+      this.labelDiv.textContent = name;
+      this.label.visible = true;
+    } else {
+      this.label.visible = false;
+    }
   }
 
   update(cameraPosition) {
