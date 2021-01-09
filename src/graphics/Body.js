@@ -47,10 +47,11 @@ class Body {
 
   setColor(color) {
     if (!color) {
-      color = 0xFFFFFF;
+      color = '0xFFFFFF';
     }
     this.wireMat.color.setHex(color);
     this.solidMat.color.setHex(color);
+    this.labelDiv.style.color = '#' + color.slice(2);
   }
 
   getName() {
@@ -99,7 +100,7 @@ class Celestial extends Body {
 class Ship extends Body {
   constructor(lifetime, scene, obj) {
     super(lifetime, scene, obj);
-    this.setColor(0xFFFFFF);
+    this.setColor('0xFFFFFF');
     this.size = 0.25;
     this.mesh.geometry = new THREE.ConeGeometry(0.2, 0.5, 16);
     this.velocity = new THREE.Vector3();
