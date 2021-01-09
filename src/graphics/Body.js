@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 
 const emptyGeom = new THREE.BufferGeometry();
 const upVec = new THREE.Vector3(0, 1, 0);
@@ -16,6 +17,13 @@ class Body {
     this.size = 1;
     this.getRawPos = this.obj.property('position').getter(this.lt);
     this.scene.add(this.mesh);
+
+    this.labelDiv = document.createElement('div');
+    this.labelDiv.className = 'body-label';
+    this.labelDiv.textContent = 'Body';
+    this.labelDiv.style.marginTop = '1em';
+    this.label = new CSS2DObject(this.labelDiv);
+    this.mesh.add(this.label);
   }
 
   isShip() {

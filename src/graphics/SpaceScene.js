@@ -1,9 +1,10 @@
 import * as THREE from "three";
+import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls'
+import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import Lifetime from "../lib/Lifetime.js";
 import Starfield from '../graphics/Starfield.js';
 import BodyManager from '../graphics/BodyManager.js';
 import CameraManager from '../graphics/CameraManager.js';
-import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls'
 
 /// Manages everything required to render a 3D space view with three.js.
 export default class SpaceScene {
@@ -53,12 +54,18 @@ export default class SpaceScene {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.domParent.appendChild(this.renderer.domElement);
 
+    this.overlayRenderer = new CSS2DRenderer();
+    this.overlayRenderer.setSize(window.innerWidth, window.innerHeight);
+    this.overlayRenderer.domElement.style.position = 'absolute';
+    this.overlayRenderer.domElement.style.top = '0px';
+    this.domParent.appendChild(this.overlayRenderer.domElement);
+
     this.starfield = new Starfield(this.lt, this.scene);
     this.bodies = new BodyManager(this.lt, this.scene, this.god);
     this.cameraManager = new CameraManager(
       this.lt,
       this.scene,
-      this.renderer.domElement,
+      this.overlayRenderer.domElement,
       this.bodies,
       state);
     this.cameraManager.setAspect(window.innerWidth / window.innerHeight);
@@ -74,6 +81,7 @@ export default class SpaceScene {
 
     document.addEventListener("resize", () => {
       this.renderer.setSize(window.innerWidth, window.innerHeight);
+      this.overlayRenderer.setSize(window.innerWidth, window.innerHeight);
       this.cameraManager.setAspect(window.innerWidth / window.innerHeight);
     });
 
@@ -102,6 +110,7 @@ export default class SpaceScene {
     }
 
     this.renderer.render(this.scene, this.cameraManager.camera);
+    this.overlayRenderer.render(this.scene, this.cameraManager.camera);
     requestAnimationFrame(() => this.render());
   }
 }

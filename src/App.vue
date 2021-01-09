@@ -27,4 +27,12 @@ export default {
   canvas {
     display:block;
   }
+
+  .body-label {
+    color: #FFFFFF;
+    font-family: sans-serif;
+    font-weight: bold;
+    padding: 0.2em;
+    background: rgba(0, 0, 0, 0.5);
+  }
 </style>
