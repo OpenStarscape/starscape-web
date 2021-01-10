@@ -105,7 +105,7 @@ class Ship extends Body {
     super(lifetime, scene, obj);
     this.setColor('0xFFFFFF');
     this.size = 0.25;
-    this.mesh.geometry = new THREE.ConeGeometry(0.2, 0.5, 16);
+    this.mesh.geometry = new THREE.ConeBufferGeometry(0.2, 0.5, 16);
     this.lt.add(this.mesh.geometry);
     this.direction = new THREE.Vector3();
     this.getVelocity = this.obj.property('velocity').getter(this.lt);
