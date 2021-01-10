@@ -103,21 +103,25 @@ class Ship extends Body {
     this.setColor('0xFFFFFF');
     this.size = 0.25;
     this.mesh.geometry = new THREE.ConeGeometry(0.2, 0.5, 16);
-    this.velocity = new THREE.Vector3();
-    //this.previousVel = new THREE.Vector3();
-    //this.thrustDir = new THREE.Vector3();
-    this.obj.property('velocity').subscribe(this.lt, vel => {
-      //this.thrustDir.subVectors(vel, this.previousVel);
-      //this.thrustDir.normalize();
-      //this.previousVel = vel;
-      this.velocity.copy(vel);
-      this.velocity.normalize();
-      this.mesh.quaternion.setFromUnitVectors(upVec, this.velocity);
-    });
+    this.direction = new THREE.Vector3();
+    this.getVelocity = this.obj.property('velocity').getter(this.lt);
+    this.getAccel = this.obj.property('accel').getter(this.lt);
   }
 
   isShip() {
     return true;
+  }
+
+  update(cameraPosition) {
+    super.update(cameraPosition);
+    if (this.getAccel() !== undefined) {
+      this.direction.copy(this.getAccel());
+    }
+    if (this.direction.lengthSq() < 0.0005 && this.getVelocity() !== undefined) {
+      this.direction.copy(this.getVelocity());
+    }
+    this.direction.normalize();
+    this.mesh.quaternion.setFromUnitVectors(upVec, this.direction);
   }
 }
 
