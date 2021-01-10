@@ -127,9 +127,7 @@ class Ship extends Body {
 
 export function makeBody(lifetime, scene, obj, callback) {
   obj.property('class').getThen(lifetime, cls => {
-    if (!lifetime.isAlive()) {
-      return;
-    } else if (cls == 'celestial') {
+    if (cls == 'celestial') {
       callback(new Celestial(lifetime, scene, obj));
     } else if (cls == 'ship') {
       callback(new Ship(lifetime, scene, obj));
