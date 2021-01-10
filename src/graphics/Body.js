@@ -15,6 +15,8 @@ class Body {
     this.solidMat = new THREE.MeshBasicMaterial({color: 'white'});
     this.wireMat = new THREE.MeshBasicMaterial({color: 'white', wireframe: true});
     this.mesh = new THREE.Mesh(emptyGeom, this.wireMat);
+    this.lt.add(this.solidMat);
+    this.lt.add(this.wireMat);
     this.size = 1;
     this.getRawPos = this.obj.property('position').getter(this.lt);
     this.scene.add(this.mesh);
@@ -93,6 +95,7 @@ class Celestial extends Body {
     this.obj.property('size').getThen(this.lt, km => {
       this.size = km * sceneScale;
       this.mesh.geometry = new THREE.SphereBufferGeometry(this.size, 16, 16);
+      this.lt.add(this.mesh.geometry);
     });
   }
 }
@@ -103,6 +106,7 @@ class Ship extends Body {
     this.setColor('0xFFFFFF');
     this.size = 0.25;
     this.mesh.geometry = new THREE.ConeGeometry(0.2, 0.5, 16);
+    this.lt.add(this.mesh.geometry);
     this.direction = new THREE.Vector3();
     this.getVelocity = this.obj.property('velocity').getter(this.lt);
     this.getAccel = this.obj.property('accel').getter(this.lt);
