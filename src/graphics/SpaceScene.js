@@ -75,17 +75,17 @@ export default class SpaceScene {
     });
 
     this.god.action('create_ship').fire([
-      new THREE.Vector3(1.496e+2, 10.0, 0.0),
-      new THREE.Vector3(0, 0, 30),
+      new THREE.Vector3(70, 20, 0),
+      new THREE.Vector3(0, 0, -40),
     ]);
 
     window.setTimeout(() => {
       const body = this.bodies.get(this.currentShip.get());
-      const target = this.bodies.getByName('Sol');
+      const target = this.bodies.getByName('Earth');
       if (body && target) {
         body.obj.property('ap_scheme').set('orbit');
         body.obj.property('ap_target').set(target.obj);
-        body.obj.property('ap_distance').set(108.52);
+        body.obj.property('ap_distance').set(null);
       } else {
         console.error('Could not set up autopilot');
       }
