@@ -81,10 +81,11 @@ export default class SpaceScene {
 
     window.setTimeout(() => {
       const body = this.bodies.get(this.currentShip.get());
-      const earth = this.bodies.getByName('Earth');
-      if (body && earth) {
+      const target = this.bodies.getByName('Sol');
+      if (body && target) {
         body.obj.property('ap_scheme').set('orbit');
-        body.obj.property('ap_target').set(earth.obj);
+        body.obj.property('ap_target').set(target.obj);
+        body.obj.property('ap_distance').set(108.52);
       } else {
         console.error('Could not set up autopilot');
       }
