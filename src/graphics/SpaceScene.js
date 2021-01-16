@@ -80,8 +80,11 @@ export default class SpaceScene {
       state);
     this.cameraManager.setAspect(window.innerWidth / window.innerHeight);
 
-    this.god.event('ship_created').subscribe(this.lt, obj => {
+    const shipCreatedLt = new Lifetime();
+    this.lt.add(shipCreatedLt);
+    this.god.event('ship_created').subscribe(shipCreatedLt, obj => {
       state.currentShip.set(obj);
+      this.lt.disposeOf(shipCreatedLt);
     });
 
     this.god.action('create_ship').fire([
