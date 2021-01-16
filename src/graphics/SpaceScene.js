@@ -22,6 +22,8 @@ export default class SpaceScene {
 
     const elem = document.createElement('div');
     elem.style.cssText = 'display:block;width:200px;height:200px;border-radius:100px;opacity:0.3;background:#8000ff';
+    elem.style.color = 'white';
+    elem.textContent = 'Manual Control Area';
     buttonDiv.appendChild(elem);
     this.thrustObj = new THREE.Object3D();
     this.thrustObj.position.set(10, 0, 0);
@@ -54,7 +56,7 @@ export default class SpaceScene {
         this.thrustLt = null;
       }
     });
-    this.manualControls = false;
+    this.manualControls = true;
 
     this.renderer = new THREE.WebGLRenderer({antialias: true});
     this.renderer.setClearColor('black');
