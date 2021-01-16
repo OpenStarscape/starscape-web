@@ -42,6 +42,8 @@ export default class SpaceScene {
           const vec = accel.clone();
           vec.normalize();
           this.thrustMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), vec);
+          let len = accel.length();
+          this.thrustMesh.scale.set(len, len, len);
         });
       } else {
         this.thrustLt = null;
