@@ -1,18 +1,25 @@
 export default class OrbitList {
   constructor(parentDiv, bodyNameList, callback) {
+    this.parentDiv = parentDiv;
+    this.callback = callback;
     this.buttonList = [];
     this.selectedButton = null;
+    this.addButton('Manual Control', null);
     for (const bodyName of bodyNameList) {
-      const button = document.createElement("BUTTON");
-      button.style.display = 'block'; // make vertical? for some reason?
-      button.textContent = bodyName;
-      button.onclick = () => {
-        callback(bodyName);
-        this.select(button);
-      }
-      parentDiv.appendChild(button);
-      this.buttonList.push(button);
+      this.addButton(bodyName, bodyName);
     }
+  }
+
+  addButton(label, name) {
+    const button = document.createElement("BUTTON");
+    button.style.display = 'block'; // make vertical? for some reason?
+    button.textContent = label;
+    button.onclick = () => {
+      this.callback(name);
+      this.select(name);
+    };
+    this.parentDiv.appendChild(button);
+    this.buttonList.push(button);
   }
 
   select(button) {

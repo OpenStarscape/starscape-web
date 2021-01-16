@@ -16,9 +16,13 @@ export default class SpaceScene {
     this.domParent = domParent;
     this.scene = new THREE.Scene();
 
+    const buttonDiv = document.createElement('div');
+    buttonDiv.style.cssText = 'position:absolute;z-index:400';
+    this.domParent.appendChild(buttonDiv);
+
     const elem = document.createElement('div');
-    elem.style.cssText = 'position:absolute;width:200px;height:200px;border-radius:100px;opacity:0.3;z-index:400;background:#8000ff';
-    this.domParent.appendChild(elem);
+    elem.style.cssText = 'display:block;width:200px;height:200px;border-radius:100px;opacity:0.3;background:#8000ff';
+    buttonDiv.appendChild(elem);
     this.thrustObj = new THREE.Object3D();
     this.thrustObj.position.set(10, 0, 0);
     this.scene.add(this.thrustObj);
@@ -50,10 +54,7 @@ export default class SpaceScene {
         this.thrustLt = null;
       }
     });
-
-    const buttonDiv = document.createElement('div');
-    buttonDiv.style.cssText = 'position:absolute;z-index:400';
-    this.domParent.appendChild(buttonDiv);
+    this.manualControls = false;
 
     this.renderer = new THREE.WebGLRenderer({antialias: true});
     this.renderer.setClearColor('black');
@@ -97,11 +98,13 @@ export default class SpaceScene {
         const target = this.bodies.getByName(name);
         if (body && name === null) {
           body.obj.property('ap_scheme').set('off');
-          body.obj.property('velocity').set(new THREE.Vector3(0, 0, 0));
+          body.obj.property('accel').set(new THREE.Vector3(0, 0, 0));
+          this.manualControls = true;
         } else if (body && target) {
           body.obj.property('ap_scheme').set('orbit');
           body.obj.property('ap_target').set(target.obj);
           body.obj.property('ap_distance').set(null);
+          this.manualControls = false;
         } else {
           console.error('Could not set up autopilot');
         }
@@ -122,11 +125,11 @@ export default class SpaceScene {
     const vec = new THREE.Vector3();
     vec.subVectors(this.thrustObj.position, this.thrustControls.target);
     vec.normalize();
-    vec.multiplyScalar(1000);
-    if (!vec.equals(this.cachedThrust)) {
+    vec.multiplyScalar(1);
+    if (!vec.equals(this.cachedThrust) && this.manualControls) {
       this.cachedThrust.copy(vec);
       if (this.currentShip.get()) {
-        //this.currentShip.get().property('accel').set(vec);
+        this.currentShip.get().property('accel').set(vec);
       }
     }
 
