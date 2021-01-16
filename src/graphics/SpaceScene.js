@@ -4,6 +4,7 @@ import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import Lifetime from "../lib/Lifetime.js";
 import Starfield from '../graphics/Starfield.js';
 import BodyManager from '../graphics/BodyManager.js';
+import OrbitList from '../graphics/OrbitList.js';
 import CameraManager from '../graphics/CameraManager.js';
 
 /// Manages everything required to render a 3D space view with three.js.
@@ -50,6 +51,10 @@ export default class SpaceScene {
       }
     });
 
+    const buttonDiv = document.createElement('div');
+    buttonDiv.style.cssText = 'position:absolute;z-index:400';
+    this.domParent.appendChild(buttonDiv);
+
     this.renderer = new THREE.WebGLRenderer({antialias: true});
     this.renderer.setClearColor('black');
     this.renderer.setPixelRatio(window.devicePixelRatio);
@@ -82,15 +87,25 @@ export default class SpaceScene {
     ]);
 
     window.setTimeout(() => {
-      const body = this.bodies.get(this.currentShip.get());
-      const target = this.bodies.getByName('Mars');
-      if (body && target) {
-        body.obj.property('ap_scheme').set('orbit');
-        body.obj.property('ap_target').set(target.obj);
-        body.obj.property('ap_distance').set(null);
-      } else {
-        console.error('Could not set up autopilot');
+      const nameList = []
+      for (const [name, body] of this.bodies.nameMap.entries()) {
+        body;
+        nameList.push(name);
       }
+      this.orbitList = new OrbitList(buttonDiv, nameList, name => {
+        const body = this.bodies.get(this.currentShip.get());
+        const target = this.bodies.getByName(name);
+        if (body && name === null) {
+          body.obj.property('ap_scheme').set('off');
+          body.obj.property('velocity').set(new THREE.Vector3(0, 0, 0));
+        } else if (body && target) {
+          body.obj.property('ap_scheme').set('orbit');
+          body.obj.property('ap_target').set(target.obj);
+          body.obj.property('ap_distance').set(null);
+        } else {
+          console.error('Could not set up autopilot');
+        }
+      });
     }, 1000);
 
     document.addEventListener("resize", () => {
