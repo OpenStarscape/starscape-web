@@ -77,13 +77,13 @@ export default class SpaceScene {
     });
 
     this.god.action('create_ship').fire([
-      new THREE.Vector3(70, 20, 0),
-      new THREE.Vector3(0, 0, -40),
+      new THREE.Vector3(150, 10, 0),
+      new THREE.Vector3(0, 0, -30),
     ]);
 
     window.setTimeout(() => {
       const body = this.bodies.get(this.currentShip.get());
-      const target = this.bodies.getByName('Earth');
+      const target = this.bodies.getByName('Mars');
       if (body && target) {
         body.obj.property('ap_scheme').set('orbit');
         body.obj.property('ap_target').set(target.obj);
