@@ -5,8 +5,9 @@ export default class OrbitList {
     this.buttonList = [];
     this.selectedButton = null;
     this.addButton('Manual Control', null);
+    this.select(this.buttonList[0]);
     for (const bodyName of bodyNameList) {
-      this.addButton(bodyName, bodyName);
+      this.addButton('Orbit ' + bodyName, bodyName);
     }
   }
 
@@ -16,7 +17,7 @@ export default class OrbitList {
     button.textContent = label;
     button.onclick = () => {
       this.callback(name);
-      this.select(name);
+      this.select(button);
     };
     this.parentDiv.appendChild(button);
     this.buttonList.push(button);
