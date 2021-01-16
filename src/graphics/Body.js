@@ -36,9 +36,9 @@ class Body {
     this.orbitUp = new THREE.Vector3();
 
     this.setGravBody(null);
-    this.obj.property('grav_body').subscribe(this.lt, grav_body => {
-      this.setGravBody(grav_body);
-    })
+    this.obj.property('grav_parent').subscribe(this.lt, grav_parent => {
+      this.setGravBody(grav_parent);
+    });
 
     this.labelDiv = document.createElement('div');
     this.labelDiv.className = 'body-label';
