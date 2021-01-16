@@ -34,6 +34,7 @@ class Body {
     this.orbitLine = new THREE.LineLoop(circleGeom, this.lineMat);
     this.scene.add(this.orbitLine);
     this.orbitUp = new THREE.Vector3();
+    this.velRelToGravBody = new THREE.Vector3();
 
     this.setGravBody(null);
     this.obj.property('grav_parent').subscribe(this.lt, grav_parent => {
@@ -62,10 +63,12 @@ class Body {
       this.gravBodyLt = new Lifetime();
       this.lt.add(this.gravBodyLt)
       this.getGravBodyPos = gravBody.property('position').getter(this.gravBodyLt);
+      this.getGravBodyVel = gravBody.property('velocity').getter(this.gravBodyLt);
       this.getGravBodyMass = gravBody.property('mass').getter(this.gravBodyLt);
     } else {
       this.gravBodyLt = null;
       this.getGravBodyPos = () => undefined;
+      this.getGravBodyVel = () => undefined;
       this.getGravBodyMass = () => undefined;
     }
   }
@@ -120,8 +123,7 @@ class Body {
       this.mesh.material = this.wireMat;
     }
 
-    if (this.getGravBodyPos() !== undefined &&
-        this.getGravBodyMass() !== undefined &&
+    if (this.getGravBodyMass() !== undefined &&
         this.getGravBodyMass() > this.getMass()) {
       this.orbitLine.visible = true;
       this.orbitLine.position.copy(this.getGravBodyPos());
@@ -130,7 +132,9 @@ class Body {
       this.orbitLine.scale.setScalar(distance);
       this.orbitUp.copy(this.getGravBodyPos());
       this.orbitUp.sub(this.mesh.position);
-      this.orbitUp.cross(this.getVelocity());
+      this.velRelToGravBody.copy(this.getVelocity());
+      this.velRelToGravBody.sub(this.getGravBodyVel());
+      this.orbitUp.cross(this.velRelToGravBody);
       this.orbitUp.normalize();
       this.orbitLine.quaternion.setFromUnitVectors(zVec, this.orbitUp);
     } else {
