@@ -89,29 +89,24 @@ export default class SpaceScene {
       new THREE.Vector3(0, 0, -30),
     ]);
 
-    window.setTimeout(() => {
-      const nameList = []
-      for (const [name, body] of this.bodies.nameMap.entries()) {
-        body;
-        nameList.push(name);
+    this.orbitList = new OrbitList(this.lt, this.god, buttonDiv, targetObj => {
+      const body = this.bodies.get(this.currentShip.get());
+      if (targetObj == body) {
+        targetObj = null;
       }
-      this.orbitList = new OrbitList(buttonDiv, nameList, name => {
-        const body = this.bodies.get(this.currentShip.get());
-        const target = this.bodies.getByName(name);
-        if (body && name === null) {
-          body.obj.property('ap_scheme').set('off');
-          body.obj.property('accel').set(new THREE.Vector3(0, 0, 0));
-          this.manualControls = true;
-        } else if (body && target) {
-          body.obj.property('ap_scheme').set('orbit');
-          body.obj.property('ap_target').set(target.obj);
-          body.obj.property('ap_distance').set(null);
-          this.manualControls = false;
-        } else {
-          console.error('Could not set up autopilot');
-        }
-      });
-    }, 1000);
+      if (body && targetObj === null) {
+        body.obj.property('ap_scheme').set('off');
+        body.obj.property('accel').set(new THREE.Vector3(0, 0, 0));
+        this.manualControls = true;
+      } else if (body && targetObj) {
+        body.obj.property('ap_scheme').set('orbit');
+        body.obj.property('ap_target').set(targetObj);
+        body.obj.property('ap_distance').set(null);
+        this.manualControls = false;
+      } else {
+        console.error('Could not set up autopilot');
+      }
+    });
 
     document.addEventListener("resize", () => {
       this.renderer.setSize(window.innerWidth, window.innerHeight);
