@@ -123,7 +123,10 @@ class Body {
       this.mesh.material = this.wireMat;
     }
 
-    if (this.getGravBodyMass() !== undefined &&
+    if (this.getVelocity() !== undefined &&
+        this.getGravBodyPos() !== undefined &&
+        this.getGravBodyVel() !== undefined &&
+        this.getGravBodyMass() !== undefined &&
         this.getGravBodyMass() > this.getMass()) {
       this.orbitLine.visible = true;
       this.orbitLine.position.copy(this.getGravBodyPos());
