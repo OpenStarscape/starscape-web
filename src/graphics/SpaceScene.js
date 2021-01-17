@@ -5,6 +5,7 @@ import Lifetime from "../lib/Lifetime.js";
 import Starfield from '../graphics/Starfield.js';
 import BodyManager from '../graphics/BodyManager.js';
 import OrbitList from '../graphics/OrbitList.js';
+import ShipNameField from '../graphics/ShipNameField.js';
 import CameraManager from '../graphics/CameraManager.js';
 
 /// Manages everything required to render a 3D space view with three.js.
@@ -88,6 +89,8 @@ export default class SpaceScene {
       new THREE.Vector3(150, 10, 0),
       new THREE.Vector3(0, 0, -30),
     ]);
+
+    this.shipNameField = new ShipNameField(buttonDiv, this.currentShip);
 
     this.orbitList = new OrbitList(this.lt, this.god, buttonDiv, targetObj => {
       const body = this.bodies.get(this.currentShip.get());
