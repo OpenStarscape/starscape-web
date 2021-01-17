@@ -531,7 +531,10 @@ export default class StarscapeConnection {
       } else if (message.mtype == 'error') {
         const text = message.text;
         console.error('Starscape error: ' + text);
-        window.alert('Error from OpenStarscape server: ' + text);
+        window.alert(
+          'Error from OpenStarscape server:\n' +
+          text +
+          '\n\nIf you continue to have problems, try refreshing');
       } else {
         throw 'unknown mtype ' + message.mtype;
       }
