@@ -528,6 +528,10 @@ export default class StarscapeConnection {
         } else {
           throw 'should be unreachable';
         }
+      } else if (message.mtype == 'error') {
+        const text = message.text;
+        console.error('Starscape error: ' + text);
+        window.alert('Error from OpenStarscape server: ' + text);
       } else {
         throw 'unknown mtype ' + message.mtype;
       }
