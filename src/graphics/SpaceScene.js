@@ -39,12 +39,12 @@ export default class SpaceScene {
     this.thrustLt = null
     this.currentShip.subscribe(this.lt, obj => {
       if (this.thrustLt) {
-        this.lt.disposeOf(this.thrustLt);
+        this.thrustLt.dispose();
+        this.thrustLt = null;
       }
       if (obj) {
         console.log('Switching to ship ', obj.id);
-        this.thrustLt = new Lifetime();
-        this.lt.add(this.thrustLt);
+        this.thrustLt = this.lt.newChild();
         obj.property('accel').subscribe(this.thrustLt, accel => {
           const vec = accel.clone();
           vec.normalize();
@@ -52,8 +52,6 @@ export default class SpaceScene {
           let len = accel.length();
           this.thrustMesh.scale.set(len, len, len);
         });
-      } else {
-        this.thrustLt = null;
       }
     });
     this.manualControls = true;
@@ -80,11 +78,10 @@ export default class SpaceScene {
       state);
     this.cameraManager.setAspect(window.innerWidth / window.innerHeight);
 
-    const shipCreatedLt = new Lifetime();
-    this.lt.add(shipCreatedLt);
+    const shipCreatedLt = this.lt.newChild();
     this.god.event('ship_created').subscribe(shipCreatedLt, obj => {
       state.currentShip.set(obj);
-      this.lt.disposeOf(shipCreatedLt);
+      shipCreatedLt.dispose(); // only handle this callback once
     });
 
     this.god.action('create_ship').fire([
