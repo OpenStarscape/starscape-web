@@ -17,9 +17,13 @@ export default class SpaceScene {
     this.domParent = domParent;
     this.scene = new THREE.Scene();
 
+    const uiDiv = document.createElement('div');
+    uiDiv.style.cssText = 'position:absolute;z-index:400';
+    this.domParent.appendChild(uiDiv);
+
     const buttonDiv = document.createElement('div');
-    buttonDiv.style.cssText = 'position:absolute;z-index:400';
-    this.domParent.appendChild(buttonDiv);
+    buttonDiv.style.display = 'inline-block';
+    uiDiv.appendChild(buttonDiv);
 
     const elem = document.createElement('div');
     elem.style.cssText = 'display:block;width:200px;height:200px;border-radius:100px;opacity:0.3;background:#8000ff';
@@ -90,7 +94,11 @@ export default class SpaceScene {
       new THREE.Vector3(0, 0, -30),
     ]);
 
-    this.shipNameField = new ShipNameField(buttonDiv, this.currentShip);
+    const shipNameDiv = document.createElement('div');
+    shipNameDiv.style.display = 'inline-block';
+    shipNameDiv.style.verticalAlign = 'top';
+    uiDiv.appendChild(shipNameDiv);
+    this.shipNameField = new ShipNameField(shipNameDiv, this.currentShip);
 
     this.orbitList = new OrbitList(this.lt, this.god, buttonDiv, targetObj => {
       const body = this.bodies.get(this.currentShip.get());
