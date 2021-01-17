@@ -32,6 +32,25 @@ export default class Lifetime {
     }
   }
 
+  /// Create a new lifetime that will be disposed of with this one, but can also be disposed of
+  /// sooner
+  newChild() {
+    const child = new Lifetime();
+    this.addChild(child);
+    return child;
+  }
+
+  /// Add another lifetime to be a child of this one. That means it is disposed when this is
+  /// disposed, but it can be disposed sooner. A lifetime can be a child of multiple other
+  /// lifetimes. When it's disposed it removes itself from this, so many can be created and disposed
+  /// without gunking up the works.
+  addChild(lifetime) {
+    this.add(lifetime);
+    lifetime.addCallback(() => {
+      this.delete(lifetime);
+    });
+  }
+
   /// Add a callback to be called when disposed of.
   addCallback(callback) {
     this.add(new CallbackDisposable(callback));
