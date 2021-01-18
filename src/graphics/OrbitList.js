@@ -36,6 +36,21 @@ export default class OrbitList {
   constructor(lifetime, god, parentDiv, callback) {
     this.div = parentDiv;
 
+    this.connCountLabel = document.createElement('p');
+    this.connCountLabel.style.fontFamily = 'sans-serif';
+    this.connCountLabel.style.color = 'white';
+    this.div.appendChild(this.connCountLabel);
+    const currentProp = god.property('conn_count');
+    const maxProp = god.property('max_conn_count');
+    this.getCurrentConns = currentProp.getter(lifetime);
+    this.getMaxConns = maxProp.getter(lifetime);
+    currentProp.subscribe(lifetime, (/*current*/) => {
+      this.updateConnCount();
+    });
+    maxProp.subscribe(lifetime, (/*max*/) => {
+      this.updateConnCount();
+    });
+
     this.selectedButton = new Button(this, lifetime, 'Manual Control', () => callback(null));
     this.selectedButton.setText('Manual Control');
     this.selectedButton.showSelected();
@@ -46,6 +61,14 @@ export default class OrbitList {
         button.setText('Orbit ' + name);
       })
     });
+  }
+
+  updateConnCount() {
+    this.connCountLabel.textContent =
+      'Connections: ' +
+      this.getCurrentConns() +
+      '/' +
+      this.getMaxConns();
   }
 
   setSelected(button) {
