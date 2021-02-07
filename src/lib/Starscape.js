@@ -3,10 +3,10 @@ import {Subscriber, Element, valuesEqual} from '../lib/Element.js';
 import Lifetime from "../lib/Lifetime.js";
 
 class StarscapeSession {
-  constructor(handlePacket) {
+  constructor(connection) {
     this.isOpen = false;
     this.queuedPackets = []; // Used before the channel is open
-    this.handlePacket = handlePacket;
+    this.connection = connection;
     this.encoder = new TextEncoder(); // utf-8 by defailt
     this.decoder = new TextDecoder(); // utf-8 by default
   }
@@ -24,7 +24,7 @@ class StarscapeSession {
   onPacket(packet) {
     //console.log('got packet', packet, typeof packet);
     const str = this.decoder.decode(packet);
-    this.handlePacket(str);
+    this.connection.handlePacket(str);
   }
 
   onClose() {
@@ -32,7 +32,7 @@ class StarscapeSession {
   }
 
   onError(message) {
-    console.error(this.constructor.name + ' error:', message);
+    this.connection.handleError(this.constructor.name + ' error: ' + message);
   }
 
   maxPacketLen() {
@@ -60,8 +60,8 @@ class StarscapeSession {
 
 /// Opens a WebRTC session with a Starscape server and exchanges packets.
 class StarscapeRTCSession extends StarscapeSession {
-  constructor(handlePacket) {
-    super(handlePacket);
+  constructor(connection) {
+    super(connection);
     this.connection = new RTCPeerConnection({
       iceServers: [{
         urls: ['stun:stun.l.google.com:19302']
@@ -126,8 +126,8 @@ class StarscapeRTCSession extends StarscapeSession {
 
 /// Opens a WebRTC session with a Starscape server and exchanges packets.
 class StarscapeWebSocketSession extends StarscapeSession {
-  constructor(handlePacket) {
-    super(handlePacket);
+  constructor(connection) {
+    super(connection);
     this.socket = new WebSocket(this.getUrl());
     this.socket.binaryType = 'arraybuffer';
     this.socket.onopen = () => { this.onOpen(); };
@@ -425,17 +425,18 @@ export class StarscapeObject {
 /// 'webrtc' or 'websocket'. The .god object property is the entry point to accessing everything.
 export default class StarscapeConnection {
   constructor(sessionType) {
-    const handlePacket = packet => this.handlePacket(packet);
-    if (sessionType === 'webrtc') {
-      this.session = new StarscapeRTCSession(handlePacket);
-    } else if (sessionType === 'websocket') {
-      this.session = new StarscapeWebSocketSession(handlePacket);
-    } else {
-      throw 'unknown session type "' + sessionType + '"';
+    try {
+      if (sessionType === 'webrtc') {
+        this.session = new StarscapeRTCSession(this);
+      } else if (sessionType === 'websocket') {
+        this.session = new StarscapeWebSocketSession(this);
+      } else {
+        throw 'unknown session type "' + sessionType + '"';
+      }
+    } catch(err) {
+      this.handleError('Error initializing session: ' + err.toString());
+      return;
     }
-    StarscapeWebSocketSession;
-    StarscapeRTCSession;
-    //
     this.lt = new Lifetime();
     this.objects = new Map();
     this.god = this.getObj(1);
@@ -459,6 +460,11 @@ export default class StarscapeConnection {
       throw 'object ' + id + ' has already been destroyed';
     }
     return obj;
+  }
+
+  handleError(message) {
+    console.error(message);
+    window.alert(message + '\n\nIf you continue to have problems, try refreshing');
   }
 
   /// Used internally when an object should be destroyed (not yet implemented)
@@ -529,12 +535,7 @@ export default class StarscapeConnection {
           throw 'should be unreachable';
         }
       } else if (message.mtype == 'error') {
-        const text = message.text;
-        console.error('Starscape error: ' + text);
-        window.alert(
-          'Error from OpenStarscape server:\n' +
-          text +
-          '\n\nIf you continue to have problems, try refreshing');
+        this.handleError('Error from OpenStarscape server:\n' + message.text);
       } else {
         throw 'unknown mtype ' + message.mtype;
       }
