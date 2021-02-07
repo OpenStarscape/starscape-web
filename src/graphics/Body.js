@@ -21,7 +21,7 @@ class Body {
 
     this.solidMat = new THREE.MeshBasicMaterial({color: 'white'});
     this.wireMat = new THREE.MeshBasicMaterial({color: 'white', wireframe: true});
-    this.lineMat = new THREE.LineBasicMaterial({color: 'white'}),
+    this.lineMat = new THREE.LineBasicMaterial({color: 'white'});
     this.lt.add(this.solidMat);
     this.lt.add(this.wireMat);
     this.lt.add(this.lineMat);
