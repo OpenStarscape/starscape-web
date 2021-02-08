@@ -4,7 +4,6 @@ import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import Lifetime from "../lib/Lifetime.js";
 import Starfield from '../graphics/Starfield.js';
 import BodyManager from '../graphics/BodyManager.js';
-import OrbitList from '../graphics/OrbitList.js';
 import CameraManager from '../graphics/CameraManager.js';
 
 /// Manages everything required to render a 3D space view with three.js.
@@ -97,25 +96,6 @@ export default class SpaceScene {
     shipNameDiv.style.display = 'inline-block';
     shipNameDiv.style.verticalAlign = 'top';
     uiDiv.appendChild(shipNameDiv);
-
-    this.orbitList = new OrbitList(this.lt, this.god, buttonDiv, targetObj => {
-      const body = this.bodies.get(this.currentShip.get());
-      if (targetObj == body) {
-        targetObj = null;
-      }
-      if (body && targetObj === null) {
-        body.obj.property('ap_scheme').set('off');
-        body.obj.property('accel').set(new THREE.Vector3(0, 0, 0));
-        this.manualControls = true;
-      } else if (body && targetObj) {
-        body.obj.property('ap_scheme').set('orbit');
-        body.obj.property('ap_target').set(targetObj);
-        body.obj.property('ap_distance').set(null);
-        this.manualControls = false;
-      } else {
-        console.error('Could not set up autopilot');
-      }
-    });
 
     document.addEventListener("resize", () => {
       this.renderer.setSize(window.innerWidth, window.innerHeight);
