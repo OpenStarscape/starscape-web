@@ -6,14 +6,12 @@ import ServerStats from './ServerStats.js';
 import OrbitList from './OrbitList.js';
 
 export default class Helms extends React.Component {
-  constructor(props) {
-    super(props)
-    this.divRef = React.createRef();
-    this.gameState = new State();
-  }
+  private divRef = React.createRef<HTMLDivElement>();
+  private gameState = new State();
 
   componentDidMount() {
-    const scene = new SpaceScene(this.gameState, this.divRef.current);
+    new SpaceScene(this.gameState, this.divRef.current);
+    // TODO: dispose of SpaceScene on unmount
   }
 
   render() {
