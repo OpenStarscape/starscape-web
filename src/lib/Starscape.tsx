@@ -2,14 +2,15 @@ import {Vector3} from 'three';
 import {Subscriber, Element, valuesEqual} from '../lib/Element';
 import Lifetime from "../lib/Lifetime";
 
-class StarscapeSession {
-  constructor(connection) {
-    this.isOpen = false;
-    this.queuedPackets = []; // Used before the channel is open
-    this.connection = connection;
-    this.encoder = new TextEncoder(); // utf-8 by defailt
-    this.decoder = new TextDecoder(); // utf-8 by default
-  }
+abstract class StarscapeSession {
+  private readonly encoder = new TextEncoder(); // utf-8 by defailt
+  private readonly decoder = new TextDecoder(); // utf-8 by default
+  private isOpen = false;
+  private queuedPackets: string[] = [];
+
+  constructor(
+    private readonly connection: StarscapeConnection
+  ) {}
 
   onOpen() {
     console.log(this.constructor.name + ' opened');
@@ -21,7 +22,7 @@ class StarscapeSession {
     this.queuedPackets = []
   }
 
-  onPacket(packet) {
+  onPacket(packet: Uint8Array) {
     //console.log('got packet', packet, typeof packet);
     const str = this.decoder.decode(packet);
     this.connection.handlePacket(str);
@@ -31,7 +32,7 @@ class StarscapeSession {
     console.log(this.constructor.name + ' closed');
   }
 
-  onError(message) {
+  onError(message: string) {
     this.connection.handleError(this.constructor.name + ' error: ' + message);
   }
 
@@ -39,12 +40,10 @@ class StarscapeSession {
     return Infinity;
   }
 
-  sendPacketInternal() {
-    throw 'sendPacketInternal() not implemented';
-  }
+  abstract sendPacketInternal(_data: Uint8Array): void;
 
   /// Send a packet containing the given string to the server
-  sendPacket(packet) {
+  sendPacket(packet: string) {
     if (this.isOpen) {
       // The connection is open
       // console.log('sending packet:', packet);
@@ -60,15 +59,18 @@ class StarscapeSession {
 
 /// Opens a WebRTC session with a Starscape server and exchanges packets.
 class StarscapeRTCSession extends StarscapeSession {
-  constructor(connection) {
+  private readonly rtc: RTCPeerConnection;
+  private readonly channel: RTCDataChannel;
+
+  constructor(connection: StarscapeConnection) {
     super(connection);
-    this.connection = new RTCPeerConnection({
+    this.rtc = new RTCPeerConnection({
       iceServers: [{
         urls: ['stun:stun.l.google.com:19302']
       }]
     });
 
-    this.channel = this.connection.createDataChannel('starscape-data', {
+    this.channel = this.rtc.createDataChannel('starscape-data', {
       ordered: false,
       maxRetransmits: 0
     });
@@ -78,10 +80,10 @@ class StarscapeRTCSession extends StarscapeSession {
     this.channel.onopen = () => { this.onOpen(); };
     this.channel.onmessage = evt => { this.onPacket(evt.data); };
     this.channel.onclose = () => { this.onClose(); };
-    this.channel.onerror = evt => { this.onError(evt.message); };
+    this.channel.onerror = evt => { this.onError(evt.error.toString()); };
 
-    this.connection.createOffer().then((offer) => {
-      return this.connection.setLocalDescription(offer);
+    this.rtc.createOffer().then((offer) => {
+      return this.rtc.setLocalDescription(offer);
     }).then(() => {
       // vue.config.js should set up a proxy to redirect this to our Rust server
       let request = new XMLHttpRequest();
@@ -89,9 +91,9 @@ class StarscapeRTCSession extends StarscapeSession {
       request.onload = () => {
         if (request.status == 200) {
           let response = JSON.parse(request.responseText);
-          this.connection.setRemoteDescription(new RTCSessionDescription(response.answer)).then(() => {
+          this.rtc.setRemoteDescription(new RTCSessionDescription(response.answer)).then(() => {
             let candidate = new RTCIceCandidate(response.candidate);
-            this.connection.addIceCandidate(candidate).then(() => {
+            this.rtc.addIceCandidate(candidate).then(() => {
               console.log('add ice candidate success');
             }).catch((err) => {
               console.log('error during "addIceCandidate":', err);
@@ -101,7 +103,7 @@ class StarscapeRTCSession extends StarscapeSession {
           });
         }
       };
-      request.send(this.connection.localDescription.sdp);
+      request.send(this.rtc.localDescription!.sdp);
     }).catch((reason) => {
       console.log('error during "createOffer":', reason);
     });
@@ -114,7 +116,7 @@ class StarscapeRTCSession extends StarscapeSession {
     return 2020;
   }
 
-  sendPacketInternal(data) {
+  sendPacketInternal(data: Uint8Array) {
     this.channel.send(data);
   }
 
@@ -124,27 +126,30 @@ class StarscapeRTCSession extends StarscapeSession {
   }
 }
 
+function getUrl() {
+  return (
+    ((window.location.protocol === "https:") ? "wss://" : "ws://") +
+    window.location.host +
+    "/websocket"
+  );
+}
+
 /// Opens a WebRTC session with a Starscape server and exchanges packets.
 class StarscapeWebSocketSession extends StarscapeSession {
-  constructor(connection) {
+  private readonly socket = new WebSocket(getUrl());
+
+  constructor(connection: StarscapeConnection) {
     super(connection);
-    this.socket = new WebSocket(this.getUrl());
     this.socket.binaryType = 'arraybuffer';
     this.socket.onopen = () => { this.onOpen(); };
     this.socket.onmessage = evt => { this.onPacket(evt.data); };
     this.socket.onclose = () => { this.onClose() };
-    this.socket.onerror = evt => { this.onError(evt.message); };
+    // There isn't much info here for some reason, some have suggested that capturing info in
+    // onclose might have better results.
+    this.socket.onerror = evt => { this.onError(evt.type); };
   }
 
-  getUrl() {
-    return (
-      ((window.location.protocol === "https:") ? "wss://" : "ws://") +
-      window.location.host +
-      "/websocket"
-    );
-  }
-
-  sendPacketInternal(data) {
+  sendPacketInternal(data: Uint8Array) {
     this.socket.send(data);
   }
 
@@ -157,14 +162,17 @@ class StarscapeWebSocketSession extends StarscapeSession {
 /// A generic element for a Starscape object member (property/action/event). Should not be added
 /// to any lifetime except that of it's objects.
 export class StarscapeElement extends Element {
-  constructor(obj, name) {
+  readonly obj: StarscapeObject;
+  readonly name: string;
+
+  constructor(obj: StarscapeObject, name: string) {
     super();
     this.obj = obj;
     this.name = name;
   }
 
   lifetime() {
-    return this.obj.lifetime();
+    return this.obj.lt;
   }
 
   /// Called by this property's object when the object is destroyed.
@@ -174,7 +182,6 @@ export class StarscapeElement extends Element {
         ' this indicates it was added to another lifetime or disposed manually, ' +
         ' neither of which should happen.');
     }
-    this.obj = null;
     super.dispose();
   }
 }
@@ -182,7 +189,7 @@ export class StarscapeElement extends Element {
 /// A specialized subscriber used for receiving property get requests. Unlike a normal subscriber,
 /// it's only supposed to be notified once and so removes itself from the element and lifetime.
 class GetSubscriber extends Subscriber {
-  elementUpdate(value) {
+  elementUpdate(value: any) {
     super.elementUpdate(value);
     this.dispose();
   }
@@ -195,17 +202,12 @@ class GetSubscriber extends Subscriber {
 /// The element type used for properties exposed by the server. Is created and returned by
 /// StarscapeObject.property()
 export class StarscapeProperty extends StarscapeElement {
-  constructor(obj, name) {
-    super();
-    this.obj = obj;
-    this.name = name;
-    this.isSubscribed = false;
-    this.hasPendingGet = false;
-  }
+  private isSubscribed = false;
+  private hasPendingGet = false;
 
   /// Sends a set request to the server. The value is only updates and subscribers are only notified
   /// if and when the server responds to the request.
-  set(value) {
+  set(value: any) {
     if (!valuesEqual(value, this.value)) {
       this.obj.connection.setProperty(this.obj.id, this.name, value);
       this.handleUpdate(value);
@@ -216,7 +218,7 @@ export class StarscapeProperty extends StarscapeElement {
   /// invokes the given callback when it's completed. If the current value is known no request is
   /// made and the callback is called immediately. If the object or lifetime die before the request
   /// completes, the callback may never be called.
-  getThen(lifetime, callback) {
+  getThen(lifetime: Lifetime, callback: (value: any) => void) {
     const subscriber = new GetSubscriber(this, lifetime, callback);
     // Note that we call the super version, we don't want to call connection.subscribeTo()
     super.addSubscriber(subscriber);
@@ -231,7 +233,7 @@ export class StarscapeProperty extends StarscapeElement {
   /// subscribes to the property and stays subscribed as long as the given lifetime lives. Note that
   /// if there were no previous subscribers the returned getter will return undefined until the
   /// initial request completes.
-  getter(lifetime) {
+  getter(lifetime: Lifetime) {
     const subscriber = new Subscriber(this, lifetime, null);
     this.addSubscriber(subscriber);
     return () => {
@@ -252,7 +254,7 @@ export class StarscapeProperty extends StarscapeElement {
   }
 
   /// Overrides parent method, generally not called externally.
-  addSubscriber(subscriber) {
+  addSubscriber(subscriber: Subscriber) {
     super.addSubscriber(subscriber);
     if (!this.isSubscribed) {
       this.isSubscribed = true;
@@ -261,7 +263,7 @@ export class StarscapeProperty extends StarscapeElement {
   }
 
   /// Overrides parent method, generally not called externally.
-  deleteSubscriber(subscriber) {
+  deleteSubscriber(subscriber: Subscriber) {
     super.deleteSubscriber(subscriber);
     if (this.subscribers.size == 0 && this.isSubscribed) {
       this.isSubscribed = false;
@@ -271,7 +273,7 @@ export class StarscapeProperty extends StarscapeElement {
   }
 
   /// Called by this property's object when the value gets an update.
-  handleUpdate(value) {
+  handleUpdate(value: any) {
     if (this.isSubscribed) {
       this.value = value;
     }
@@ -280,8 +282,8 @@ export class StarscapeProperty extends StarscapeElement {
   }
 
   /// Called by this property's object when a get request is responded to.
-  handleGetReply(value) {
-    this.hasPendingOneshot = false;
+  handleGetReply(value: any) {
+    this.hasPendingGet = false;
     this.handleUpdate(value);
   }
 
@@ -296,15 +298,10 @@ export class StarscapeProperty extends StarscapeElement {
 /// An event sent from the server to us. It can be subscribed to but not fired by us. Is created and
 /// returned by StarscapeObject.event()
 export class StarscapeEvent extends StarscapeElement {
-  constructor(obj, name) {
-    super();
-    this.obj = obj;
-    this.name = name;
-    this.isSubscribed = false;
-  }
+  private isSubscribed = false;
 
   /// Overrides parent method, generally not called externally.
-  addSubscriber(subscriber) {
+  addSubscriber(subscriber: Subscriber) {
     super.addSubscriber(subscriber);
     if (!this.isSubscribed) {
       this.isSubscribed = true;
@@ -313,7 +310,7 @@ export class StarscapeEvent extends StarscapeElement {
   }
 
   /// Overrides parent method, generally not called externally.
-  deleteSubscriber(subscriber) {
+  deleteSubscriber(subscriber: Subscriber) {
     super.deleteSubscriber(subscriber);
     if (this.subscribers.size == 0 && this.isSubscribed) {
       this.isSubscribed = false;
@@ -322,7 +319,7 @@ export class StarscapeEvent extends StarscapeElement {
   }
 
   /// Called by the event's object when the server sends an event.
-  handleEvent(value) {
+  handleEvent(value: any) {
     this.sendUpdates(value);
   }
 
@@ -336,14 +333,8 @@ export class StarscapeEvent extends StarscapeElement {
 /// An action we can send to the server. We can also subscribe to it locally. Is created and
 /// returned by StarscapeObject.action().
 export class StarscapeAction extends StarscapeElement {
-  constructor(obj, name) {
-    super();
-    this.obj = obj;
-    this.name = name;
-  }
-
   /// Fire the action, which results in a server request and local subscribers being notified.
-  fire(value) {
+  fire(value: any) {
     if (!this.isAlive()) {
       throw 'fire() called after object destroyed';
     }
@@ -354,35 +345,37 @@ export class StarscapeAction extends StarscapeElement {
 
 /// A handle to an object on the server. Is automatically created by the connection.
 export class StarscapeObject {
-  constructor(connection, id) {
-    this.lt = new Lifetime();
-    connection.lifetime().add(this.lt);
-    this.connection = connection;
-    this.id = id;
-    this.members = new Map();
-  }
+  readonly lt = new Lifetime();
+  private members = new Map<string, any>();
 
-  lifetime() {
-    return this.lt;
+  constructor(
+    readonly connection: StarscapeConnection,
+    readonly id: number
+  ) {
+    connection.lifetime().add(this.lt);
   }
 
   /// Object must have a property with the given name. This is not automatically checked.
-  property(name) {
-    return this.member(name, StarscapeProperty);
+  property(name: string) {
+    return this.member(name, StarscapeProperty) as StarscapeProperty;
   }
 
   /// Object must have an action with the given name. This is not automatically checked.
-  action(name) {
-    return this.member(name, StarscapeAction);
+  action(name: string) {
+    return this.member(name, StarscapeAction) as StarscapeAction;
   }
 
   /// Object must have an event with the given name. This is not automatically checked.
-  event(name) {
-    return this.member(name, StarscapeEvent);
+  event(name: string) {
+    return this.member(name, StarscapeEvent) as StarscapeEvent;
   }
 
   /// Used internally, Get or create a property, action or event
-  member(name, memberClass) {
+  member(name: string, memberClass: any): any {
+    if (!this.lt.isAlive()) {
+      throw (this.id + '.' + name +
+        ' can not be created since the object has been destroyed');
+    }
     let member = this.members.get(name);
     if (!member) {
       member = new memberClass(this, name);
@@ -397,48 +390,50 @@ export class StarscapeObject {
   }
 
   /// Called by the connection.
-  handleUpdate(name, value) {
+  handleUpdate(name: string, value: any) {
     const member = this.member(name, StarscapeProperty);
     member.handleUpdate(value);
   }
 
   /// Called by the connection.
-  handleGetReply(name, value) {
+  handleGetReply(name: string, value: any) {
     const member = this.member(name, StarscapeProperty);
     member.handleGetReply(value);
   }
 
   /// Called by the connection.
-  handleEvent(name, value) {
+  handleEvent(name: string, value: any) {
     const member = this.member(name, StarscapeEvent);
     member.handleEvent(value);
   }
 
   dispose() {
-    this.id = 0;
-    this.members = null;
+    this.members.clear();
     this.lt.dispose();
   }
+}
+
+export enum StarscapeSessionType {
+  WebRTC,
+  WebSocket,
 }
 
 /// The toplevel object of a connection to an OpenStarscape server. sessionType should be either
 /// 'webrtc' or 'websocket'. The .god object property is the entry point to accessing everything.
 export default class StarscapeConnection {
-  constructor(sessionType) {
-    try {
-      if (sessionType === 'webrtc') {
-        this.session = new StarscapeRTCSession(this);
-      } else if (sessionType === 'websocket') {
-        this.session = new StarscapeWebSocketSession(this);
-      } else {
-        throw 'unknown session type "' + sessionType + '"';
-      }
-    } catch(err) {
-      this.handleError('Error initializing session: ' + err.toString());
-      return;
+  private readonly session: StarscapeSession;
+  private readonly lt = new Lifetime();
+  private readonly objects = new Map();
+  readonly god: StarscapeObject;
+
+  constructor(sessionType: StarscapeSessionType) {
+    if (sessionType == StarscapeSessionType.WebRTC) {
+      this.session = new StarscapeRTCSession(this);
+    } else if (sessionType == StarscapeSessionType.WebSocket) {
+      this.session = new StarscapeWebSocketSession(this);
+    } else {
+      throw 'unknown session type "' + sessionType + '"';
     }
-    this.lt = new Lifetime();
-    this.objects = new Map();
     this.god = this.getObj(1);
   }
 
@@ -447,7 +442,7 @@ export default class StarscapeConnection {
   }
 
   /// Used internally to get or create an object with a given object ID.
-  getObj(id) {
+  getObj(id: number) {
     if (typeof id !== 'number' || !Number.isInteger(id)) {
       throw 'ID ' + id + ' is not an int';
     }
@@ -462,13 +457,13 @@ export default class StarscapeConnection {
     return obj;
   }
 
-  handleError(message) {
+  handleError(message: string) {
     console.error(message);
     window.alert(message + '\n\nIf you continue to have problems, try refreshing');
   }
 
   /// Used internally when an object should be destroyed (not yet implemented)
-  destroyObj(id) {
+  destroyObj(id: number) {
     const obj = this.objects.get(id);
     if (obj) {
       this.lt.disposeOf(obj);
@@ -479,7 +474,7 @@ export default class StarscapeConnection {
 
   /// Turns a value decoded from JSON into one suitable to send to the rest of the app. In many
   /// cases this does nothing but in some some translation is required.
-  decodeValue(value) {
+  decodeValue(value: any): any {
     if (Array.isArray(value)) {
       if (value.length == 1) {
         if (typeof value[0] === 'number') {
@@ -501,7 +496,7 @@ export default class StarscapeConnection {
 
   /// Turns a value from the app into one ready to be converted to JSON. In many cases this does
   /// nothing but in some some translation is required.
-  encodeValue(value) {
+  encodeValue(value: any): any {
     if (value instanceof Vector3) {
       return value.toArray();
     } else if (value instanceof StarscapeObject) {
@@ -514,7 +509,7 @@ export default class StarscapeConnection {
   }
 
   /// Handle a single protocol message, deserialized from JSON
-  handleMessage(message) {
+  handleMessage(message: any) {
     //try {
       if (message.mtype == 'update' || message.mtype == 'value' || message.mtype == 'event') {
         if (typeof message.object !== 'number') {
@@ -547,7 +542,7 @@ export default class StarscapeConnection {
   }
 
   /// Handle a packet string, which could contain one or more message.
-  handlePacket(packet) {
+  handlePacket(packet: string) {
     //console.log('got packet', packet);
     //try {
       let bundle = JSON.parse(packet);
@@ -568,33 +563,33 @@ export default class StarscapeConnection {
   }
 
   /// Low level, do not call directly. Use obj.property().set() instead.
-  setProperty(obj_id, prop, value) {
+  setProperty(obj_id: number, prop: string, value: any) {
     value = this.encodeValue(value);
     let json = JSON.stringify({mtype: 'set', object: obj_id, property: prop, value: value}) + '\n';
     this.session.sendPacket(json);
   }
 
   /// Low level, do not call directly. Use obj.action().fire() instead.
-  fireAction(obj_id, prop, value) {
+  fireAction(obj_id: number, prop: string, value: any) {
     // using the same protocol message as set is just a temporary hack, but it works
     this.setProperty(obj_id, prop, value);
   }
 
   /// Low level, do not call directly. Use obj.property().getThen() instead.
-  getProperty(obj_id, prop) {
+  getProperty(obj_id: number, prop: string) {
     let json = JSON.stringify({mtype: 'get', object: obj_id, property: prop}) + '\n';
     this.session.sendPacket(json);
   }
 
   /// Low level, do not call directly. Use obj.property().subscribe() instead.
-  subscribeTo(obj_id, prop) {
+  subscribeTo(obj_id: number, prop: string) {
     let json = JSON.stringify({mtype: 'subscribe', object: obj_id, property: prop}) + '\n';
     this.session.sendPacket(json);
   }
 
   /// Low level, do not call directly. Is called automatically when required (assuming you dispose
   /// of your lifetimes when needed)
-  unsubscribeFrom(obj_id, prop) {
+  unsubscribeFrom(obj_id: number, prop: string) {
     let json = JSON.stringify({mtype: 'unsubscribe', object: obj_id, property: prop}) + '\n';
     this.session.sendPacket(json);
   }

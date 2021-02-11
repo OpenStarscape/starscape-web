@@ -1,4 +1,4 @@
-import {StarscapeObject} from '../lib/Starscape.js';
+import {StarscapeObject} from '../lib/Starscape';
 
 /// Keeps track of a starscape property that is a set (a list of items that are guaranteed to be
 /// unique and are in an arbitrary order). The callback is given two arguments whenever a new item
@@ -32,7 +32,7 @@ export default class StarscapeSet {
           const itemLifetime = this.lt.newChild();
           // if it's an object, should die with object (though the server should remove it for us)
           if (item instanceof StarscapeObject) {
-            item.lifetime().addChild(itemLifetime);
+            item.lt.addChild(itemLifetime);
           }
           this.items.set(item, itemLifetime);
           callback(itemLifetime, item);
