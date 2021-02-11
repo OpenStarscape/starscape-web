@@ -1,5 +1,5 @@
 import React from 'react'
-import Lifetime from '../lib/Lifetime.js'
+import Lifetime from '../lib/Lifetime'
 
 export default class ServerStats extends React.Component {
   constructor(props) {
