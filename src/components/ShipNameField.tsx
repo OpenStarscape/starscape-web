@@ -1,14 +1,25 @@
 import React from 'react';
+import Game from '../lib/Game'
 
-export default class ShipNameField extends React.Component {
-  constructor(props) {
+type Props = {
+  game: Game
+}
+
+type State = {
+  name: string | null,
+  promptForName: boolean,
+  value?: string
+}
+
+export default class ShipNameField extends React.Component<Props, State> {
+  constructor(props: Props) {
     super(props);
-    this.state = {name: '', promptForName: true};
+    this.state = {name: null, promptForName: true};
     // TODO: subscribe to ship name
   }
 
-  handleInput(evt) {
-    let name = evt.target.value;
+  handleInput(evt: React.ChangeEvent<HTMLInputElement>) {
+    let name: string | null = evt.target.value;
     if (!name) {
       name = null;
     }

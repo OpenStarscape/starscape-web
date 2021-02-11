@@ -1,10 +1,21 @@
 import React from 'react'
 import Lifetime from '../lib/Lifetime'
+import Game from '../lib/Game'
 
-export default class ServerStats extends React.Component {
-  constructor(props) {
+type Props = {
+  game: Game
+}
+
+type State = {
+  conn_count?: number,
+  max_conn_count?: number
+}
+
+export default class ServerStats extends React.Component<Props, State> {
+  private readonly lt = new Lifetime();
+
+  constructor(props: Props) {
     super(props);
-    this.lt = new Lifetime();
     this.state = {}
   }
 
