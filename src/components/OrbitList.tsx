@@ -1,13 +1,18 @@
 import React from 'react';
 import * as THREE from "three";
+import State from '../lib/State.js';
 import StarscapeSet from '../lib/StarscapeSet.js';
+import {StarscapeObject} from '../lib/Starscape.js';
 import Lifetime from '../lib/Lifetime.js';
 
-class OrbitButton extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {};
-  }
+type ButtonProps = {
+  obj: StarscapeObject,
+  lt: Lifetime,
+  handleSelected: (button: OrbitButton) => void
+}
+
+class OrbitButton extends React.Component<ButtonProps, {}> {
+  state = {text: ''}
 
   showSelected() {
     this.setState({selected: true});
@@ -19,7 +24,7 @@ class OrbitButton extends React.Component {
   }
 
   componentDidMount() {
-    this.props.obj.property('name').subscribe(this.props.lt, name => {
+    this.props.obj.property('name').subscribe(this.props.lt, (name: string) => {
       this.setState({text: 'Orbit ' + name});
     })
   }
@@ -40,17 +45,27 @@ class OrbitButton extends React.Component {
   }
 }
 
-export default class OrbitList extends React.Component {
-  constructor(props) {
+type ListProps = {
+  game: State
+}
+
+type ListState = {
+  buttons: JSX.Element[]
+}
+
+export default class OrbitList extends React.Component<ListProps, ListState> {
+  private lt = new Lifetime();
+  private selectedButton: OrbitButton | null = null;
+
+  constructor(props: {game: State}) {
     super(props);
-    this.lt = new Lifetime();
     this.state = {buttons: []};
     //this.selectedButton = new Button(this, lifetime, 'Manual Control', () => callback(null));
     //this.selectedButton.setText('Manual Control');
     //this.selectedButton.showSelected();
   }
 
-  orbit(targetObj) {
+  orbit(targetObj: StarscapeObject | null) {
     const ship = this.props.game.currentShip.get();
     if (targetObj == ship) {
       targetObj = null;
@@ -58,27 +73,27 @@ export default class OrbitList extends React.Component {
     if (ship && targetObj === null) {
       ship.property('ap_scheme').set('off');
       ship.property('accel').set(new THREE.Vector3(0, 0, 0));
-      this.manualControls = true;
+      //this.manualControls = true;
     } else if (ship && targetObj) {
       ship.property('ap_scheme').set('orbit');
       ship.property('ap_target').set(targetObj);
       ship.property('ap_distance').set(null);
-      this.manualControls = false;
+      //this.manualControls = false;
     } else {
       console.error('Could not set up autopilot');
     }
   }
 
-  addButton(button) {
-    this.setState((state, props) => {
+  addButton(button: JSX.Element) {
+    this.setState((state: ListState, _props: ListProps) => {
       const buttons = state.buttons.slice(); // clone array so we don't change state.buttons
       buttons.push(button);
       return {buttons: buttons};
     });
   }
 
-  deleteButton(button) {
-    this.setState((state, props) => {
+  deleteButton(button: JSX.Element) {
+    this.setState((state: ListState, _props: ListProps) => {
       const buttons = state.buttons.slice(); // clone array so we don't change state.buttons
       const i = buttons.indexOf(button);
       if (i > -1) {
@@ -89,8 +104,8 @@ export default class OrbitList extends React.Component {
   }
 
   componentDidMount() {
-    new StarscapeSet(this.props.game.god.property('bodies'), this.lt, (itemLt, obj) => {
-      const handleSelected = button => {
+    new StarscapeSet(this.props.game.god.property('bodies'), this.lt, (itemLt: Lifetime, obj: StarscapeObject) => {
+      const handleSelected = (button: OrbitButton) => {
         if (this.selectedButton) {
           this.selectedButton.showUnselected();
         }
@@ -110,7 +125,7 @@ export default class OrbitList extends React.Component {
 
   componentWillUnmount() {
     this.lt.dispose();
-    this.buttons = [];
+    this.setState({buttons: []});
   }
 
   render() {

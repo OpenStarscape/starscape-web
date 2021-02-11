@@ -3,7 +3,7 @@ import State from '../lib/State.js';
 import SpaceScene from '../graphics/SpaceScene.js';
 import ShipNameField from './ShipNameField.js';
 import ServerStats from './ServerStats.js';
-import OrbitList from './OrbitList.js';
+import OrbitList from './OrbitList';
 
 export default class Helms extends React.Component {
   private divRef = React.createRef<HTMLDivElement>();
