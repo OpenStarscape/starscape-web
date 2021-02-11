@@ -1,11 +1,11 @@
 import React from 'react';
-import State from '../lib/State.js';
+import Game from '../lib/Game';
 import SpaceScene from '../graphics/SpaceScene.js';
 import ShipNameField from './ShipNameField.js';
 import ServerStats from './ServerStats.js';
 import OrbitList from './OrbitList';
 
-export default class Helms extends React.Component<{game: State}, {}> {
+export default class Helms extends React.Component<{game: Game}, {}> {
   private divRef = React.createRef<HTMLDivElement>();
 
   componentDidMount() {

@@ -1,8 +1,8 @@
-import Game from './Game';
+import GameContainer from './GameContainer';
 
 /// The toplevel component
 export default function App() {
   return (
-    <Game />
+    <GameContainer />
   );
 }
