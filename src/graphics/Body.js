@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
-import Lifetime from "../lib/Lifetime.js";
+import Lifetime from "../lib/Lifetime";
 
 const emptyGeom = new THREE.BufferGeometry();
 const circleGeom = new THREE.CircleGeometry(1, 120);

@@ -1,6 +1,6 @@
 import {Vector3} from 'three';
 import {Subscriber, Element, valuesEqual} from '../lib/Element.js';
-import Lifetime from "../lib/Lifetime.js";
+import Lifetime from "../lib/Lifetime";
 
 class StarscapeSession {
   constructor(connection) {

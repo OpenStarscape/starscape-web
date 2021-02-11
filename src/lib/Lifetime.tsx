@@ -1,5 +1,7 @@
 export class CallbackDisposable {
-  constructor(callback) {
+  private callback: (() => void) | null;
+
+  constructor(callback: () => void) {
     this.callback = callback;
   }
 
@@ -15,10 +17,8 @@ export class CallbackDisposable {
 /// may be added to a lifetime. This includes three.js types which need to be disposed of, as well
 /// as element subscribers (these are created automatically when elements are subscribed to).
 export default class Lifetime {
-  constructor() {
-    this.disposables = new Set();
-    this.dead = false;
-  }
+  private disposables = new Set<any>();
+  private dead = false;
 
   /// Returns true if the lifetime has not been disposed.
   isAlive() {
@@ -44,7 +44,7 @@ export default class Lifetime {
   /// disposed, but it can be disposed sooner. A lifetime can be a child of multiple other
   /// lifetimes. When it's disposed it removes itself from this, so many can be created and disposed
   /// without gunking up the works.
-  addChild(lifetime) {
+  addChild(lifetime: Lifetime) {
     this.add(lifetime);
     lifetime.addCallback(() => {
       this.delete(lifetime);
@@ -52,25 +52,25 @@ export default class Lifetime {
   }
 
   /// Add a callback to be called when disposed of.
-  addCallback(callback) {
+  addCallback(callback: () => void) {
     this.add(new CallbackDisposable(callback));
   }
 
   /// Adds an object with a .dispose() method. .dispose() will be called when this lifetime is
   /// disposed of unless the object is deleted from it before then.
-  add(disposable) {
+  add(disposable: any) {
     this.verifyAlive()
     this.disposables.add(disposable);
   }
 
   /// Delete a previously added object without disposing of it. Does nothing if the given object is
   /// not known.
-  delete(disposable) {
+  delete(disposable: any) {
     this.disposables.delete(disposable);
   }
 
   /// Like .delete(), except calls .dispose() on the object (even if it was not known).
-  disposeOf(disposable) {
+  disposeOf(disposable: any) {
     this.disposables.delete(disposable);
     disposable.dispose();
   }
@@ -84,7 +84,7 @@ export default class Lifetime {
     this.dead = true;
     const disposables = this.disposables;
     this.disposables = new Set();
-    for (const disposable of disposables) {
+    for (const disposable of this.disposables) {
       disposable.dispose();
     }
   }
