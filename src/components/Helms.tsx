@@ -5,12 +5,11 @@ import ShipNameField from './ShipNameField.js';
 import ServerStats from './ServerStats.js';
 import OrbitList from './OrbitList';
 
-export default class Helms extends React.Component {
+export default class Helms extends React.Component<{game: State}, {}> {
   private divRef = React.createRef<HTMLDivElement>();
-  private gameState = new State();
 
   componentDidMount() {
-    new SpaceScene(this.gameState, this.divRef.current);
+    new SpaceScene(this.props.game, this.divRef.current);
     // TODO: dispose of SpaceScene on unmount
   }
 
@@ -19,9 +18,9 @@ export default class Helms extends React.Component {
       <div>
         <div ref={this.divRef} style={{position: 'absolute', zIndex: 10}} />
         <div style={{position: 'absolute', zIndex: 100}}>
-          <ShipNameField game={this.gameState} />
-          <ServerStats game={this.gameState} />
-          <OrbitList game={this.gameState} />
+          <ShipNameField game={this.props.game} />
+          <ServerStats game={this.props.game} />
+          <OrbitList game={this.props.game} />
         </div>
       </div>
     )

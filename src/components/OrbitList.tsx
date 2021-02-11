@@ -2,7 +2,7 @@ import React from 'react';
 import * as THREE from "three";
 import State from '../lib/State.js';
 import StarscapeSet from '../lib/StarscapeSet.js';
-import {StarscapeObject} from '../lib/Starscape.js';
+import {StarscapeObject} from '../lib/Starscape';
 import Lifetime from '../lib/Lifetime';
 
 type ButtonProps = {

@@ -52,7 +52,7 @@ export class Subscriber {
 /// Starscape server or be local. All elements can be subscribed to, and specific types of elements
 /// have additional methods (such as get).
 export class Element {
-  private subscribers = new Set<Subscriber>();
+  protected subscribers = new Set<Subscriber>();
   /// If this is a property-like conduit .value can be set to something other than undefined, in
   /// which case new subscribers will be sent it as they are added. Note that .value is NOT
   /// automatically updated (subclasses are expected to do that).
