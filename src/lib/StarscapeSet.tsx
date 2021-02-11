@@ -1,15 +1,21 @@
-import {StarscapeObject} from '../lib/Starscape';
+import {StarscapeObject, StarscapeProperty} from './Starscape';
+import Lifetime from './Lifetime';
 
 /// Keeps track of a starscape property that is a set (a list of items that are guaranteed to be
 /// unique and are in an arbitrary order). The callback is given two arguments whenever a new item
 /// is added to the set: the lifetime for which the item is in the set and the item.
 export default class StarscapeSet {
-  constructor(property, lifetime, callback) {
+  private readonly lt: Lifetime;
+  private items = new Map<any, Lifetime>();
+
+  constructor(
+    property: StarscapeProperty,
+    lifetime: Lifetime,
+    callback: (itemLt: Lifetime, item: any) => void
+  ) {
     this.lt = lifetime.newChild()
     property.lifetime().addChild(this.lt);
     this.lt.add(this);
-    this.items = new Map();
-    this.callbacks = []; // lists containing [lifetime, callback]
     property.subscribe(this.lt, list => {
       if (!Array.isArray(list)) {
         console.error('StarscapeSet given value ' + list + ' which is not array');
