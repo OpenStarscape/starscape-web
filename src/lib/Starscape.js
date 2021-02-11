@@ -1,5 +1,5 @@
 import {Vector3} from 'three';
-import {Subscriber, Element, valuesEqual} from '../lib/Element.js';
+import {Subscriber, Element, valuesEqual} from '../lib/Element';
 import Lifetime from "../lib/Lifetime";
 
 class StarscapeSession {

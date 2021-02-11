@@ -1,7 +1,8 @@
 import {Vector3} from 'three';
+import Lifetime from './Lifetime';
 
 /// If two types and values are equal, using different methods depending on type.
-export function valuesEqual(a, b) {
+export function valuesEqual(a: any, b: any) {
   if (a instanceof Vector3 && b instanceof Vector3) {
     return a.equals(b);
   } else if (Array.isArray(a) && Array.isArray(b)) {
@@ -25,15 +26,15 @@ export function valuesEqual(a, b) {
 /// Manages a subscribed callback. Is added to both a lifetime and an element, and removes itself
 /// from the other when either is destroyed.
 export class Subscriber {
-  constructor(element, lifetime, callback) {
-    this.element = element;
-    this.lifetime = lifetime;
-    this.callback = callback;
-  }
+  constructor(
+    readonly element: Element,
+    readonly lifetime: Lifetime,
+    public callback: ((value: any) => void) | null
+  ) {}
 
   /// Called by the element when it gets an update (this may be an updated property value or an
   /// action/event).
-  elementUpdate(value) {
+  elementUpdate(value: any) {
     if (this.callback !== null) {
       this.callback(value);
     }
@@ -51,20 +52,18 @@ export class Subscriber {
 /// Starscape server or be local. All elements can be subscribed to, and specific types of elements
 /// have additional methods (such as get).
 export class Element {
-  constructor() {
-    this.subscribers = new Set();
-    /// If this is a property-like conduit .value can be set to something other than undefined, in
-    /// which case new subscribers will be sent it as they are added. Note that .value is NOT
-    /// automatically updated (subclasses are expected to do that).
-    this.value = undefined;
-    this.alive = true;
-  }
+  private subscribers = new Set<Subscriber>();
+  /// If this is a property-like conduit .value can be set to something other than undefined, in
+  /// which case new subscribers will be sent it as they are added. Note that .value is NOT
+  /// automatically updated (subclasses are expected to do that).
+  protected value: any = undefined;
+  private alive = true;
 
   /// The callback will be called with values as they become available. These values could be
   /// updates to a property or the values associated with actions, depending on the element type.
   /// The callback stops fireing as soon as the lifetime dies.
-  subscribe(lifetime, callback) {
-    this.addSubscriber(new Subscriber(this, lifetime, callback));
+  subscribe(lt: Lifetime, callback: (value: any) => void) {
+    this.addSubscriber(new Subscriber(this, lt, callback));
   }
 
   /// Returns true if this element hasn't been destroyed.
@@ -73,7 +72,7 @@ export class Element {
   }
 
   /// Should be called by subclasses, sends updates to all subscribers.
-  sendUpdates(value) {
+  sendUpdates(value: any) {
     for (const subscriber of this.subscribers) {
       subscriber.elementUpdate(value);
     }
@@ -81,7 +80,7 @@ export class Element {
 
   /// Adds a Subscriber, both to this class and to the subscriber's lifetime. Sends an initial
   /// update of .value if it's set.
-  addSubscriber(subscriber) {
+  addSubscriber(subscriber: Subscriber) {
     if (!this.isAlive()) {
       throw 'addSubscriber() called after object destroyed';
     }
@@ -93,7 +92,7 @@ export class Element {
   }
 
   /// Deletes a subscriber from the internal list. Does NOT remove it from the lifetime.
-  deleteSubscriber(subscriber) {
+  deleteSubscriber(subscriber: Subscriber) {
     this.subscribers.delete(subscriber);
   }
 
@@ -110,7 +109,7 @@ export class Element {
 
 /// An element that stores a mutable value locally. Not used for server properties.
 export class ValueElement extends Element {
-  constructor(value) {
+  constructor(value: any) {
     super();
     this.value = value;
   }
@@ -122,7 +121,7 @@ export class ValueElement extends Element {
   }
 
   /// Set the value. Subscribers are only notified if the new value is different from the old one.
-  set(value) {
+  set(value: any) {
     if (!valuesEqual(value, this.value)) {
       this.value = value;
       this.sendUpdates(value);
@@ -133,7 +132,7 @@ export class ValueElement extends Element {
 /// An element that represents a local data channel.
 export class ActionElement extends Element {
   /// Subscribers will be notified for every action fired.
-  fire(value) {
+  fire(value: any) {
     this.sendUpdates(value);
   }
 }
