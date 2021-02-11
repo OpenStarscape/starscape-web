@@ -1,8 +1,8 @@
 import React from 'react';
 import Game from '../lib/Game';
 import SpaceScene from '../graphics/SpaceScene.js';
-import ShipNameField from './ShipNameField.js';
-import ServerStats from './ServerStats.js';
+import ShipNameField from './ShipNameField';
+import ServerStats from './ServerStats';
 import OrbitList from './OrbitList';
 
 export default class Helms extends React.Component<{game: Game}, {}> {
