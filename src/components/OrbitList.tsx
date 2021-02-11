@@ -1,6 +1,6 @@
 import React from 'react';
 import * as THREE from "three";
-import State from '../lib/State.js';
+import Game from '../lib/Game';
 import StarscapeSet from '../lib/StarscapeSet.js';
 import {StarscapeObject} from '../lib/Starscape';
 import Lifetime from '../lib/Lifetime';
@@ -46,7 +46,7 @@ class OrbitButton extends React.Component<ButtonProps, {}> {
 }
 
 type ListProps = {
-  game: State
+  game: Game
 }
 
 type ListState = {
@@ -57,7 +57,7 @@ export default class OrbitList extends React.Component<ListProps, ListState> {
   private lt = new Lifetime();
   private selectedButton: OrbitButton | null = null;
 
-  constructor(props: {game: State}) {
+  constructor(props: ListProps) {
     super(props);
     this.state = {buttons: []};
     //this.selectedButton = new Button(this, lifetime, 'Manual Control', () => callback(null));

@@ -1,9 +1,9 @@
 import React from 'react';
 import Helms from './Helms';
-import State from '../lib/State';
+import State from '../lib/Game';
 
 /// All the pieces of an active game, holds a single active connection to a Starscape server.
-export default class Game extends React.Component {
+export default class GameContainer extends React.Component {
   private game: State | null = null;
   private message = '';
 

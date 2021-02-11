@@ -1,8 +1,12 @@
 import StarscapeConnection from '../lib/Starscape';
-import {StarscapeSessionType} from '../lib/Starscape';
+import {StarscapeSessionType, StarscapeObject} from '../lib/Starscape';
 import {ValueElement} from '../lib/Element';
 
-export default class State {
+export default class Game {
+  readonly connection: StarscapeConnection;
+  readonly god: StarscapeObject;
+  readonly currentShip: ValueElement;
+
   constructor() {
     this.connection = new StarscapeConnection(StarscapeSessionType.WebSocket);
     this.god = this.connection.god;
