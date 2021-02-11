@@ -1,5 +1,5 @@
 import StarscapeConnection from '../lib/Starscape.js';
-import {ValueElement} from '../lib/Element.js';
+import {ValueElement} from '../lib/Element';
 
 export default class State {
   constructor() {
