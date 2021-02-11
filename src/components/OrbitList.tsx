@@ -1,7 +1,7 @@
 import React from 'react';
 import * as THREE from "three";
 import Game from '../lib/Game';
-import StarscapeSet from '../lib/StarscapeSet.js';
+import StarscapeSet from '../lib/StarscapeSet';
 import {StarscapeObject} from '../lib/Starscape';
 import Lifetime from '../lib/Lifetime';
 

@@ -1,4 +1,4 @@
-import StarscapeSet from "../lib/StarscapeSet.js";
+import StarscapeSet from "../lib/StarscapeSet";
 import { makeBody } from "../graphics/Body.js";
 
 /// Keeps track of creating and destroying bodies in the 3D scene.
