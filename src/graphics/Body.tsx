@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import Lifetime from "../lib/Lifetime";
+import {StarscapeObject} from "../lib/Starscape";
 
 const emptyGeom = new THREE.BufferGeometry();
 const circleGeom = new THREE.CircleGeometry(1, 120);
@@ -11,30 +12,49 @@ const sceneScale = 1;
 
 /// The parent class for all 3D body types.
 class Body {
-  constructor(lifetime, scene, obj) {
-    this.lt = lifetime;
-    this.scene = scene;
-    this.obj = obj;
-    this.name = null; // Instead of us subscribing, the manager subscribes and uses the setter
+  /// Instead of us subscribing, the manager subscribes and uses the setter
+  private name: string | null = null;
+  private readonly getMass: () => any;
+  private readonly getRawPos: () => any;
+  private readonly orbitLine: THREE.LineLoop;
+  private readonly labelDiv: HTMLDivElement;
+  private readonly label: CSS2DObject;
+
+  // These need to be added to the lifetime
+  private readonly solidMat = new THREE.MeshBasicMaterial({color: 'white'});
+  private readonly wireMat = new THREE.MeshBasicMaterial({color: 'white', wireframe: true});
+  private readonly lineMat = new THREE.LineBasicMaterial({color: 'white'});
+
+  // These do not
+  private orbitUp = new THREE.Vector3();
+  private velRelToGravBody = new THREE.Vector3();
+  private gravBodyLt: Lifetime | null = null;
+  private getGravBodyPos = () => undefined;
+  private getGravBodyVel = () => undefined;
+  private getGravBodyMass = () => undefined;
+
+  protected size = 1;
+  protected readonly getVelocity: () => any;
+  protected readonly mesh = new THREE.Mesh(emptyGeom, this.wireMat);
+
+  constructor(
+    readonly lt: Lifetime,
+    readonly scene: THREE.Scene,
+    readonly obj: StarscapeObject
+  ) {
     this.getMass = this.obj.property('mass').getter(this.lt);
     this.getVelocity = this.obj.property('velocity').getter(this.lt);
+    this.getRawPos = this.obj.property('position').getter(this.lt);
 
-    this.solidMat = new THREE.MeshBasicMaterial({color: 'white'});
-    this.wireMat = new THREE.MeshBasicMaterial({color: 'white', wireframe: true});
-    this.lineMat = new THREE.LineBasicMaterial({color: 'white'});
     this.lt.add(this.solidMat);
     this.lt.add(this.wireMat);
     this.lt.add(this.lineMat);
-    this.mesh = new THREE.Mesh(emptyGeom, this.wireMat);
-    this.size = 1;
-    this.getRawPos = this.obj.property('position').getter(this.lt);
-    this.scene.add(this.mesh);
 
     // This is probs a better way: https://stackoverflow.com/a/21742175
     this.orbitLine = new THREE.LineLoop(circleGeom, this.lineMat);
+
+    this.scene.add(this.mesh);
     this.scene.add(this.orbitLine);
-    this.orbitUp = new THREE.Vector3();
-    this.velRelToGravBody = new THREE.Vector3();
 
     this.setGravBody(null);
     this.obj.property('grav_parent').subscribe(this.lt, grav_parent => {
@@ -53,7 +73,7 @@ class Body {
     return false;
   }
 
-  setGravBody(gravBody) {
+  setGravBody(gravBody: StarscapeObject | null) {
     // this.gravBodyLt is only used directly by this function. It gets recreated every time the
     // gravity body changes.
     if (this.gravBodyLt) {
@@ -73,7 +93,7 @@ class Body {
     }
   }
 
-  setToPosition(vec) {
+  setToPosition(vec: THREE.Vector3) {
     const raw = this.getRawPos();
     if (raw) {
       vec.copy(this.getRawPos());
@@ -87,21 +107,23 @@ class Body {
     return result;
   }
 
-  setColor(color) {
+  setColor(color: string) {
     if (!color) {
-      color = '0xFFFFFF';
+      color = '#FFFFFF';
+    } else {
+      color = '#' + color.slice(2);
     }
-    this.wireMat.color.setHex(color);
-    this.solidMat.color.setHex(color);
-    this.lineMat.color.setHex(color);
-    this.labelDiv.style.color = '#' + color.slice(2);
+    this.wireMat.color.setStyle(color);
+    this.solidMat.color.setStyle(color);
+    this.lineMat.color.setStyle(color);
+    this.labelDiv.style.color = color;
   }
 
   getName() {
     return this.name;
   }
 
-  setName(name) {
+  setName(name: string) {
     this.name = name;
     if (name !== null) {
       this.labelDiv.textContent = name;
@@ -111,7 +133,7 @@ class Body {
     }
   }
 
-  update(cameraPosition) {
+  update(cameraPosition: THREE.Vector3) {
     this.setToPosition(this.mesh.position);
     const dist = this.mesh.position.distanceTo(cameraPosition);
     const scale = dist / 100 / this.size;
@@ -127,16 +149,16 @@ class Body {
         this.getGravBodyPos() !== undefined &&
         this.getGravBodyVel() !== undefined &&
         this.getGravBodyMass() !== undefined &&
-        this.getGravBodyMass() > this.getMass()) {
+        this.getGravBodyMass()! > this.getMass()) {
       this.orbitLine.visible = true;
-      this.orbitLine.position.copy(this.getGravBodyPos());
+      this.orbitLine.position.copy(this.getGravBodyPos()!);
       this.orbitLine.position.multiplyScalar(sceneScale);
       const distance = this.orbitLine.position.distanceTo(this.mesh.position);
       this.orbitLine.scale.setScalar(distance);
-      this.orbitUp.copy(this.getGravBodyPos());
+      this.orbitUp.copy(this.getGravBodyPos()!);
       this.orbitUp.sub(this.mesh.position);
       this.velRelToGravBody.copy(this.getVelocity());
-      this.velRelToGravBody.sub(this.getGravBodyVel());
+      this.velRelToGravBody.sub(this.getGravBodyVel()!);
       this.orbitUp.cross(this.velRelToGravBody);
       this.orbitUp.normalize();
       this.orbitLine.quaternion.setFromUnitVectors(zVec, this.orbitUp);
@@ -151,7 +173,7 @@ class Body {
 }
 
 class Celestial extends Body {
-  constructor(lifetime, scene, obj) {
+  constructor(lifetime: Lifetime, scene: THREE.Scene, obj: StarscapeObject) {
     super(lifetime, scene, obj)
     this.obj.property('color').subscribe(this.lt, color => this.setColor(color));
     this.obj.property('size').getThen(this.lt, km => {
@@ -163,13 +185,15 @@ class Celestial extends Body {
 }
 
 class Ship extends Body {
-  constructor(lifetime, scene, obj) {
+  private readonly direction = new THREE.Vector3();
+  private readonly getAccel: () => any;
+
+  constructor(lifetime: Lifetime, scene: THREE.Scene, obj: StarscapeObject) {
     super(lifetime, scene, obj);
     this.setColor('0xFFFFFF');
     this.size = 0.01;
     this.mesh.geometry = new THREE.ConeBufferGeometry(0.01, 0.03, 16);
     this.lt.add(this.mesh.geometry);
-    this.direction = new THREE.Vector3();
     this.getAccel = this.obj.property('accel').getter(this.lt);
   }
 
@@ -177,7 +201,7 @@ class Ship extends Body {
     return true;
   }
 
-  update(cameraPosition) {
+  update(cameraPosition: THREE.Vector3) {
     super.update(cameraPosition);
     if (this.getAccel() !== undefined) {
       this.direction.copy(this.getAccel());
@@ -190,7 +214,12 @@ class Ship extends Body {
   }
 }
 
-export function makeBody(lifetime, scene, obj, callback) {
+export function makeBody(
+  lifetime: Lifetime,
+  scene: THREE.Scene,
+  obj: StarscapeObject,
+  callback: (body: Body) => void
+) {
   obj.property('class').getThen(lifetime, cls => {
     if (cls == 'celestial') {
       callback(new Celestial(lifetime, scene, obj));
