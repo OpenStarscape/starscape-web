@@ -15,6 +15,7 @@
     "react-dom": "^17.0.1",
     "react-scripts": "4.0.2",
     "three": "^0.114.0",
+    "ts-jest": "^26.5.1",
     "typescript": "^4.1.3"
   },
   "scripts": {
@@ -40,5 +41,14 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "jest": {
+    "transformIgnorePatterns": [
+      "node_modules/(?!(three|any-other-modules-that-should-be-transformed)/)"
+    ],
+    "transform": {
+      "^.+\\.jsx?$": "babel-jest",
+      "^.+\\.tsx?$": "ts-jest"
+    }
   }
 }
