@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls'
 import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import Lifetime from "../lib/Lifetime";
-import Starfield from '../graphics/Starfield.js';
+import Starfield from '../graphics/Starfield';
 import BodyManager from '../graphics/BodyManager';
 import CameraManager from '../graphics/CameraManager';
 
