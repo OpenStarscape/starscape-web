@@ -11,7 +11,7 @@ const zVec = new THREE.Vector3(0, 0, 1);
 const sceneScale = 1;
 
 /// The parent class for all 3D body types.
-class Body {
+export class Body {
   /// Instead of us subscribing, the manager subscribes and uses the setter
   private name: string | null = null;
   private readonly getMass: () => any;
@@ -123,7 +123,7 @@ class Body {
     return this.name;
   }
 
-  setName(name: string) {
+  setName(name: string | null) {
     this.name = name;
     if (name !== null) {
       this.labelDiv.textContent = name;
