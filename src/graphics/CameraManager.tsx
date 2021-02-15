@@ -14,7 +14,7 @@ export default class CameraManager {
   constructor(
     readonly lt: Lifetime,
     readonly scene: THREE.Scene,
-    domElement: HTMLCanvasElement,
+    domElement: HTMLElement,
     readonly bodies: BodyManager,
     game: Game,
   ) {

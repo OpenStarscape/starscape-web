@@ -1,16 +1,16 @@
 import React from 'react';
 import Helms from './Helms';
-import State from '../lib/Game';
+import Game from '../lib/Game';
 
 /// All the pieces of an active game, holds a single active connection to a Starscape server.
-export default class GameContainer extends React.Component {
-  private game: State | null = null;
+export default class GameContainer extends React.Component<{}> {
+  private game: Game | null = null;
   private message = '';
 
-  constructor(props: any) {
+  constructor(props: {}) {
     super(props);
     try {
-      this.game = new State();
+      this.game = new Game();
     } catch(err) {
       this.message = 'Error initializing session: ' + err.toString();
     }
