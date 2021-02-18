@@ -1,5 +1,8 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
+# See https://github.com/facebook/create-react-app/issues/6560
+src/react-app-env.d.ts
+
 # dependencies
 /node_modules
 /.pnp
