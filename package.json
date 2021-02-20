@@ -18,9 +18,10 @@
     "ts-jest": "^26.5.1",
     "typescript": "^4.1.3"
   },
+  "//": "GENERATE_SOURCEMAP=false reduces required memeory",
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build": "GENERATE_SOURCEMAP=false react-scripts build",
     "test": "jest --config ./src/jest/jest.config.json",
     "eject": "react-scripts eject"
   },
