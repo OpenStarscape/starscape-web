@@ -1,0 +1,20 @@
+{
+  "verbose": true,
+  "transform": {
+    "^.+\\.tsx?$": "ts-jest",
+    "^.+\\.jsx?$": "babel-jest"
+  },
+  "transformIgnorePatterns": [
+    "node_modules/(?!(three|any-other-modules-that-should-be-transformed)/)"
+  ],
+  "testRegex": "(/test/.*|\\.(test|spec))\\.(ts|tsx|js|jsx)$",
+  "moduleFileExtensions": ["ts", "tsx", "js", "jsx"],
+  "globals": {
+    "window": {},
+    "ts-jest": {
+      "tsconfig": "./tsconfig.json"
+    }
+  },
+  "setupFiles": ["./src/jest/jest.stubs.js"],
+  "testURL": "http://localhost/"
+}
