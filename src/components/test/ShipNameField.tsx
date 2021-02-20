@@ -3,12 +3,12 @@ import ShipNameField from '../ShipNameField';
 import StarscapeConnection, {StarscapeObject} from '../../lib/Starscape'
 import {ValueElement} from '../../lib/Element'
 
-test('renders learn react link', () => {
+test('shows prompt to enter name', () => {
   const game = {
     connection: null as unknown as StarscapeConnection,
     god: null as unknown as StarscapeObject,
     currentShip: null as unknown as unknown as ValueElement,
   }
   render(<ShipNameField game={game} />);
-  expect(1).toEqual(1);
+  expect(screen.getByText('⮤ give your ship a name')).toBeInTheDocument()
 });

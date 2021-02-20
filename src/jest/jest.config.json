@@ -15,5 +15,6 @@
     }
   },
   "setupFiles": ["<rootDir>/src/jest/jest.stubs.js"],
+  "setupFilesAfterEnv": ["<rootDir>/src/jest/setupTests.ts"],
   "testURL": "http://localhost/"
 }
