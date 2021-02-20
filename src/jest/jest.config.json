@@ -1,20 +1,19 @@
 {
   "verbose": true,
+  "rootDir": "../../",
   "transform": {
     "^.+\\.(js|jsx|mjs|cjs|ts|tsx)$": "ts-jest"
   },
   "transformIgnorePatterns": [
-    "node_modules/(?!(three|any-other-modules-that-should-be-transformed)/)"
+    "<rootDir>/node_modules/(?!(three|any-other-modules-that-should-be-transformed)/)"
   ],
   "testRegex": "(/test/.*|\\.test)\\.(ts|tsx|js|jsx)$",
-  "moduleFileExtensions": ["ts", "tsx", "js", "jsx"],
   "globals": {
-    "window": {},
     "ts-jest": {
-      "tsconfig": "./tsconfig.json",
+      "tsconfig": "<rootDir>/tsconfig.json",
       "diagnostics": true
     }
   },
-  "setupFiles": ["./src/jest/jest.stubs.js"],
+  "setupFiles": ["<rootDir>/src/jest/jest.stubs.js"],
   "testURL": "http://localhost/"
 }

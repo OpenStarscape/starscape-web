@@ -21,7 +21,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "jest --config ./jest.config.json",
+    "test": "jest --config ./src/jest/jest.config.json",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
