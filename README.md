@@ -3,10 +3,11 @@
 This is the primary OpenStarscape frontend.
 
 ## Uses
-- `Typescript`
-- `Three.js` for graphics
-- `React+JSX` for UI components
-- `Jest` for tests
+- [Typescript](https://www.typescriptlang.org/)
+- [npm](https://www.npmjs.com/)
+- [Three.js](https://threejs.org/)
+- [React+JSX](https://reactjs.org/)
+- [Jest](https://jestjs.io/en/)
 
 ## To run locally
 ```
