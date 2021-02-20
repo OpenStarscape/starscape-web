@@ -6,7 +6,7 @@
   "transformIgnorePatterns": [
     "node_modules/(?!(three|any-other-modules-that-should-be-transformed)/)"
   ],
-  "testRegex": "(/test/.*|\\.(test|spec))\\.(ts|tsx|js|jsx)$",
+  "testRegex": "(/test/.*|\\.test)\\.(ts|tsx|js|jsx)$",
   "moduleFileExtensions": ["ts", "tsx", "js", "jsx"],
   "globals": {
     "window": {},
