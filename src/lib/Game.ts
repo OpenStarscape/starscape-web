@@ -2,7 +2,13 @@ import StarscapeConnection from '../lib/Starscape';
 import {StarscapeSessionType, StarscapeObject} from '../lib/Starscape';
 import {ValueElement} from '../lib/Element';
 
-export default class Game {
+export default interface Game {
+  readonly connection: StarscapeConnection;
+  readonly god: StarscapeObject;
+  readonly currentShip: ValueElement;
+}
+
+export class GameImpl {
   readonly connection: StarscapeConnection;
   readonly god: StarscapeObject;
   readonly currentShip: ValueElement;
