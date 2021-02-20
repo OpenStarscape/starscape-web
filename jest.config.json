@@ -1,8 +1,7 @@
 {
   "verbose": true,
   "transform": {
-    "^.+\\.tsx?$": "ts-jest",
-    "^.+\\.jsx?$": "babel-jest"
+    "^.+\\.(js|jsx|mjs|cjs|ts|tsx)$": "ts-jest"
   },
   "transformIgnorePatterns": [
     "node_modules/(?!(three|any-other-modules-that-should-be-transformed)/)"
@@ -12,7 +11,8 @@
   "globals": {
     "window": {},
     "ts-jest": {
-      "tsconfig": "./tsconfig.json"
+      "tsconfig": "./tsconfig.json",
+      "diagnostics": true
     }
   },
   "setupFiles": ["./src/jest/jest.stubs.js"],
