@@ -69,7 +69,7 @@ export default class BodyManager {
   /// If there is exactly one body with the given name return it, else return undefined
   getByName(name: string): Body | undefined {
     const bodies = this.nameMap.get(name);
-    if (bodies === undefined || bodies.length != 1) {
+    if (bodies === undefined || bodies.length !== 1) {
       return undefined;
     } else {
       return bodies[0];

@@ -89,7 +89,7 @@ class StarscapeRTCSession extends StarscapeSession {
       let request = new XMLHttpRequest();
       request.open('POST', '/rtc');
       request.onload = () => {
-        if (request.status == 200) {
+        if (request.status === 200) {
           let response = JSON.parse(request.responseText);
           this.rtc.setRemoteDescription(new RTCSessionDescription(response.answer)).then(() => {
             let candidate = new RTCIceCandidate(response.candidate);
@@ -178,9 +178,11 @@ export class StarscapeElement extends Element {
   /// Called by this property's object when the object is destroyed.
   dispose() {
     if (this.lifetime().isAlive()) {
-      throw ('Element ' + this.obj + '.' + this.name + ' disposed before object\'s lifetime. ' +
+      throw new Error(
+        'Element ' + this.obj + '.' + this.name + ' disposed before object\'s lifetime. ' +
         ' this indicates it was added to another lifetime or disposed manually, ' +
-        ' neither of which should happen.');
+        ' neither of which should happen.'
+      );
     }
     super.dispose();
   }
@@ -248,7 +250,7 @@ export class StarscapeProperty extends StarscapeElement {
   /// over calling this directly since that ensures we are subscribed.
   cachedValue() {
     if (!this.isAlive()) {
-      throw 'cachedValue() called after object destroyed';
+      throw new Error('cachedValue() called after object destroyed');
     }
     return this.value;
   }
@@ -265,7 +267,7 @@ export class StarscapeProperty extends StarscapeElement {
   /// Overrides parent method, generally not called externally.
   deleteSubscriber(subscriber: Subscriber) {
     super.deleteSubscriber(subscriber);
-    if (this.subscribers.size == 0 && this.isSubscribed) {
+    if (this.subscribers.size === 0 && this.isSubscribed) {
       this.isSubscribed = false;
       this.value = undefined;
       this.obj.connection.unsubscribeFrom(this.obj.id, this.name);
@@ -312,7 +314,7 @@ export class StarscapeEvent extends StarscapeElement {
   /// Overrides parent method, generally not called externally.
   deleteSubscriber(subscriber: Subscriber) {
     super.deleteSubscriber(subscriber);
-    if (this.subscribers.size == 0 && this.isSubscribed) {
+    if (this.subscribers.size === 0 && this.isSubscribed) {
       this.isSubscribed = false;
       this.obj.connection.unsubscribeFrom(this.obj.id, this.name);
     }
@@ -336,7 +338,7 @@ export class StarscapeAction extends StarscapeElement {
   /// Fire the action, which results in a server request and local subscribers being notified.
   fire(value: any) {
     if (!this.isAlive()) {
-      throw 'fire() called after object destroyed';
+      throw new Error('fire() called after object destroyed');
     }
     this.obj.connection.fireAction(this.obj.id, this.name, value);
     this.sendUpdates(value);
@@ -373,8 +375,10 @@ export class StarscapeObject {
   /// Used internally, Get or create a property, action or event
   member(name: string, memberClass: any): any {
     if (!this.lt.isAlive()) {
-      throw (this.id + '.' + name +
-        ' can not be created since the object has been destroyed');
+      throw new Error(
+        this.id + '.' + name +
+        ' can not be created since the object has been destroyed'
+      );
     }
     let member = this.members.get(name);
     if (!member) {
@@ -382,9 +386,11 @@ export class StarscapeObject {
       this.lt.add(member);
       this.members.set(name, member);
     } else if (!(member instanceof memberClass)) {
-      throw (this.id + '.' + name +
+      throw new Error(
+        this.id + '.' + name +
         ' can not be created as a ' + memberClass.constructor.name +
-        ' because it was already created as a ' + member.constructor.name);
+        ' because it was already created as a ' + member.constructor.name
+      );
     }
     return member;
   }
@@ -427,12 +433,12 @@ export default class StarscapeConnection {
   readonly god: StarscapeObject;
 
   constructor(sessionType: StarscapeSessionType) {
-    if (sessionType == StarscapeSessionType.WebRTC) {
+    if (sessionType === StarscapeSessionType.WebRTC) {
       this.session = new StarscapeRTCSession(this);
-    } else if (sessionType == StarscapeSessionType.WebSocket) {
+    } else if (sessionType === StarscapeSessionType.WebSocket) {
       this.session = new StarscapeWebSocketSession(this);
     } else {
-      throw 'unknown session type "' + sessionType + '"';
+      throw new Error('unknown session type "' + sessionType + '"');
     }
     this.god = this.getObj(1);
   }
@@ -444,7 +450,7 @@ export default class StarscapeConnection {
   /// Used internally to get or create an object with a given object ID.
   getObj(id: number) {
     if (typeof id !== 'number' || !Number.isInteger(id)) {
-      throw 'ID ' + id + ' is not an int';
+      throw new Error('ID ' + id + ' is not an int');
     }
     let obj = this.objects.get(id);
     if (obj === undefined) {
@@ -452,7 +458,7 @@ export default class StarscapeConnection {
       this.lt.add(obj);
       this.objects.set(id, obj);
     } else if (obj === null) {
-      throw 'object ' + id + ' has already been destroyed';
+      throw new Error('object ' + id + ' has already been destroyed');
     }
     return obj;
   }
@@ -476,18 +482,18 @@ export default class StarscapeConnection {
   /// cases this does nothing but in some some translation is required.
   decodeValue(value: any): any {
     if (Array.isArray(value)) {
-      if (value.length == 1) {
+      if (value.length === 1) {
         if (typeof value[0] === 'number') {
           return this.getObj(value[0]);
         } else if (Array.isArray(value[0])) {
           return value[0].map(item => this.decodeValue(item));
         } else {
-          throw 'array-wrapped value is not a number or array';
+          throw new Error('array-wrapped value is not a number or array');
         }
-      } else if (value.length == 3) {
+      } else if (value.length === 3) {
         return new Vector3(value[0], value[1], value[2]);
       } else {
-        throw 'array-wrapped value has invalid length ' + value.length;
+        throw new Error('array-wrapped value has invalid length ' + value.length);
       }
     } else {
       return value;
@@ -511,28 +517,28 @@ export default class StarscapeConnection {
   /// Handle a single protocol message, deserialized from JSON
   handleMessage(message: any) {
     //try {
-      if (message.mtype == 'update' || message.mtype == 'value' || message.mtype == 'event') {
+      if (message.mtype === 'update' || message.mtype === 'value' || message.mtype === 'event') {
         if (typeof message.object !== 'number') {
-          throw 'object not a number';
+          throw new Error('object not a number');
         }
         if (typeof message.property !== 'string') {
-          throw 'property is a ' + typeof message.proprty + ' not a string';
+          throw new Error('property is a ' + typeof message.proprty + ' not a string');
         }
         let obj = this.getObj(message.object);
         let value = this.decodeValue(message.value);
-        if (message.mtype == 'update') {
+        if (message.mtype === 'update') {
           obj.handleUpdate(message.property, value);
-        } else if (message.mtype == 'value') {
+        } else if (message.mtype === 'value') {
           obj.handleGetReply(message.property, value);
-        } else if (message.mtype == 'event') {
+        } else if (message.mtype === 'event') {
           obj.handleEvent(message.property, value);
         } else {
-          throw 'should be unreachable';
+          throw new Error('should be unreachable');
         }
-      } else if (message.mtype == 'error') {
+      } else if (message.mtype === 'error') {
         this.handleError('Error from OpenStarscape server:\n' + message.text);
       } else {
-        throw 'unknown mtype ' + message.mtype;
+        throw new Error('unknown mtype ' + message.mtype);
       }
     //}
     //catch(err) {
@@ -553,7 +559,7 @@ export default class StarscapeConnection {
       } else if (typeof bundle === 'object') {
         this.handleMessage(bundle);
       } else {
-        throw 'bundle ' + packet.toString() + ' has invalid type';
+        throw new Error('bundle ' + packet.toString() + ' has invalid type');
       }
     //}
     //catch(err) {

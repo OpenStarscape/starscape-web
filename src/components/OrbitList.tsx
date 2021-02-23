@@ -67,7 +67,7 @@ export default class OrbitList extends React.Component<ListProps, ListState> {
 
   orbit(targetObj: StarscapeObject | null) {
     const ship = this.props.game.currentShip.get();
-    if (targetObj == ship) {
+    if (targetObj === ship) {
       targetObj = null;
     }
     if (ship && targetObj === null) {

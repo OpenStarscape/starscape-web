@@ -221,9 +221,9 @@ export function makeBody(
   callback: (body: Body) => void
 ) {
   obj.property('class').getThen(lifetime, cls => {
-    if (cls == 'celestial') {
+    if (cls === 'celestial') {
       callback(new Celestial(lifetime, scene, obj));
-    } else if (cls == 'ship') {
+    } else if (cls === 'ship') {
       callback(new Ship(lifetime, scene, obj));
     } else {
       console.error('unknown body class ', cls);
