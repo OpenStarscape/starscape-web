@@ -32,7 +32,7 @@ export default class Lifetime {
   /// Throws if this lifetime has been disposed.
   verifyAlive() {
     if (this.dead) {
-      throw 'relevant Lifetime is dead';
+      throw new Error('relevant Lifetime is dead');
     }
   }
 
@@ -88,7 +88,7 @@ export default class Lifetime {
     this.dead = true;
     const disposables = this.disposables;
     this.disposables = new Set();
-    for (const disposable of this.disposables) {
+    for (const disposable of disposables) {
       disposable.dispose();
     }
   }

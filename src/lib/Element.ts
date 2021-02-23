@@ -82,7 +82,7 @@ export class Element {
   /// update of .value if it's set.
   addSubscriber(subscriber: Subscriber) {
     if (!this.isAlive()) {
-      throw 'addSubscriber() called after object destroyed';
+      throw new Error('addSubscriber() called after object destroyed');
     }
     this.subscribers.add(subscriber);
     subscriber.lifetime.add(subscriber);
