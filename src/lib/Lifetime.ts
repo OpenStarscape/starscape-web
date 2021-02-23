@@ -1,3 +1,7 @@
+export interface Disposable {
+  dispose(): any;
+}
+
 export class CallbackDisposable {
   private callback: (() => void) | null;
 
@@ -17,7 +21,7 @@ export class CallbackDisposable {
 /// may be added to a lifetime. This includes three.js types which need to be disposed of, as well
 /// as element subscribers (these are created automatically when elements are subscribed to).
 export default class Lifetime {
-  private disposables = new Set<any>();
+  private disposables = new Set<Disposable>();
   private dead = false;
 
   /// Returns true if the lifetime has not been disposed.
@@ -58,19 +62,19 @@ export default class Lifetime {
 
   /// Adds an object with a .dispose() method. .dispose() will be called when this lifetime is
   /// disposed of unless the object is deleted from it before then.
-  add(disposable: any) {
+  add(disposable: Disposable) {
     this.verifyAlive()
     this.disposables.add(disposable);
   }
 
   /// Delete a previously added object without disposing of it. Does nothing if the given object is
   /// not known.
-  delete(disposable: any) {
+  delete(disposable: Disposable) {
     this.disposables.delete(disposable);
   }
 
   /// Like .delete(), except calls .dispose() on the object (even if it was not known).
-  disposeOf(disposable: any) {
+  disposeOf(disposable: Disposable) {
     this.disposables.delete(disposable);
     disposable.dispose();
   }
