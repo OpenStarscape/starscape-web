@@ -1,6 +1,5 @@
-import { Subscriber, Element, valuesEqual } from '../lib/Element';
+import { Subscriber, Element, valuesEqual, Lifetime } from '../core'
 import { SsObject } from './SsObject'
-import Lifetime from '../lib/Lifetime'
 
 /// A specialized subscriber used for receiving property get requests. Unlike a normal subscriber,
 /// it's only supposed to be notified once and so removes itself from the element and lifetime.

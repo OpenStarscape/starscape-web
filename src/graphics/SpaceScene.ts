@@ -1,7 +1,6 @@
 import * as THREE from "three";
 import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
-import Lifetime from "../lib/Lifetime";
-import Game from "../lib/Game";
+import { Game, Lifetime } from "../core";
 import Starfield from '../graphics/Starfield';
 import BodyManager from '../graphics/BodyManager';
 import CameraManager from '../graphics/CameraManager';

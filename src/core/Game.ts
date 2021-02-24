@@ -1,8 +1,7 @@
-import { SsConnection } from '../protocol';
-import {SsSessionType, SsObject} from '../protocol';
-import {ValueElement} from '../lib/Element';
+import { ValueElement } from '../core';
+import { SsConnection, SsSessionType, SsObject } from '../protocol';
 
-export default interface Game {
+export interface Game {
   readonly connection: SsConnection;
   readonly god: SsObject;
   readonly currentShip: ValueElement;

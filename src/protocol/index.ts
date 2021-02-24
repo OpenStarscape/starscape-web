@@ -1,4 +1,5 @@
 export * from './SsProperty'
+export * from './SsSet'
 export * from './SsSignal'
 export * from './SsAction'
 export * from './SsObject'

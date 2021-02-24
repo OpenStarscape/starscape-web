@@ -1,8 +1,6 @@
 import * as THREE from "three";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
-import Lifetime from '../lib/Lifetime';
-import Game from '../lib/Game';
-import {ValueElement} from '../lib/Element';
+import { Game, Lifetime, ValueElement } from '../core';
 import BodyManager from './BodyManager';
 
 /// Keeps track of creating and destroying bodies in the 3D scene.

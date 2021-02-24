@@ -1,7 +1,6 @@
 import { render } from '@testing-library/react';
 import App from '../App';
 
-test('renders learn react link', () => {
+test('can render App', () => {
   render(<App />);
-  expect(1).toEqual(1);
 });
