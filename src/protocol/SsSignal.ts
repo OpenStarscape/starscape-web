@@ -1,4 +1,4 @@
-import {Subscriber, Element} from '../lib/Element';
+import { Subscriber, Element } from '../core';
 import { SsObject } from './SsObject'
 
 /// A signal sent to the client from the server. Created and returned by SsObject.signal().

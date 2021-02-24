@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
-import ShipNameField from '../ShipNameField';
+import { ValueElement } from '../../core'
 import { SsConnection, SsObject } from '../../protocol'
-import {ValueElement} from '../../lib/Element'
+import ShipNameField from '../ShipNameField';
 
 test('shows prompt to enter name', () => {
   const game = {

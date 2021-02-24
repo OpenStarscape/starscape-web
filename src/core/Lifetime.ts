@@ -20,7 +20,7 @@ export class CallbackDisposable {
 /// A group of objects which are all disposed of at once. Any object which has a .dispose() method
 /// may be added to a lifetime. This includes three.js types which need to be disposed of, as well
 /// as element subscribers (these are created automatically when elements are subscribed to).
-export default class Lifetime {
+export class Lifetime {
   private disposables = new Set<Disposable>();
   private dead = false;
 

@@ -1,5 +1,5 @@
-import {Vector3} from 'three';
-import Lifetime from './Lifetime';
+import { Vector3 } from 'three';
+import { Lifetime } from './Lifetime';
 
 /// If two types and values are equal, using different methods depending on type.
 export function valuesEqual(a: any, b: any) {
@@ -71,13 +71,6 @@ export class Element {
     return this.alive;
   }
 
-  /// Should be called by subclasses, sends updates to all subscribers.
-  sendUpdates(value: any) {
-    for (const subscriber of this.subscribers) {
-      subscriber.elementUpdate(value);
-    }
-  }
-
   /// Adds a Subscriber, both to this class and to the subscriber's lifetime. Sends an initial
   /// update of .value if it's set.
   addSubscriber(subscriber: Subscriber) {
@@ -103,6 +96,13 @@ export class Element {
     this.subscribers = new Set();
     for (const subscriber of subscribers) {
       subscriber.dispose();
+    }
+  }
+
+  /// Sends updates to all subscribers.
+  protected sendUpdates(value: any) {
+    for (const subscriber of this.subscribers) {
+      subscriber.elementUpdate(value);
     }
   }
 }

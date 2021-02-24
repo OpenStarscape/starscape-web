@@ -1,7 +1,6 @@
 import * as THREE from 'three';
-import { SsObject } from "../protocol";
-import StarscapeSet from "../lib/StarscapeSet";
-import Lifetime from "../lib/Lifetime";
+import { SsObject, SsSet } from "../protocol";
+import { Lifetime } from "../core";
 import { makeBody, Body } from "../graphics/Body";
 
 /// Keeps track of creating and destroying bodies in the 3D scene.
@@ -15,7 +14,7 @@ export default class BodyManager {
     readonly god: SsObject
   ) {
     // Will attach itself to the lifetime, no need to hold a reference
-    new StarscapeSet(this.god.property('bodies'), this.lt, (itemLt, obj) => {
+    new SsSet(this.god.property('bodies'), this.lt, (itemLt, obj) => {
       makeBody(itemLt, this.scene, obj, body => {
         this.bodyMap.set(obj, body);
         obj.property('name').subscribe(itemLt, (name: any) => {

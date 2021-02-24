@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
-import Lifetime from "../lib/Lifetime";
+import { Lifetime } from "../core";
 import { SsObject } from "../protocol";
 
 const emptyGeom = new THREE.BufferGeometry();

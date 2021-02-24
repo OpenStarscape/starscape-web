@@ -1,6 +1,6 @@
 import React from 'react';
+import { Game, GameImpl } from '../core';
 import Helms from './Helms';
-import Game, {GameImpl} from '../lib/Game';
 
 /// All the pieces of an active game, holds a single active connection to a Starscape server.
 export default class GameContainer extends React.Component<{}> {

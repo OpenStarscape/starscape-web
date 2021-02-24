@@ -1,4 +1,4 @@
-import Lifetime from '../lib/Lifetime';
+import { Lifetime } from '../core';
 import { SsConnection } from './SsConnection';
 import { SsProperty } from './SsProperty'
 import { SsAction } from './SsAction'

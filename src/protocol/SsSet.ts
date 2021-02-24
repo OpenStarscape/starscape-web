@@ -1,10 +1,11 @@
-import {SsObject, SsProperty} from '../protocol';
-import Lifetime from './Lifetime';
+import { Lifetime } from '../core';
+import { SsObject } from './SsObject';
+import { SsProperty } from './SsProperty';
 
 /// Keeps track of a starscape property that is a set (a list of items that are guaranteed to be
 /// unique and are in an arbitrary order). The callback is given two arguments whenever a new item
 /// is added to the set: the lifetime for which the item is in the set and the item.
-export default class StarscapeSet {
+export class SsSet {
   private readonly lt: Lifetime;
   private items = new Map<any, Lifetime>();
 

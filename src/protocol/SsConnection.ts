@@ -1,5 +1,5 @@
-import {Vector3} from 'three';
-import Lifetime from '../lib/Lifetime';
+import { Vector3 } from 'three';
+import { Lifetime } from '../core';
 import { SsObject } from './SsObject';
 import { SsSession } from  './SsSession';
 import { SsRTCSession } from  './SsRTCSession';

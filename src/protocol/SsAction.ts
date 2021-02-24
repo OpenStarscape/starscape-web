@@ -1,4 +1,4 @@
-import {Element} from '../lib/Element';
+import { Element } from '../core';
 import { SsObject } from './SsObject'
 
 /// An action the client can perform on a server object. We can also subscribe to it locally. Created and returned by

@@ -1,9 +1,7 @@
 import React from 'react';
 import * as THREE from "three";
-import Game from '../lib/Game';
-import StarscapeSet from '../lib/StarscapeSet';
-import { SsObject } from '../protocol';
-import Lifetime from '../lib/Lifetime';
+import { Game, Lifetime } from '../core';
+import { SsObject, SsSet } from '../protocol';
 
 type ButtonProps = {
   obj: SsObject,
@@ -104,7 +102,7 @@ export default class OrbitList extends React.Component<ListProps, ListState> {
   }
 
   componentDidMount() {
-    new StarscapeSet(this.props.game.god.property('bodies'), this.lt, (itemLt: Lifetime, obj: SsObject) => {
+    new SsSet(this.props.game.god.property('bodies'), this.lt, (itemLt: Lifetime, obj: SsObject) => {
       const handleSelected = (button: OrbitButton) => {
         if (this.selectedButton) {
           this.selectedButton.showUnselected();
