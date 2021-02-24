@@ -1,18 +1,18 @@
 import * as THREE from 'three';
-import {StarscapeObject} from "../lib/Starscape";
+import { SsObject } from "../protocol";
 import StarscapeSet from "../lib/StarscapeSet";
 import Lifetime from "../lib/Lifetime";
 import { makeBody, Body } from "../graphics/Body";
 
 /// Keeps track of creating and destroying bodies in the 3D scene.
 export default class BodyManager {
-  private readonly bodyMap = new Map<StarscapeObject, Body>();
+  private readonly bodyMap = new Map<SsObject, Body>();
   private readonly nameMap = new Map<string, Body[]>();
 
   constructor(
     readonly lt: Lifetime,
     readonly scene: THREE.Scene,
-    readonly god: StarscapeObject
+    readonly god: SsObject
   ) {
     // Will attach itself to the lifetime, no need to hold a reference
     new StarscapeSet(this.god.property('bodies'), this.lt, (itemLt, obj) => {
@@ -62,7 +62,7 @@ export default class BodyManager {
     }
   }
 
-  get(obj: StarscapeObject): Body | undefined {
+  get(obj: SsObject): Body | undefined {
     return this.bodyMap.get(obj);
   }
 

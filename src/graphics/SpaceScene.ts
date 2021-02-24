@@ -72,7 +72,7 @@ export default class SpaceScene {
     this.cameraManager.setAspect(window.innerWidth / window.innerHeight);
 
     const shipCreatedLt = this.lt.newChild();
-    this.game.god.event('ship_created').subscribe(shipCreatedLt, obj => {
+    this.game.god.signal('ship_created').subscribe(shipCreatedLt, obj => {
       this.game.currentShip.set(obj);
       shipCreatedLt.dispose(); // only handle this callback once
     });

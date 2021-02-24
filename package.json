@@ -23,6 +23,7 @@
     "start": "react-scripts start",
     "build": "GENERATE_SOURCEMAP=false react-scripts build",
     "test": "jest --config ./src/jest/jest.config.json",
+    "jest-clear-cache": "jest --clearCache",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
