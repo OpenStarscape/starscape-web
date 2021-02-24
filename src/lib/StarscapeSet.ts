@@ -1,4 +1,4 @@
-import {StarscapeObject, StarscapeProperty} from './Starscape';
+import {SsObject, SsProperty} from '../protocol';
 import Lifetime from './Lifetime';
 
 /// Keeps track of a starscape property that is a set (a list of items that are guaranteed to be
@@ -9,7 +9,7 @@ export default class StarscapeSet {
   private items = new Map<any, Lifetime>();
 
   constructor(
-    property: StarscapeProperty,
+    property: SsProperty,
     lifetime: Lifetime,
     callback: (itemLt: Lifetime, item: any) => void
   ) {
@@ -37,7 +37,7 @@ export default class StarscapeSet {
           }
           const itemLifetime = this.lt.newChild();
           // if it's an object, should die with object (though the server should remove it for us)
-          if (item instanceof StarscapeObject) {
+          if (item instanceof SsObject) {
             item.lt.addChild(itemLifetime);
           }
           this.items.set(item, itemLifetime);

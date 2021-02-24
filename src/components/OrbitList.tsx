@@ -2,11 +2,11 @@ import React from 'react';
 import * as THREE from "three";
 import Game from '../lib/Game';
 import StarscapeSet from '../lib/StarscapeSet';
-import {StarscapeObject} from '../lib/Starscape';
+import { SsObject } from '../protocol';
 import Lifetime from '../lib/Lifetime';
 
 type ButtonProps = {
-  obj: StarscapeObject,
+  obj: SsObject,
   lt: Lifetime,
   handleSelected: (button: OrbitButton) => void
 }
@@ -65,7 +65,7 @@ export default class OrbitList extends React.Component<ListProps, ListState> {
     //this.selectedButton.showSelected();
   }
 
-  orbit(targetObj: StarscapeObject | null) {
+  orbit(targetObj: SsObject | null) {
     const ship = this.props.game.currentShip.get();
     if (targetObj === ship) {
       targetObj = null;
@@ -104,7 +104,7 @@ export default class OrbitList extends React.Component<ListProps, ListState> {
   }
 
   componentDidMount() {
-    new StarscapeSet(this.props.game.god.property('bodies'), this.lt, (itemLt: Lifetime, obj: StarscapeObject) => {
+    new StarscapeSet(this.props.game.god.property('bodies'), this.lt, (itemLt: Lifetime, obj: SsObject) => {
       const handleSelected = (button: OrbitButton) => {
         if (this.selectedButton) {
           this.selectedButton.showUnselected();

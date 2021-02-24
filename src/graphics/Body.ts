@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import Lifetime from "../lib/Lifetime";
-import {StarscapeObject} from "../lib/Starscape";
+import { SsObject } from "../protocol";
 
 const emptyGeom = new THREE.BufferGeometry();
 const circleGeom = new THREE.CircleGeometry(1, 120);
@@ -40,7 +40,7 @@ export class Body {
   constructor(
     readonly lt: Lifetime,
     readonly scene: THREE.Scene,
-    readonly obj: StarscapeObject
+    readonly obj: SsObject
   ) {
     this.getMass = this.obj.property('mass').getter(this.lt);
     this.getVelocity = this.obj.property('velocity').getter(this.lt);
@@ -73,7 +73,7 @@ export class Body {
     return false;
   }
 
-  setGravBody(gravBody: StarscapeObject | null) {
+  setGravBody(gravBody: SsObject | null) {
     // this.gravBodyLt is only used directly by this function. It gets recreated every time the
     // gravity body changes.
     if (this.gravBodyLt) {
@@ -173,7 +173,7 @@ export class Body {
 }
 
 class Celestial extends Body {
-  constructor(lifetime: Lifetime, scene: THREE.Scene, obj: StarscapeObject) {
+  constructor(lifetime: Lifetime, scene: THREE.Scene, obj: SsObject) {
     super(lifetime, scene, obj)
     this.obj.property('color').subscribe(this.lt, color => this.setColor(color));
     this.obj.property('size').getThen(this.lt, km => {
@@ -188,7 +188,7 @@ class Ship extends Body {
   private readonly direction = new THREE.Vector3();
   private readonly getAccel: () => any;
 
-  constructor(lifetime: Lifetime, scene: THREE.Scene, obj: StarscapeObject) {
+  constructor(lifetime: Lifetime, scene: THREE.Scene, obj: SsObject) {
     super(lifetime, scene, obj);
     this.setColor('0xFFFFFF');
     this.size = 0.01;
@@ -217,7 +217,7 @@ class Ship extends Body {
 export function makeBody(
   lifetime: Lifetime,
   scene: THREE.Scene,
-  obj: StarscapeObject,
+  obj: SsObject,
   callback: (body: Body) => void
 ) {
   obj.property('class').getThen(lifetime, cls => {
