@@ -7,7 +7,7 @@ test('shows prompt to enter name', () => {
   const game = {
     connection: null as unknown as SsConnection,
     god: null as unknown as SsObject,
-    currentShip: null as unknown as unknown as LocalProperty,
+    currentShip: null as unknown as unknown as LocalProperty<SsObject | null>,
   }
   render(<ShipNameField game={game} />);
   expect(screen.getByText('⮤ give your ship a name')).toBeInTheDocument()

@@ -3,7 +3,7 @@ import { SsObject } from './SsObject'
 
 /// A specialized subscriber used for receiving property get requests. Unlike a normal subscriber,
 /// it's only supposed to be notified once and so removes itself from the element and lifetime.
-class GetSubscriber extends Subscriber {
+class GetSubscriber extends Subscriber<any> {
   elementUpdate(value: any) {
     super.elementUpdate(value);
     this.dispose();
@@ -15,7 +15,7 @@ class GetSubscriber extends Subscriber {
 }
 
 /// A named piece of data on an object. Created and returned by SsObject.property()
-export class SsProperty extends Conduit {
+export class SsProperty extends Conduit<any> {
   private isSubscribed = false;
   private hasPendingGet = false;
 
@@ -79,7 +79,7 @@ export class SsProperty extends Conduit {
   }
 
   /// Overrides parent method, generally not called externally.
-  addSubscriber(subscriber: Subscriber) {
+  addSubscriber(subscriber: Subscriber<any>) {
     super.addSubscriber(subscriber);
     if (!this.isSubscribed) {
       this.isSubscribed = true;
@@ -88,7 +88,7 @@ export class SsProperty extends Conduit {
   }
 
   /// Overrides parent method, generally not called externally.
-  deleteSubscriber(subscriber: Subscriber) {
+  deleteSubscriber(subscriber: Subscriber<any>) {
     super.deleteSubscriber(subscriber);
     if (this.subscribers.size === 0 && this.isSubscribed) {
       this.isSubscribed = false;

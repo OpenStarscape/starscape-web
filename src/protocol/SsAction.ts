@@ -3,7 +3,7 @@ import { SsObject } from './SsObject'
 
 /// An action the client can perform on a server object. We can also subscribe to it locally. Created and returned by
 /// SsObject.action().
-export class SsAction extends Conduit {
+export class SsAction extends Conduit<any> {
   constructor(
     private readonly obj: SsObject,
     private readonly name: string,

@@ -2,8 +2,8 @@ import { Conduit } from './Conduit';
 import { valuesEqual } from './valuesEqual'
 
 /// A local value that can be subscribed to and set
-export class LocalProperty extends Conduit {
-  constructor(value: any) {
+export class LocalProperty<T> extends Conduit<T> {
+  constructor(value: T) {
     super();
     this.value = value;
   }
@@ -15,7 +15,7 @@ export class LocalProperty extends Conduit {
   }
 
   /// Set the value. Subscribers are only notified if the new value is different from the old one.
-  set(value: any) {
+  set(value: T) {
     if (!valuesEqual(value, this.value)) {
       this.value = value;
       this.sendUpdates(value);
