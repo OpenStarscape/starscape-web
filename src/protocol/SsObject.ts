@@ -56,19 +56,19 @@ export class SsObject {
 
   /// Called by the connection.
   handleUpdate(name: string, value: any) {
-    const member = this.member(name, SsProperty);
+    const member = this.member(name, SsProperty) as SsProperty;
     member.handleUpdate(value);
   }
 
   /// Called by the connection.
   handleGetReply(name: string, value: any) {
-    const member = this.member(name, SsProperty);
+    const member = this.member(name, SsProperty) as SsProperty;
     member.handleGetReply(value);
   }
 
   /// Called by the connection.
   handleSignal(name: string, value: any) {
-    const member = this.member(name, SsSignal);
+    const member = this.member(name, SsSignal) as SsSignal;
     member.handleEvent(value);
   }
 

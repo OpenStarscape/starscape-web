@@ -1,5 +1,6 @@
 import { Subscriber, Conduit, valuesEqual, Lifetime } from '../core'
 import { SsObject } from './SsObject'
+import { SsValue } from './SsValue'
 
 /// A specialized subscriber used for receiving property get requests. Unlike a normal subscriber,
 /// it's only supposed to be notified once and so removes itself from the element and lifetime.
@@ -61,7 +62,7 @@ export class SsProperty extends Conduit<any> {
   getter(lifetime: Lifetime) {
     const subscriber = new Subscriber(this, lifetime, null);
     this.addSubscriber(subscriber);
-    return () => {
+    return (): any => {
       lifetime.verifyAlive();
       return this.cachedValue();
     };
@@ -71,7 +72,7 @@ export class SsProperty extends Conduit<any> {
   /// when there are no subscribers. WHen the first subscriber is added returns undefined until
   /// the initial request completes. Using a getter function returned by .getter() is recommended
   /// over calling this directly since that ensures we are subscribed.
-  cachedValue() {
+  cachedValue(): SsValue | undefined {
     if (!this.isAlive()) {
       throw new Error('cachedValue() called after object destroyed');
     }

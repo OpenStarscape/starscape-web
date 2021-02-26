@@ -10,8 +10,9 @@ export class LocalProperty<T> extends Conduit<T> {
 
   /// Get the current value. NOTE: do NOT change the returned value. Call .set() instead so
   /// subscribers are notified of the change.
-  get() {
-    return this.value;
+  get(): T {
+    // TODO: use the type system to make sure it's never undefined
+    return this.value!;
   }
 
   /// Set the value. Subscribers are only notified if the new value is different from the old one.

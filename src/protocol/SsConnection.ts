@@ -1,6 +1,7 @@
 import { Vector3 } from 'three';
 import { Lifetime } from '../core';
 import { SsObject } from './SsObject';
+import { SsValue } from './SsValue';
 import { SsSession } from  './SsSession';
 import { SsRTCSession } from  './SsRTCSession';
 import { SsWebSocketSession } from  './SsWebSocketSession';
@@ -34,7 +35,7 @@ export class SsConnection {
   }
 
   /// Used internally to get or create an object with a given object ID.
-  getObj(id: number) {
+  getObj(id: number): SsObject {
     if (typeof id !== 'number' || !Number.isInteger(id)) {
       throw new Error('ID ' + id + ' is not an int');
     }
@@ -66,7 +67,7 @@ export class SsConnection {
 
   /// Turns a value decoded from JSON into one suitable to send to the rest of the app. In many
   /// cases this does nothing but in some some translation is required.
-  decodeValue(value: any): any {
+  decodeValue(value: any): SsValue {
     if (Array.isArray(value)) {
       if (value.length === 1) {
         if (typeof value[0] === 'number') {
@@ -88,7 +89,7 @@ export class SsConnection {
 
   /// Turns a value from the app into one ready to be converted to JSON. In many cases this does
   /// nothing but in some some translation is required.
-  encodeValue(value: any): any {
+  encodeValue(value: SsValue): any {
     if (value instanceof Vector3) {
       return value.toArray();
     } else if (value instanceof SsObject) {
@@ -117,7 +118,7 @@ export class SsConnection {
         } else if (message.mtype === 'value') {
           obj.handleGetReply(message.property, value);
         } else if (message.mtype === 'event') {
-          obj.handleEvent(message.property, value);
+          obj.handleSignal(message.property, value);
         } else {
           throw new Error('should be unreachable');
         }
@@ -155,14 +156,14 @@ export class SsConnection {
   }
 
   /// Low level, do not call directly. Use obj.property().set() instead.
-  setProperty(obj_id: number, prop: string, value: any) {
+  setProperty(obj_id: number, prop: string, value: SsValue) {
     value = this.encodeValue(value);
     let json = JSON.stringify({mtype: 'set', object: obj_id, property: prop, value: value}) + '\n';
     this.session.sendPacket(json);
   }
 
   /// Low level, do not call directly. Use obj.action().fire() instead.
-  fireAction(obj_id: number, prop: string, value: any) {
+  fireAction(obj_id: number, prop: string, value: SsValue) {
     // using the same protocol message as set is just a temporary hack, but it works
     this.setProperty(obj_id, prop, value);
   }

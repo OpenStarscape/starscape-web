@@ -1,5 +1,6 @@
 import { Subscriber, Conduit } from '../core';
 import { SsObject } from './SsObject'
+import { SsValue } from './SsValue'
 
 /// A signal sent to the client from the server. Created and returned by SsObject.signal().
 export class SsSignal extends Conduit<any> {
@@ -31,7 +32,7 @@ export class SsSignal extends Conduit<any> {
   }
 
   /// Called by the event's object when the server sends an event.
-  handleEvent(value: any) {
+  handleEvent(value: SsValue) {
     this.sendUpdates(value);
   }
 
