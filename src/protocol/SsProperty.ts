@@ -1,4 +1,4 @@
-import { Subscriber, Element, valuesEqual, Lifetime } from '../core'
+import { Subscriber, Conduit, valuesEqual, Lifetime } from '../core'
 import { SsObject } from './SsObject'
 
 /// A specialized subscriber used for receiving property get requests. Unlike a normal subscriber,
@@ -15,7 +15,7 @@ class GetSubscriber extends Subscriber {
 }
 
 /// A named piece of data on an object. Created and returned by SsObject.property()
-export class SsProperty extends Element {
+export class SsProperty extends Conduit {
   private isSubscribed = false;
   private hasPendingGet = false;
 
