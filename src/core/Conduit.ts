@@ -33,13 +33,13 @@ export class Conduit<T> {
   /// If this is a property-like conduit .value can be set to something other than undefined, in
   /// which case new subscribers will be sent it as they are added. Note that .value is NOT
   /// automatically updated (subclasses are expected to do that).
-  protected value: any = undefined;
+  protected value: T | undefined = undefined;
   private alive = true;
 
   /// The callback will be called with values as they become available. These values could be
   /// updates to a property or the values associated with actions, depending on the element type.
   /// The callback stops fireing as soon as the lifetime dies.
-  subscribe(lt: Lifetime, callback: (value: any) => void) {
+  subscribe(lt: Lifetime, callback: (value: T) => void) {
     this.addSubscriber(new Subscriber(this, lt, callback));
   }
 
@@ -77,7 +77,7 @@ export class Conduit<T> {
   }
 
   /// Sends updates to all subscribers.
-  protected sendUpdates(value: any) {
+  protected sendUpdates(value: T) {
     for (const subscriber of this.subscribers) {
       subscriber.elementUpdate(value);
     }

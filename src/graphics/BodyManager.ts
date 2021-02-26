@@ -61,8 +61,8 @@ export default class BodyManager {
     }
   }
 
-  get(obj: SsObject): Body | undefined {
-    return this.bodyMap.get(obj);
+  get(obj: SsObject | null | undefined): Body | undefined {
+    return obj ? this.bodyMap.get(obj) : undefined;
   }
 
   /// If there is exactly one body with the given name return it, else return undefined
