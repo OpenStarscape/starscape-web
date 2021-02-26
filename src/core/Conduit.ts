@@ -1,5 +1,4 @@
 import { Lifetime } from './Lifetime';
-import { valuesEqual } from './valuesEqual'
 
 /// Manages a subscribed callback. Is added to both a lifetime and an element, and removes itself
 /// from the other when either is destroyed.
@@ -81,28 +80,6 @@ export class Conduit {
   protected sendUpdates(value: any) {
     for (const subscriber of this.subscribers) {
       subscriber.elementUpdate(value);
-    }
-  }
-}
-
-/// An element that stores a mutable value locally. Not used for server properties.
-export class ValueElement extends Conduit {
-  constructor(value: any) {
-    super();
-    this.value = value;
-  }
-
-  /// Get the current value. NOTE: do NOT change the returned value. Call .set() instead so
-  /// subscribers are notified of the change.
-  get() {
-    return this.value;
-  }
-
-  /// Set the value. Subscribers are only notified if the new value is different from the old one.
-  set(value: any) {
-    if (!valuesEqual(value, this.value)) {
-      this.value = value;
-      this.sendUpdates(value);
     }
   }
 }

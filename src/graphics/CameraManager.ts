@@ -1,13 +1,13 @@
 import * as THREE from "three";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
-import { Game, Lifetime, ValueElement } from '../core';
+import { Game, Lifetime, LocalProperty } from '../core';
 import BodyManager from './BodyManager';
 
 /// Keeps track of creating and destroying bodies in the 3D scene.
 export default class CameraManager {
   readonly camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
   readonly cameraController: OrbitControls;
-  private readonly currentShip: ValueElement;
+  private readonly currentShip: LocalProperty;
 
   constructor(
     readonly lt: Lifetime,

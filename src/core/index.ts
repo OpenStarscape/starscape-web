@@ -1,4 +1,5 @@
 export * from './Conduit'
+export * from './LocalProperty'
 export * from './Lifetime'
 export * from './Game'
 export * from './valuesEqual'
