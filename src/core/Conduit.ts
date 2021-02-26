@@ -2,16 +2,16 @@ import { Lifetime } from './Lifetime';
 
 /// Manages a subscribed callback. Is added to both a lifetime and an element, and removes itself
 /// from the other when either is destroyed.
-export class Subscriber {
+export class Subscriber<T> {
   constructor(
-    readonly element: Conduit,
+    readonly element: Conduit<T>,
     readonly lifetime: Lifetime,
-    public callback: ((value: any) => void) | null
+    public callback: ((value: T) => void) | null
   ) {}
 
   /// Called by the element when it gets an update (this may be an updated property value or an
   /// action/event).
-  elementUpdate(value: any) {
+  elementUpdate(value: T) {
     if (this.callback !== null) {
       this.callback(value);
     }
@@ -28,8 +28,8 @@ export class Subscriber {
 /// A single piece of data or data (property) or message channel (action/event). May come from the
 /// Starscape server or be local. All elements can be subscribed to, and specific types of elements
 /// have additional methods (such as get).
-export class Conduit {
-  protected subscribers = new Set<Subscriber>();
+export class Conduit<T> {
+  protected subscribers = new Set<Subscriber<T>>();
   /// If this is a property-like conduit .value can be set to something other than undefined, in
   /// which case new subscribers will be sent it as they are added. Note that .value is NOT
   /// automatically updated (subclasses are expected to do that).
@@ -50,7 +50,7 @@ export class Conduit {
 
   /// Adds a Subscriber, both to this class and to the subscriber's lifetime. Sends an initial
   /// update of .value if it's set.
-  addSubscriber(subscriber: Subscriber) {
+  addSubscriber(subscriber: Subscriber<T>) {
     if (!this.isAlive()) {
       throw new Error('addSubscriber() called after object destroyed');
     }
@@ -62,7 +62,7 @@ export class Conduit {
   }
 
   /// Deletes a subscriber from the internal list. Does NOT remove it from the lifetime.
-  deleteSubscriber(subscriber: Subscriber) {
+  deleteSubscriber(subscriber: Subscriber<T>) {
     this.subscribers.delete(subscriber);
   }
 

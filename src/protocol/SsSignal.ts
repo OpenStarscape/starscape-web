@@ -2,7 +2,7 @@ import { Subscriber, Conduit } from '../core';
 import { SsObject } from './SsObject'
 
 /// A signal sent to the client from the server. Created and returned by SsObject.signal().
-export class SsSignal extends Conduit {
+export class SsSignal extends Conduit<any> {
   private isSubscribed = false;
 
   constructor(
@@ -13,7 +13,7 @@ export class SsSignal extends Conduit {
   }
 
   /// Overrides parent method, generally not called externally.
-  addSubscriber(subscriber: Subscriber) {
+  addSubscriber(subscriber: Subscriber<any>) {
     super.addSubscriber(subscriber);
     if (!this.isSubscribed) {
       this.isSubscribed = true;
@@ -22,7 +22,7 @@ export class SsSignal extends Conduit {
   }
 
   /// Overrides parent method, generally not called externally.
-  deleteSubscriber(subscriber: Subscriber) {
+  deleteSubscriber(subscriber: Subscriber<any>) {
     super.deleteSubscriber(subscriber);
     if (this.subscribers.size === 0 && this.isSubscribed) {
       this.isSubscribed = false;
