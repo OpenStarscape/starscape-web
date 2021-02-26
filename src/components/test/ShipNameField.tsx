@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { ValueElement } from '../../core'
+import { LocalProperty } from '../../core'
 import { SsConnection, SsObject } from '../../protocol'
 import ShipNameField from '../ShipNameField';
 
@@ -7,7 +7,7 @@ test('shows prompt to enter name', () => {
   const game = {
     connection: null as unknown as SsConnection,
     god: null as unknown as SsObject,
-    currentShip: null as unknown as unknown as ValueElement,
+    currentShip: null as unknown as unknown as LocalProperty,
   }
   render(<ShipNameField game={game} />);
   expect(screen.getByText('⮤ give your ship a name')).toBeInTheDocument()
