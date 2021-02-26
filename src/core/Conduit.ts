@@ -5,7 +5,7 @@ import { valuesEqual } from './valuesEqual'
 /// from the other when either is destroyed.
 export class Subscriber {
   constructor(
-    readonly element: Element,
+    readonly element: Conduit,
     readonly lifetime: Lifetime,
     public callback: ((value: any) => void) | null
   ) {}
@@ -29,7 +29,7 @@ export class Subscriber {
 /// A single piece of data or data (property) or message channel (action/event). May come from the
 /// Starscape server or be local. All elements can be subscribed to, and specific types of elements
 /// have additional methods (such as get).
-export class Element {
+export class Conduit {
   protected subscribers = new Set<Subscriber>();
   /// If this is a property-like conduit .value can be set to something other than undefined, in
   /// which case new subscribers will be sent it as they are added. Note that .value is NOT
@@ -86,7 +86,7 @@ export class Element {
 }
 
 /// An element that stores a mutable value locally. Not used for server properties.
-export class ValueElement extends Element {
+export class ValueElement extends Conduit {
   constructor(value: any) {
     super();
     this.value = value;
@@ -108,7 +108,7 @@ export class ValueElement extends Element {
 }
 
 /// An element that represents a local data channel.
-export class ActionElement extends Element {
+export class ActionElement extends Conduit {
   /// Subscribers will be notified for every action fired.
   fire(value: any) {
     this.sendUpdates(value);

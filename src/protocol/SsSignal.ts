@@ -1,8 +1,8 @@
-import { Subscriber, Element } from '../core';
+import { Subscriber, Conduit } from '../core';
 import { SsObject } from './SsObject'
 
 /// A signal sent to the client from the server. Created and returned by SsObject.signal().
-export class SsSignal extends Element {
+export class SsSignal extends Conduit {
   private isSubscribed = false;
 
   constructor(
