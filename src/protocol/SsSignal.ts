@@ -41,7 +41,7 @@ export class SsSignal extends Conduit<any> {
   }
 
   /// Called by the event's object when the server sends an event.
-  handleEvent(value: SsValue) {
+  handleSignal(value: SsValue) {
     this.sendUpdates(value);
   }
 

@@ -77,7 +77,7 @@ export class SsObject {
   /// Called by the connection.
   handleSignal(name: string, value: any) {
     const member = this.member(name, SsSignal) as SsSignal;
-    member.handleEvent(value);
+    member.handleSignal(value);
   }
 
   dispose() {
