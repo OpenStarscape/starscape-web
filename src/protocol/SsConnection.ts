@@ -2,6 +2,7 @@ import { Vector3 } from 'three';
 import { Lifetime } from '../core';
 import { SsObject } from './SsObject';
 import { SsValue } from './SsValue';
+import { SsRequest, SsRequestType } from './SsRequest';
 import { SsSession } from  './SsSession';
 import { SsRTCSession } from  './SsRTCSession';
 import { SsWebSocketSession } from  './SsWebSocketSession';
@@ -89,13 +90,15 @@ export class SsConnection {
 
   /// Turns a value from the app into one ready to be converted to JSON. In many cases this does
   /// nothing but in some some translation is required.
-  encodeValue(value: SsValue): any {
+  encodeValue(value: SsValue | undefined): any {
     if (value instanceof Vector3) {
       return value.toArray();
     } else if (value instanceof SsObject) {
       return [value.id];
     } else if (Array.isArray(value)) {
       return [value.map(i => this.encodeValue(i))];
+    } else if (value === undefined) {
+      throw new Error("value is undefined");
     } else {
       return value;
     }
@@ -155,36 +158,26 @@ export class SsConnection {
     //}
   }
 
-  /// Low level, do not call directly. Use obj.property().set() instead.
-  setProperty(obj_id: number, prop: string, value: SsValue) {
-    value = this.encodeValue(value);
-    let json = JSON.stringify({mtype: 'set', object: obj_id, property: prop, value: value}) + '\n';
-    this.session.sendPacket(json);
-  }
-
-  /// Low level, do not call directly. Use obj.action().fire() instead.
-  fireAction(obj_id: number, prop: string, value: SsValue) {
-    // using the same protocol message as set is just a temporary hack, but it works
-    this.setProperty(obj_id, prop, value);
-  }
-
-  /// Low level, do not call directly. Use obj.property().getThen() instead.
-  getProperty(obj_id: number, prop: string) {
-    let json = JSON.stringify({mtype: 'get', object: obj_id, property: prop}) + '\n';
-    this.session.sendPacket(json);
-  }
-
-  /// Low level, do not call directly. Use obj.property().subscribe() instead.
-  subscribeTo(obj_id: number, prop: string) {
-    let json = JSON.stringify({mtype: 'subscribe', object: obj_id, property: prop}) + '\n';
-    this.session.sendPacket(json);
-  }
-
-  /// Low level, do not call directly. Is called automatically when required (assuming you dispose
-  /// of your lifetimes when needed)
-  unsubscribeFrom(obj_id: number, prop: string) {
-    let json = JSON.stringify({mtype: 'unsubscribe', object: obj_id, property: prop}) + '\n';
-    this.session.sendPacket(json);
+  /// Low level function used internally, use the functions on properties, signals and actions instead
+  makeRequest(rq: SsRequest) {
+    let json;
+    if (rq.method === SsRequestType.Set) {
+      const value = this.encodeValue(rq.value);
+      json = JSON.stringify({mtype: 'set', object: rq.objId, property: rq.member, value: value});
+    } else if (rq.method === SsRequestType.Get) {
+      json = JSON.stringify({mtype: 'get', object: rq.objId, property: rq.member})
+    } else if (rq.method === SsRequestType.Fire) {
+      const value = this.encodeValue(rq.value);
+      json = JSON.stringify({mtype: 'set', object: rq.objId, property: rq.member, value: value});
+    } else if (rq.method === SsRequestType.Subscribe) {
+      json = JSON.stringify({mtype: 'subscribe', object: rq.objId, property: rq.member})
+    } else if (rq.method === SsRequestType.Unsubscribe) {
+      json = JSON.stringify({mtype: 'unsubscribe', object: rq.objId, property: rq.member})
+    } else {
+      throw new Error('Request has invalid request type: ' + JSON.stringify(rq));
+    }
+    console.log('Sending ' + json)
+    this.session.sendPacket(json + '\n');
   }
 
   dispose() {

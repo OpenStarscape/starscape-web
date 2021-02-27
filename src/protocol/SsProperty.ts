@@ -1,5 +1,6 @@
 import { Subscriber, Conduit, valuesEqual, Lifetime } from '../core'
 import { SsObject } from './SsObject'
+import { SsRequestType } from './SsRequest'
 import { SsValue } from './SsValue'
 
 /// A specialized subscriber used for receiving property get requests. Unlike a normal subscriber,
@@ -35,7 +36,12 @@ export class SsProperty extends Conduit<any> {
   /// if and when the server responds to the request.
   set(value: any) {
     if (!valuesEqual(value, this.value)) {
-      this.obj.connection.setProperty(this.obj.id, this.name, value);
+      this.obj.makeRequest({
+        method: SsRequestType.Set,
+        objId: this.obj.id,
+        member: this.name,
+        value: value,
+      })
       this.handleUpdate(value);
     }
   }
@@ -51,7 +57,11 @@ export class SsProperty extends Conduit<any> {
     // May have already fired and cleaned itself up, in which case isPending() is false
     if (!this.hasPendingGet && subscriber.isPending()) {
       this.hasPendingGet = true;
-      this.obj.connection.getProperty(this.obj.id, this.name);
+      this.obj.makeRequest({
+        method: SsRequestType.Get,
+        objId: this.obj.id,
+        member: this.name,
+      })
     }
   }
 
@@ -84,7 +94,11 @@ export class SsProperty extends Conduit<any> {
     super.addSubscriber(subscriber);
     if (!this.isSubscribed) {
       this.isSubscribed = true;
-      this.obj.connection.subscribeTo(this.obj.id, this.name);
+      this.obj.makeRequest({
+        method: SsRequestType.Subscribe,
+        objId: this.obj.id,
+        member: this.name,
+      })
     }
   }
 
@@ -94,7 +108,11 @@ export class SsProperty extends Conduit<any> {
     if (this.subscribers.size === 0 && this.isSubscribed) {
       this.isSubscribed = false;
       this.value = undefined;
-      this.obj.connection.unsubscribeFrom(this.obj.id, this.name);
+      this.obj.makeRequest({
+        method: SsRequestType.Unsubscribe,
+        objId: this.obj.id,
+        member: this.name,
+      })
     }
   }
 
