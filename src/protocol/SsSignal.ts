@@ -1,5 +1,6 @@
 import { Subscriber, Conduit } from '../core';
 import { SsObject } from './SsObject'
+import { SsRequestType } from './SsRequest'
 import { SsValue } from './SsValue'
 
 /// A signal sent to the client from the server. Created and returned by SsObject.signal().
@@ -18,7 +19,11 @@ export class SsSignal extends Conduit<any> {
     super.addSubscriber(subscriber);
     if (!this.isSubscribed) {
       this.isSubscribed = true;
-      this.obj.connection.subscribeTo(this.obj.id, this.name);
+      this.obj.makeRequest({
+        method: SsRequestType.Subscribe,
+        objId: this.obj.id,
+        member: this.name,
+      })
     }
   }
 
@@ -27,7 +32,11 @@ export class SsSignal extends Conduit<any> {
     super.deleteSubscriber(subscriber);
     if (this.subscribers.size === 0 && this.isSubscribed) {
       this.isSubscribed = false;
-      this.obj.connection.unsubscribeFrom(this.obj.id, this.name);
+      this.obj.makeRequest({
+        method: SsRequestType.Unsubscribe,
+        objId: this.obj.id,
+        member: this.name,
+      })
     }
   }
 
