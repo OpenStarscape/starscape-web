@@ -5,6 +5,7 @@ import { SsAction } from './SsAction'
 import { SsSignal } from './SsSignal'
 import { SsRequest } from './SsRequest'
 import { SsValue } from './SsValue'
+import { SsRuntimeType, typeFilter } from './SsRuntimeType'
 
 type Member<T> = new (...args: any[]) => T
 
@@ -39,12 +40,10 @@ export class SsObject {
   }
 
   /// Object must have an event with the given name. This is not automatically checked.
-  signal(name: string): SsSignal {
-    return this.member(
-      name,
-      SsSignal,
-      () => new SsSignal(this, name),
-    );
+  signal<T, U>(name: string, t: SsRuntimeType<T, U>): SsSignal<T> {
+    return this.member(name, SsSignal, () => {
+        return new SsSignal<T>(this, name, typeFilter(t));
+    });
   }
 
   /// Used internally, Get or create a property, action or event
@@ -81,13 +80,17 @@ export class SsObject {
   }
 
   /// Called by the connection.
-  handleGetReply(name: string, value: any) {
+  handleGetReply(name: string, value: SsValue) {
     this.property(name).handleGetReply(value);
   }
 
   /// Called by the connection.
-  handleSignal(name: string, value: any) {
-    this.signal(name).handleSignal(value);
+  handleSignal(name: string, value: SsValue) {
+    try {
+      this.member(name, SsSignal, () => undefined)?.handleSignal(value);
+    } catch (e) {
+      throw new Error(this.id + '.' + name + ' signal: ' + e.message);
+    }
   }
 
   dispose() {

@@ -1,14 +1,13 @@
 import { SsSignal } from '../SsSignal';
-import { SsObject } from '../SsObject';
+import { SsValue } from '../SsValue';
 import { SsRequest, SsRequestType } from '../SsRequest';
 import { Lifetime } from '../../core';
 
 // Lifetime mock
 const ltMock = {
-  add: (_disp: any) => {},
-} as unknown as Lifetime;
-
-function newSignal(requests: SsRequest[]): SsSignal {
+  add: (_: any) => {},
+} as any
+function newSignalWithFilter(requests: SsRequest[], filter: (v: SsValue) => number) {
   const obj = {
     id: 88,
     makeRequest: (rq: SsRequest) => {
@@ -16,9 +15,14 @@ function newSignal(requests: SsRequest[]): SsSignal {
     }
   }
   return new SsSignal(
-    obj as unknown as SsObject,
-    'sig'
+    obj as any,
+    'sig',
+    filter,
   );
+}
+
+function newSignal(requests: SsRequest[]): SsSignal<number> {
+  return newSignalWithFilter(requests, v => v as number)
 }
 
 test('SsSignal handles signal on no subscribers', () => {
@@ -114,4 +118,13 @@ test('SsSignal notifies subscriber', () => {
   sig.handleSignal(3);
   sig.handleSignal(3);
   expect(values).toEqual([7, 3, 3]);
+});
+
+test('SsSignal runs input through filter', () => {
+  const sig = newSignalWithFilter([], _v => {
+    throw new Error('filter failed')
+  });
+  expect(() => {
+    sig.handleSignal(1);
+  }).toThrow('filter failed');
 });
