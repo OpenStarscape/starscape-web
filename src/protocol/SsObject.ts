@@ -4,6 +4,8 @@ import { SsProperty } from './SsProperty'
 import { SsAction } from './SsAction'
 import { SsSignal } from './SsSignal'
 
+type Member<T> = new (obj: SsObject, name: string) => T
+
 /// A handle to an object on the server. Is automatically created by the connection.
 export class SsObject {
   readonly lt = new Lifetime();
@@ -17,22 +19,22 @@ export class SsObject {
   }
 
   /// Object must have a property with the given name. This is not automatically checked.
-  property(name: string) {
-    return this.member(name, SsProperty) as SsProperty;
+  property(name: string): SsProperty {
+    return this.member(name, SsProperty);
   }
 
   /// Object must have an action with the given name. This is not automatically checked.
-  action(name: string) {
-    return this.member(name, SsAction) as SsAction;
+  action(name: string): SsAction {
+    return this.member(name, SsAction);
   }
 
   /// Object must have an event with the given name. This is not automatically checked.
-  signal(name: string) {
-    return this.member(name, SsSignal) as SsSignal;
+  signal(name: string): SsSignal {
+    return this.member(name, SsSignal);
   }
 
   /// Used internally, Get or create a property, action or event
-  member(name: string, memberClass: any): any {
+  member<T>(name: string, memberClass: Member<T>): T {
     if (!this.lt.isAlive()) {
       throw new Error(
         this.id + '.' + name +
