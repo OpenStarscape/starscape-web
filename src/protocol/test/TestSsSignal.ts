@@ -1,5 +1,4 @@
 import { SsSignal } from '../SsSignal';
-import { SsValue } from '../SsValue';
 import { SsRequest, SsRequestType } from '../SsRequest';
 import { Lifetime } from '../../core';
 
@@ -7,7 +6,8 @@ import { Lifetime } from '../../core';
 const ltMock = {
   add: (_: any) => {},
 } as any
-function newSignalWithFilter(requests: SsRequest[], filter: (v: SsValue) => number) {
+
+function newSignal(requests: SsRequest[]): SsSignal<NumberConstructor> {
   const obj = {
     id: 88,
     makeRequest: (rq: SsRequest) => {
@@ -17,12 +17,8 @@ function newSignalWithFilter(requests: SsRequest[], filter: (v: SsValue) => numb
   return new SsSignal(
     obj as any,
     'sig',
-    filter,
+    Number,
   );
-}
-
-function newSignal(requests: SsRequest[]): SsSignal<number> {
-  return newSignalWithFilter(requests, v => v as number)
 }
 
 test('SsSignal handles signal on no subscribers', () => {
@@ -121,10 +117,8 @@ test('SsSignal notifies subscriber', () => {
 });
 
 test('SsSignal runs input through filter', () => {
-  const sig = newSignalWithFilter([], _v => {
-    throw new Error('filter failed')
-  });
+  const sig = newSignal([]);
   expect(() => {
-    sig.handleSignal(1);
-  }).toThrow('filter failed');
+    sig.handleSignal('1');
+  }).toThrow('expected number, got string');
 });
