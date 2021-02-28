@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { typeFilter } from '../RuntimeType';
+import { typeFilter, typeName } from '../RuntimeType';
 import { SsObject } from '../../protocol';
 
 const mockConn = {
@@ -13,6 +13,48 @@ const mockConn = {
 function obj() {
   return new SsObject(mockConn, 88);
 }
+
+test('typeName primitives', () => {
+  expect(typeName(7)).toEqual('number');
+  expect(typeName(-7.5)).toEqual('number');
+  expect(typeName(true)).toEqual('boolean');
+  expect(typeName(false)).toEqual('boolean');
+  expect(typeName('')).toEqual('string');
+  expect(typeName('foo')).toEqual('string');
+});
+
+test('typeName special values', () => {
+  expect(typeName(null)).toEqual('null');
+  expect(typeName(undefined)).toEqual('undefined');
+  expect(typeName(Infinity)).toEqual('number');
+  expect(typeName(NaN)).toEqual('number'); // lol
+});
+
+test('typeName classes', () => {
+  expect(typeName(new THREE.Vector3)).toEqual('Vector3');
+  expect(typeName(obj())).toEqual('SsObject');
+});
+
+test('typeName objects', () => {
+  expect(typeName({})).toEqual('object');
+  expect(typeName({a: 'b'})).toEqual('object');
+});
+
+test('typeName objects with weird constructors', () => {
+  expect(typeName({ constructor: null })).toEqual('object');
+  expect(typeName({ constructor: true })).toEqual('object');
+  expect(typeName({ constructor: undefined })).toEqual('object');
+  expect(typeName({ constructor: 'abc' })).toEqual('object');
+  expect(typeName({ constructor: {} })).toEqual('object');
+  expect(typeName({ constructor: { name: null } })).toEqual('object');
+  expect(typeName({ constructor: { name: 75 } })).toEqual('object');
+  typeName({ constructor: function () {}}); // doesn't have defined output but should not crash'
+});
+
+test('typeName arrays', () => {
+  expect(typeName([])).toEqual('array');
+  expect(typeName([1, 2, 3])).toEqual('array');
+});
 
 test('typeFilter any type', () => {
   const f: (_: unknown) => any = typeFilter(undefined);

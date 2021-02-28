@@ -1,44 +1,18 @@
-function throwTypeError<V>(expected: string, got: V): never {
-  let gotStr;
-  if (typeof got === 'object') {
-    if (got === null) {
-      gotStr = 'null';
-    } else if (Array.isArray(got)) {
-      gotStr = 'array';
-    } else if ('constructor' in got) {
-      gotStr = (got as any).constructor.name;
-    } else {
-      gotStr = 'object';
-    }
-  } else {
-    gotStr = typeof got;
-  }
-  throw new Error('expected ' + expected + ', got ' + gotStr);
-}
-
-function primitiveTypeFilter<T, V>(expected: string): (_: V) => T {
-  return (value): T => {
-    if (typeof value === expected) {
-      return value as any;
-    } else {
-      throwTypeError(expected, value);
-    }
-  }
-}
-
-function classTypeFilter<T, V>(expected: new (...args: any[]) => T): (_: V) => T {
-  return (value): T => {
-    if (value instanceof expected) {
-      return value as any;
-    } else {
-      throwTypeError(expected.name, value);
-    }
-  }
-}
-
+/// A RuntimeType is a value with a distinct type, that can be used for both runtime and compile time typechecks.
+/// Runtime types are as follows (along with the compile-time types RealTypeOf maps them to):
+/// - null -> null
+/// - undefined -> any
+/// - Boolean -> boolean
+/// - Number -> number
+/// - String -> string
+/// - [T] -> T[] (where T is any other RuntimeType)
+/// - T -> T (where T is any non-generic object constructor)
+/// Note there is currently not support for generic objects except arrays. If it's needed the easiest thing to do will
+/// be to patch it on an object-by-object basis
 export type RuntimeType = null | undefined | Array<RuntimeType> | (new (...args: any[]) => any);
 
 type RuntimeTypeArray<T extends RuntimeType> = Array<T>;
+/// Gives access to the compile-time type of a RuntimeType
 export type RealTypeOf<T extends RuntimeType> =
   T extends null ? null :
   T extends undefined ? any :
@@ -49,45 +23,112 @@ export type RealTypeOf<T extends RuntimeType> =
   T extends new (...args: any[]) => infer U ? U :
   never;
 
-export function typeFilter<T extends RuntimeType, V=unknown>(t: T): (_: V) => RealTypeOf<T> {
-  // It's unclear why the `as any` casts are needed. Typescript thinks the checks will always return false but they do not.
-  if (t as any === Boolean) {
-    return primitiveTypeFilter('boolean')
-  } else if (t as any === Number) {
-    return primitiveTypeFilter('number')
-  } else if (t as any === String) {
-    return primitiveTypeFilter('string')
-  } else if (typeof t as any === 'function') {
-    return classTypeFilter(t as any);
-  } else if (Array.isArray(t)) {
-    if (t.length != 1) {
-      throw new Error('invalid runtime type array ' + t + ', must have single element');
+export function typeName(value: any): string {
+  if (typeof value === 'object') {
+    if (value === null) {
+      return 'null';
+    } else if (Array.isArray(value)) {
+      return 'array';
+    } else if ('constructor' in value &&
+      ((value as any).constructor !== Object) &&
+      (typeof (value as any).constructor === 'function')
+    ) {
+      return ((value as any).constructor as () => void).name;
+    } else {
+      return 'object';
     }
-    const inner = typeFilter(t[0] as any);
-    return (value): RealTypeOf<T> => {
-      if (!Array.isArray(value)) {
-        throwTypeError('array', value);
-      }
-      try {
-        for (let i = 0; i < value.length; i++) {
-          inner(value[i]);
-        }
-      } catch (e) {
-        throw new Error('inside array: ' + e.message);
-      }
-      return value as any;
-    };
-  } else if (t === undefined) {
-    return (value): any => value;
-  } else if (t === null) {
-    return (value): RealTypeOf<T> => {
-      if (value === null) {
-        return null as any;
-      } else {
-        throwTypeError('null', value);
-      }
-    };
   } else {
-    throw new Error('Invalid runtime type: ' + t);
+    return typeof value;
+  }
+}
+
+function runtimeTypeName(t: RuntimeType): string {
+  switch (t as any) {
+    case null:
+      return 'null';
+    case undefined:
+      return 'any';
+    case Boolean:
+      return 'boolean';
+    case Number:
+      return 'number';
+    case String:
+      return 'string';
+    default:
+      if (Array.isArray(t)) {
+        if (t.length != 1) {
+          throw Error('invalid RuntimeType. arrays must be length 1, not ' + t.length);
+        } else {
+          return 'array';
+          //return runtimeTypeName(t[0]) + '[]';
+        }
+      } else if ('name' in (t as any) && typeof (t as any).name === 'string') {
+        return (t as any).name;
+      } else {
+        throw Error('invalid RuntimeType, can not get name');
+      }
+  }
+}
+
+function typeErrorMessage<T extends RuntimeType>(value: unknown, t: T): string {
+  if (Array.isArray(t) && Array.isArray(value)) {
+    for (let i = 0; i < value.length; i++) {
+      if (!isType(value[i], t[0])) {
+        return 'inside array: ' + typeErrorMessage(value[i], t[0]);
+      }
+    }
+  }
+  return 'expected ' + runtimeTypeName(t) + ', got ' + typeName(value);
+}
+
+export function isType<T extends RuntimeType>(value: unknown, t: T): boolean {
+  switch (t as any) {
+    case null:
+      return value === null;
+    case undefined:
+      return true;
+    case Boolean:
+      return typeof value === 'boolean';
+    case Number:
+      return typeof value === 'number';
+    case String:
+      return typeof value === 'string';
+    default:
+      if (typeof t === 'function') {
+        return (
+          typeof value === 'object' &&
+          value !== null &&
+          (value as any).constructor === t
+        );
+      } else if (Array.isArray(t)) {
+        if (t.length != 1) {
+          throw Error('invalid RuntimeType. arrays must be length 1, not ' + t.length);
+        }
+        else if (Array.isArray(value)) {
+          for (let i = 0; i < value.length; i++) {
+            if (!isType(value[i], t[0])) {
+              return false;
+            }
+          }
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+        return false;
+      }
+  }
+}
+
+export function assertIsType<T extends RuntimeType>(value: unknown, t: T): asserts value is RealTypeOf<T> {
+  if (!isType(value, t)) {
+    throw Error(typeErrorMessage(value, t));
+  }
+}
+
+export function typeFilter<T extends RuntimeType>(t: T): (_: unknown) => RealTypeOf<T> {
+  return (value) => {
+    assertIsType(value, t);
+    return value;
   }
 }
