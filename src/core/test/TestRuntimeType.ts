@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { typeFilter, RuntimeType } from '../RuntimeType';
-import { SsObject, SsValue } from '../../protocol';
+import { typeFilter } from '../RuntimeType';
+import { SsObject } from '../../protocol';
 
 const mockConn = {
   lifetime: () => {
@@ -14,8 +14,7 @@ function obj() {
   return new SsObject(mockConn, 88);
 }
 
-/*
-test('typeFilter any SsValue type', () => {
+test('typeFilter any type', () => {
   const f = typeFilter(undefined);
   f(null);
   f(true);
@@ -27,7 +26,6 @@ test('typeFilter any SsValue type', () => {
   f([7]);
   f(new THREE.Vector3());
 });
-*/
 
 test('typeFilter null', () => {
   const f = typeFilter(null);
@@ -112,13 +110,15 @@ test('typeFilter array inner type', () => {
   expect(() => f([new THREE.Vector3()])).toThrow('inside array: expected number, got Vector3');
 });
 
-test('typeFilter array of array', () => {
-  const f = typeFilter<Array<RuntimeType<String>>, RuntimeType<String>, SsValue>([[String]]);
+test('typeFilter array of array 0f array', () => {
+  const f = typeFilter([[[String]]]);
   f([]);
   f([[]]);
-  f([[''], [], ['foo', 'bar']]);
+  f([[[]]]);
+  f([[[''], []], [], [['foo', 'bar', 'baz']]]);
   expect(() => f([null])).toThrow('inside array: expected array, got null');
-  expect(() => f([['a'], [false]])).toThrow('inside array: inside array: expected string, got boolean');
+  expect(() => f([[['a']], [false]])).toThrow('inside array: inside array: expected array, got boolean');
+  expect(() => f([[['a']], [[false]]])).toThrow('inside array: inside array: inside array: expected string, got boolean');
 });
 
 test('typeFilter Vector3', () => {
