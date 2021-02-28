@@ -1,4 +1,4 @@
-import { Lifetime, RuntimeType } from '../core';
+import { Lifetime, RuntimeType, RealTypeOf} from '../core';
 import { SsConnection } from './SsConnection';
 import { SsProperty } from './SsProperty'
 import { SsAction } from './SsAction'
@@ -39,9 +39,9 @@ export class SsObject {
   }
 
   /// Object must have an event with the given name. This is not automatically checked.
-  signal<T extends RuntimeType>(name: string, t: T): SsSignal<T> {
+  signal<R extends RuntimeType, T = RealTypeOf<R>>(name: string, rtType: R): SsSignal<T, R> {
     return this.member(name, SsSignal, () => {
-        return new SsSignal<T>(this, name, t);
+        return new SsSignal<T, R>(this, name, rtType);
     });
   }
 
