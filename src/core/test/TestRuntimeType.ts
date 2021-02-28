@@ -15,7 +15,7 @@ function obj() {
 }
 
 test('typeFilter any type', () => {
-  const f = typeFilter(undefined);
+  const f: (_: unknown) => any = typeFilter(undefined);
   f(null);
   f(true);
   f(false);
@@ -28,7 +28,7 @@ test('typeFilter any type', () => {
 });
 
 test('typeFilter null', () => {
-  const f = typeFilter(null);
+  const f: (_: unknown) => null = typeFilter(null);
   f(null);
   expect(() => f(false)).toThrow('expected null, got boolean');
   expect(() => f(3)).toThrow('expected null, got number');
@@ -39,7 +39,7 @@ test('typeFilter null', () => {
 });
 
 test('typeFilter boolean', () => {
-  const f = typeFilter(Boolean);
+  const f: (_: unknown) => boolean = typeFilter(Boolean);
   f(true);
   f(false);
   expect(() => f(null)).toThrow('expected boolean, got null');
@@ -51,7 +51,7 @@ test('typeFilter boolean', () => {
 });
 
 test('typeFilter number', () => {
-  const f = typeFilter(Number);
+  const f: (_: unknown) => number = typeFilter(Number);
   f(0);
   f(88);
   f(12.5);
@@ -65,7 +65,7 @@ test('typeFilter number', () => {
 });
 
 test('typeFilter string', () => {
-  const f = typeFilter(String);
+  const f: (_: unknown) => string = typeFilter(String);
   f('');
   f('hi');
   expect(() => f(null)).toThrow('expected string, got null');
@@ -77,7 +77,7 @@ test('typeFilter string', () => {
 });
 
 test('typeFilter SsObject', () => {
-  const f = typeFilter(SsObject);
+  const f: (_: unknown) => SsObject = typeFilter(SsObject);
   f(obj());
   expect(() => f(null)).toThrow('expected SsObject, got null');
   expect(() => f(false)).toThrow('expected SsObject, got boolean');
@@ -88,7 +88,7 @@ test('typeFilter SsObject', () => {
 });
 
 test('typeFilter array', () => {
-  const f = typeFilter([Number]);
+  const f: (_: unknown) => number[] = typeFilter([Number]);
   f([1, 2, 3]);
   f([]);
   expect(() => f(null)).toThrow('expected array, got null');
@@ -100,7 +100,7 @@ test('typeFilter array', () => {
 });
 
 test('typeFilter array inner type', () => {
-  const f = typeFilter([Number]);
+  const f: (_: unknown) => number[] = typeFilter([Number]);
   f([1, 2, 3]);
   expect(() => f([1, null, 3])).toThrow('inside array: expected number, got null');
   expect(() => f([false])).toThrow('inside array: expected number, got boolean');
@@ -111,7 +111,7 @@ test('typeFilter array inner type', () => {
 });
 
 test('typeFilter array of array 0f array', () => {
-  const f = typeFilter([[[String]]]);
+  const f: (_: unknown) => string[][][] = typeFilter([[[String]]]);
   f([]);
   f([[]]);
   f([[[]]]);
@@ -122,7 +122,7 @@ test('typeFilter array of array 0f array', () => {
 });
 
 test('typeFilter Vector3', () => {
-  const f = typeFilter(THREE.Vector3);
+  const f: (_: unknown) => THREE.Vector3 = typeFilter(THREE.Vector3);
   f(new THREE.Vector3());
   expect(() => f(null)).toThrow('expected Vector3, got null');
   expect(() => f(false)).toThrow('expected Vector3, got boolean');
