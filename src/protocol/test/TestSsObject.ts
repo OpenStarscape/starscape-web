@@ -95,6 +95,15 @@ test('SsObject signal validates input type', () => {
   }).toThrow('12.num signal: expected number, got string')
 });
 
+test('SsObject signal validates input type', () => {
+  const obj = newObject();
+  obj.signal('num', Number);
+  obj.handleSignal('num', 7.5);
+  expect(() => {
+    obj.handleSignal('num', 'hi');
+  }).toThrow('12.num signal: expected number, got string')
+});
+
 /*
 TODO: fix
 test('SsObject signal with array type', () => {
