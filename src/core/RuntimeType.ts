@@ -56,7 +56,7 @@ function runtimeTypeName(t: RuntimeType): string {
       return 'string';
     default:
       if (Array.isArray(t)) {
-        if (t.length != 1) {
+        if (t.length !== 1) {
           throw Error('invalid RuntimeType. arrays must be length 1, not ' + t.length);
         } else {
           return 'array';
@@ -101,7 +101,7 @@ export function isType<T extends RuntimeType>(value: unknown, t: T): boolean {
           (value as any).constructor === t
         );
       } else if (Array.isArray(t)) {
-        if (t.length != 1) {
+        if (t.length !== 1) {
           throw Error('invalid RuntimeType. arrays must be length 1, not ' + t.length);
         }
         else if (Array.isArray(value)) {
@@ -123,12 +123,5 @@ export function isType<T extends RuntimeType>(value: unknown, t: T): boolean {
 export function assertIsType<T extends RuntimeType>(value: unknown, t: T): asserts value is RealTypeOf<T> {
   if (!isType(value, t)) {
     throw Error(typeErrorMessage(value, t));
-  }
-}
-
-export function typeFilter<T extends RuntimeType>(t: T): (_: unknown) => RealTypeOf<T> {
-  return (value) => {
-    assertIsType(value, t);
-    return value;
   }
 }
