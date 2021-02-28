@@ -42,6 +42,9 @@ type RuntimeTypeArray<T extends RuntimeType> = Array<T>;
 export type RealTypeOf<T extends RuntimeType> =
   T extends null ? null :
   T extends undefined ? any :
+  T extends BooleanConstructor ? boolean :
+  T extends NumberConstructor ? number :
+  T extends StringConstructor ? string:
   T extends RuntimeTypeArray<infer U> ? Array<RealTypeOf<U>> :
   T extends new (...args: any[]) => infer U ? U :
   never;
