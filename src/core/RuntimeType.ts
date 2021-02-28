@@ -23,6 +23,15 @@ export type RealTypeOf<T extends RuntimeType> =
   T extends new (...args: any[]) => infer U ? U :
   never;
 
+export type RuntimeTypeOf<T> =
+  T extends null ? null :
+  T extends boolean ? BooleanConstructor :
+  T extends number ? NumberConstructor :
+  T extends string ? StringConstructor :
+  T extends Array<infer T> ? Array<RuntimeTypeOf<T>> :
+  T extends Object ? new (...args: any[]) => T :
+  undefined;
+
 export function typeName(value: any): string {
   if (typeof value === 'object') {
     if (value === null) {

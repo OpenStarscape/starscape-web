@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { assertIsType, isType, RuntimeType, typeName } from '../RuntimeType';
+import { assertIsType, isType, RuntimeType, RuntimeTypeOf, RealTypeOf, typeName } from '../RuntimeType';
 import { SsObject } from '../../protocol';
 
 const mockConn = {
@@ -14,7 +14,9 @@ function obj() {
   return new SsObject(mockConn, 88);
 }
 
-function testTypeAssertions<T extends RuntimeType = any>(t: T, tName: string) {
+function isKnownToBe<T>(_: T) {}
+
+function testTypeAssertions<V, T extends RuntimeType = RuntimeTypeOf<V>>(t: T, tName: string) {
   const cases: [unknown, string][] = [
     [null, 'null'],
     [true, 'boolean'],
@@ -33,6 +35,8 @@ function testTypeAssertions<T extends RuntimeType = any>(t: T, tName: string) {
     if (t === undefined || vName === tName) {
       expect(isType(value, t)).toBe(true);
       assertIsType(value, t);
+      isKnownToBe<V>(value);
+      isKnownToBe<RealTypeOf<T>>(value);
     } else {
       expect(isType(value, t)).toBe(false);
       expect(() => {
@@ -84,35 +88,35 @@ test('typeName arrays', () => {
   expect(typeName([1, 2, 3])).toEqual('array');
 });
 
-test('typeFilter any type', () => {
-  testTypeAssertions(undefined, 'any');
+test('type assertions any type', () => {
+  testTypeAssertions<any>(undefined, 'any');
 });
 
-test('typeFilter null', () => {
-  testTypeAssertions(null, 'null');
+test('type assertions null', () => {
+  testTypeAssertions<null>(null, 'null');
 });
 
-test('typeFilter boolean', () => {
-  testTypeAssertions(Boolean, 'boolean');
+test('type assertions boolean', () => {
+  testTypeAssertions<boolean>(Boolean, 'boolean');
 });
 
-test('typeFilter number', () => {
-  testTypeAssertions(Number, 'number');
+test('type assertions number', () => {
+  testTypeAssertions<number>(Number, 'number');
 });
 
-test('typeFilter string', () => {
-  testTypeAssertions(String, 'string');
+test('type assertions string', () => {
+  testTypeAssertions<string>(String, 'string');
 });
 
-test('typeFilter SsObject', () => {
-  testTypeAssertions(SsObject, 'SsObject');
+test('type assertions SsObject', () => {
+  testTypeAssertions<SsObject>(SsObject, 'SsObject');
 });
 
-test('typeFilter array of ints', () => {
-  testTypeAssertions([Number], 'array');
+test('type assertions array of ints', () => {
+  testTypeAssertions<number[]>([Number], 'array');
 });
 
-test('typeFilter array of array 0f array', () => {
+test('type assertions array of array 0f array', () => {
   const t = [[[String]]];
   assertIsType([], t);
   assertIsType([[]], t);
@@ -129,6 +133,6 @@ test('typeFilter array of array 0f array', () => {
   ).toThrow('inside array: inside array: inside array: expected string, got boolean');
 });
 
-test('typeFilter Vector3', () => {
-  testTypeAssertions(THREE.Vector3, 'Vector3');
+test('type assertions Vector3', () => {
+  testTypeAssertions<THREE.Vector3>(THREE.Vector3, 'Vector3');
 });

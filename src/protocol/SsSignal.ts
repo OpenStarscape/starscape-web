@@ -1,21 +1,21 @@
-import { Subscriber, Conduit, RealTypeOf, RuntimeType, assertIsType } from '../core';
+import { Subscriber, Conduit, RuntimeTypeOf, RuntimeType, assertIsType } from '../core';
 import { SsObject } from './SsObject'
 import { SsRequestType } from './SsRequest'
 
 /// A signal sent to the client from the server. Created and returned by SsObject.signal().
-export class SsSignal<T extends RuntimeType> extends Conduit<RealTypeOf<T>> {
+export class SsSignal<T, R extends RuntimeType = RuntimeTypeOf<T>> extends Conduit<T> {
   private isSubscribed = false;
 
   constructor(
     private readonly obj: SsObject,
     private readonly name: string,
-    private readonly t: RuntimeType,
+    private readonly rtType: R,
   ) {
     super();
   }
 
   /// Overrides parent method, generally not called externally.
-  addSubscriber(subscriber: Subscriber<RealTypeOf<T>>) {
+  addSubscriber(subscriber: Subscriber<T>) {
     super.addSubscriber(subscriber);
     if (!this.isSubscribed) {
       this.isSubscribed = true;
@@ -28,7 +28,7 @@ export class SsSignal<T extends RuntimeType> extends Conduit<RealTypeOf<T>> {
   }
 
   /// Overrides parent method, generally not called externally.
-  deleteSubscriber(subscriber: Subscriber<RealTypeOf<T>>) {
+  deleteSubscriber(subscriber: Subscriber<T>) {
     super.deleteSubscriber(subscriber);
     if (this.subscribers.size === 0 && this.isSubscribed) {
       this.isSubscribed = false;
@@ -42,7 +42,7 @@ export class SsSignal<T extends RuntimeType> extends Conduit<RealTypeOf<T>> {
 
   /// Called by the event's object when the server sends an event.
   handleSignal(value: unknown) {
-    assertIsType(value, this.t);
+    assertIsType(value, this.rtType);
     this.sendUpdates(value);
   }
 

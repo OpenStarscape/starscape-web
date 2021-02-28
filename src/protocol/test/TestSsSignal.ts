@@ -7,7 +7,7 @@ const ltMock = {
   add: (_: any) => {},
 } as any
 
-function newSignal(requests: SsRequest[]): SsSignal<NumberConstructor> {
+function newSignal(requests: SsRequest[]): SsSignal<number> {
   const obj = {
     id: 88,
     makeRequest: (rq: SsRequest) => {
