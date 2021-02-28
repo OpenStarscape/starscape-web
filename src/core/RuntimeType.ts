@@ -37,16 +37,16 @@ function classTypeFilter<T, V>(expected: new (...args: any[]) => T): (_: V) => T
 }
 
 // For runtime type checking. Tbh even while I'm writing this idk how or why it works.
-export type SsRuntimeType<T, U=undefined> =
+export type RuntimeType<T, U=undefined> =
   T extends null ? null :
   T extends Array<U> ? Array<U> :
   new (...args: any[]) => T;
 
 export function typeFilter<V>(t: null): (_: V) => null;
-export function typeFilter<T, U, V>(t: Array<SsRuntimeType<T, U>>): (_: V) => Array<SsRuntimeType<T, U>>;
+export function typeFilter<T, U, V>(t: Array<RuntimeType<T, U>>): (_: V) => Array<RuntimeType<T, U>>;
 export function typeFilter<T, V>(t: new (...args: any[]) => T): (_: V) => T;
-export function typeFilter<T, U, V>(t: SsRuntimeType<T, U>): (_: V) => T;
-export function typeFilter<T, U, V>(t: SsRuntimeType<T, U>): (_: V) => T {
+export function typeFilter<T, U, V>(t: RuntimeType<T, U>): (_: V) => T;
+export function typeFilter<T, U, V>(t: RuntimeType<T, U>): (_: V) => T {
   // Without the `as any` casts, the compiler complains the checks always return false.
   // The compiler is wrong and I have tests to prove it.
   if (t as any === Boolean) {

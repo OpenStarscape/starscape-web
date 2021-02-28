@@ -1,11 +1,11 @@
 import { Lifetime } from '../core';
+import { RuntimeType, typeFilter } from '../core/RuntimeType'
 import { SsConnection } from './SsConnection';
 import { SsProperty } from './SsProperty'
 import { SsAction } from './SsAction'
 import { SsSignal } from './SsSignal'
 import { SsRequest } from './SsRequest'
 import { SsValue } from './SsValue'
-import { SsRuntimeType, typeFilter } from './SsRuntimeType'
 
 type Member<T> = new (...args: any[]) => T
 
@@ -40,7 +40,7 @@ export class SsObject {
   }
 
   /// Object must have an event with the given name. This is not automatically checked.
-  signal<T, U>(name: string, t: SsRuntimeType<T, U>): SsSignal<T> {
+  signal<T, U>(name: string, t: RuntimeType<T, U>): SsSignal<T> {
     return this.member(name, SsSignal, () => {
         return new SsSignal<T>(this, name, typeFilter(t));
     });
