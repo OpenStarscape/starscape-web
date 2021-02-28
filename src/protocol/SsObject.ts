@@ -1,5 +1,5 @@
 import { Lifetime } from '../core';
-import { RuntimeType, typeFilter } from '../core/RuntimeType'
+import { RuntimeType, RealTypeOf, typeFilter } from '../core/RuntimeType'
 import { SsConnection } from './SsConnection';
 import { SsProperty } from './SsProperty'
 import { SsAction } from './SsAction'
@@ -40,9 +40,9 @@ export class SsObject {
   }
 
   /// Object must have an event with the given name. This is not automatically checked.
-  signal<T, U>(name: string, t: RuntimeType<T, U>): SsSignal<T> {
+  signal<T extends RuntimeType, U=RealTypeOf<T>>(name: string, t: T): SsSignal<U> {
     return this.member(name, SsSignal, () => {
-        return new SsSignal<T>(this, name, typeFilter(t));
+        return new SsSignal<U>(this, name, typeFilter(t));
     });
   }
 

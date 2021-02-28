@@ -36,19 +36,18 @@ function classTypeFilter<T, V>(expected: new (...args: any[]) => T): (_: V) => T
   }
 }
 
-// For runtime type checking. Tbh even while I'm writing this idk how or why it works.
-export type RuntimeType<T, U=undefined> =
-  T extends null ? null :
-  T extends Array<U> ? Array<U> :
-  new (...args: any[]) => T;
+export type RuntimeType = null | undefined | Array<RuntimeType> | (new (...args: any[]) => any);
 
-export function typeFilter<V>(t: null): (_: V) => null;
-export function typeFilter<T, U, V>(t: Array<RuntimeType<T, U>>): (_: V) => Array<RuntimeType<T, U>>;
-export function typeFilter<T, V>(t: new (...args: any[]) => T): (_: V) => T;
-export function typeFilter<T, U, V>(t: RuntimeType<T, U>): (_: V) => T;
-export function typeFilter<T, U, V>(t: RuntimeType<T, U>): (_: V) => T {
-  // Without the `as any` casts, the compiler complains the checks always return false.
-  // The compiler is wrong and I have tests to prove it.
+type RuntimeTypeArray<T extends RuntimeType> = Array<T>;
+export type RealTypeOf<T extends RuntimeType> =
+  T extends null ? null :
+  T extends undefined ? any :
+  T extends RuntimeTypeArray<infer U> ? Array<RealTypeOf<U>> :
+  T extends new (...args: any[]) => infer U ? U :
+  never;
+
+export function typeFilter<T extends RuntimeType, V=unknown>(t: T): (_: V) => RealTypeOf<T> {
+  // It's unclear why the `as any` casts are needed. Typescript thinks the checks will always return false but they do not.
   if (t as any === Boolean) {
     return primitiveTypeFilter('boolean')
   } else if (t as any === Number) {
@@ -62,7 +61,7 @@ export function typeFilter<T, U, V>(t: RuntimeType<T, U>): (_: V) => T {
       throw new Error('invalid runtime type array ' + t + ', must have single element');
     }
     const inner = typeFilter(t[0] as any);
-    return (value): T => {
+    return (value): RealTypeOf<T> => {
       if (!Array.isArray(value)) {
         throwTypeError('array', value);
       }
@@ -75,8 +74,10 @@ export function typeFilter<T, U, V>(t: RuntimeType<T, U>): (_: V) => T {
       }
       return value as any;
     };
+  } else if (t === undefined) {
+    return (value): any => value;
   } else if (t === null) {
-    return (value): T => {
+    return (value): RealTypeOf<T> => {
       if (value === null) {
         return null as any;
       } else {
