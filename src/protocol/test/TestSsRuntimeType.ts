@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { typeFilter, SsRuntimeType } from '../SsRuntimeType';
 import { SsObject } from '../SsObject';
+import { SsValue } from '../SsValue';
 
 const mockConn = {
   lifetime: () => {
@@ -113,7 +114,7 @@ test('typeFilter array inner type', () => {
 });
 
 test('typeFilter array of array', () => {
-  const f = typeFilter<Array<SsRuntimeType<String>>, SsRuntimeType<String>>([[String]]);
+  const f = typeFilter<Array<SsRuntimeType<String>>, SsRuntimeType<String>, SsValue>([[String]]);
   f([]);
   f([[]]);
   f([[''], [], ['foo', 'bar']]);
