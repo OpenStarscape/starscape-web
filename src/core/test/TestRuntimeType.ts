@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { assertIsType, isType, runtimeTypeEquals, RuntimeTypeOf, typeName, runtimeTypeName } from '../RuntimeType';
+import { assertIsType, isType, RuntimeType, runtimeTypeEquals, RuntimeTypeOf, typeName, runtimeTypeName } from '../RuntimeType';
 import { SsObject } from '../../protocol';
 
 const mockConn = {
@@ -14,65 +14,109 @@ function obj() {
   return new SsObject(mockConn, 88);
 }
 
-function isKnownToBe<T>(_: T) {}
+class ValueType<T, R extends RuntimeType> {
+  constructor(
+    readonly valueStr: string,
+    readonly value: T,
+    readonly valueTypeName: string,
+    readonly rtType: R,
+    readonly rtTypeName: string,
+  ) {}
 
-// TODO: V seems to have no effect, it's not testing anything.
-function testTypeAssertions<V, T extends RuntimeTypeOf<V> = RuntimeTypeOf<V>>(t: T, inTypeName: string) {
-  const cases: [unknown, string, string][] = [
-    [null,    'null',     'null'],
-    [true,    'boolean',  'boolean'],
-    [false,   'boolean',  'boolean'],
-    [3,       'number',   'number'],
-    [0,       'number',   'number'],
-    [-7.5,    'number',   'number'],
-    ['23',    'string',   'string'],
-    ['',      'string',   'string'],
-    //[null,    'null',     'string?'],
-    //['hi',    'string',   'string?'],
-    [[7, 2],  'array',    'number[]'],
-    [[],      'array',    'number[]'],
-    [obj(),   'SsObject', 'SsObject'],
-    [new THREE.Vector3(), 'Vector3', 'Vector3']
-  ];
-  for (const [value, valueName, typeName] of cases) {
-    if (t === undefined || typeName === inTypeName) {
-      expect(isType(value, t)).toBe(true);
-      assertIsType<V, T>(value, t);
-      isKnownToBe<V>(value);
-    } else {
-      expect(isType(value, t)).toBe(false);
-      expect(() => {
-        assertIsType(value, t);
-      }).toThrow('expected ' + inTypeName + ', got ' + valueName);
-    }
+  describe() {
+    return this.valueStr + ' (' + this.rtTypeName + ')';
   }
 }
 
-test('typeName primitives', () => {
-  expect(typeName(7)).toEqual('number');
-  expect(typeName(-7.5)).toEqual('number');
-  expect(typeName(true)).toEqual('boolean');
-  expect(typeName(false)).toEqual('boolean');
-  expect(typeName('')).toEqual('string');
-  expect(typeName('foo')).toEqual('string');
-});
+const types: ValueType<any, any>[] = [
+  new ValueType('null',     null,       'null',       null,     'null'),
+  //new ValueType(undefined,  'undefined',  undefined,'any'),
+  new ValueType('true',     true,       'boolean',    Boolean,  'boolean'),
+  new ValueType('false',    false,      'boolean',    Boolean,  'boolean'),
+  new ValueType('3',        3,          'number',     Number,   'number'),
+  new ValueType('0',        0,          'number',     Number,   'number'),
+  new ValueType('-7.5',     -7.5,       'number',     Number,   'number'),
+  new ValueType('NaN',      NaN,        'number',     Number,   'number'), // lol
+  new ValueType('"23"',     '23',       'string',     String,   'string'),
+  new ValueType('""',       '',         'string',     String,   'string'),
+  new ValueType('SsObject', obj(),      'SsObject',   SsObject, 'SsObject'),
+  new ValueType('THREE.Vector3', new THREE.Vector3(), 'Vector3', THREE.Vector3, 'Vector3'),
+  new ValueType('null',     null,       'null',       {nullable: SsObject}, 'SsObject?'),
+  new ValueType('"hi"',     'hi',       'string',     {nullable: String}, 'string?'),
+  new ValueType('[1, 2, 3]', [1, 2, 3], 'array',      [Number], 'number[]'),
+  new ValueType('[[], [[1, 2]]]', [[], [[1, 2]]], 'array',  [[[Number]]], 'number[][][]'),
+  new ValueType('[]',       [],         'array',      [String], 'string[]'),
+  new ValueType('[null]',   [null],     'array',      [null],   'null[]'),
+  new ValueType('[null]',   [null],     'array',      [{nullable: SsObject}], 'SsObject?[]'),
+  new ValueType('{}',       {},         'object',     Object,   'Object'),
+  new ValueType('{a: "b"}', {a: 'b'},   'object',     Object,   'Object'),
+];
 
-test('typeName special values', () => {
-  expect(typeName(null)).toEqual('null');
-  expect(typeName(undefined)).toEqual('undefined');
-  expect(typeName(Infinity)).toEqual('number');
-  expect(typeName(NaN)).toEqual('number'); // lol
-});
+for (const vt of types) {
+  test('typeName(): ' + vt.describe(), () => {
+    expect(typeName(vt.value)).toEqual(vt.valueTypeName);
+  });
+}
 
-test('typeName classes', () => {
-  expect(typeName(new THREE.Vector3)).toEqual('Vector3');
-  expect(typeName(obj())).toEqual('SsObject');
-});
+for (const vt of types) {
+  test('runtimeTypeName(): ' + vt.describe(), () => {
+    expect(
+      runtimeTypeName(vt.rtType)
+    ).toEqual(vt.rtTypeName);
+  });
+}
 
-test('typeName objects', () => {
-  expect(typeName({})).toEqual('object');
-  expect(typeName({a: 'b'})).toEqual('object');
-});
+for (const vt of types) {
+  test('runtimeTypeEquals(): ' + vt.describe() + ' equals itself', () => {
+    expect(
+      runtimeTypeEquals(vt.rtType, vt.rtType)
+    ).toBe(true);
+  });
+}
+
+for (const vt of types) {
+  test('runtimeTypeEquals(): ' + vt.describe(), () => {
+    for (const otherVt of types) {
+      expect(
+        runtimeTypeEquals(vt.rtType, otherVt.rtType)
+      ).toBe(vt.rtTypeName === otherVt.rtTypeName);
+    }
+  });
+}
+
+for (const vt of types) {
+  test('isType() & assertIsType(): ' + vt.describe(), () => {
+    for (const otherVt of types) {
+      // by no means perfect, just enough to get the tests to work
+      let shouldMatch = (
+        vt.rtTypeName === otherVt.rtTypeName ||
+        vt.valueTypeName === otherVt.rtTypeName ||
+        (otherVt.rtTypeName.endsWith('?') && otherVt.rtTypeName.startsWith(vt.valueTypeName)) ||
+        (vt.valueStr === '[]' && otherVt.rtTypeName.endsWith('[]')) ||
+        (vt.valueStr === 'null' && otherVt.rtTypeName.endsWith('?')) ||
+        (vt.valueStr === 'null' && otherVt.rtTypeName === 'null') ||
+        (vt.valueStr === '[null]' && otherVt.rtTypeName.endsWith('?[]')) ||
+        (vt.valueStr === '[null]' && otherVt.rtTypeName === 'null[]')
+      );
+      if (isType(vt.value, otherVt.rtType) !== shouldMatch) {
+        expect(vt.describe() + ' unexpectidly does ' + (shouldMatch ? 'not ' : '') + 'match ' + otherVt.rtTypeName).toBe(null);
+      }
+      if (shouldMatch) {
+        expect(() => {
+          assertIsType(vt.value, otherVt.rtType);
+        }).not.toThrow();
+      } else {
+        let message = 'expected ' + otherVt.rtTypeName + ', got ' + vt.valueTypeName;
+        if (Array.isArray(vt.value) && Array.isArray(otherVt.rtType)) {
+          message = '';
+        }
+        expect(() => {
+          assertIsType(vt.value, otherVt.rtType);
+        }).toThrow(message);
+      }
+    }
+  });
+}
 
 test('typeName objects with weird constructors', () => {
   expect(typeName({ constructor: null })).toEqual('object');
@@ -83,146 +127,4 @@ test('typeName objects with weird constructors', () => {
   expect(typeName({ constructor: { name: null } })).toEqual('object');
   expect(typeName({ constructor: { name: 75 } })).toEqual('object');
   typeName({ constructor: function () {}}); // doesn't have defined output but should not crash'
-});
-
-test('typeName arrays', () => {
-  expect(typeName([])).toEqual('array');
-  expect(typeName([1, 2, 3])).toEqual('array');
-});
-
-test('runtimeTypeName primitives', () => {
-  expect(runtimeTypeName(Number)).toEqual('number');
-  expect(runtimeTypeName(Boolean)).toEqual('boolean');
-  expect(runtimeTypeName(String)).toEqual('string');
-});
-
-test('runtimeTypeName special values', () => {
-  expect(runtimeTypeName(null)).toEqual('null');
-  expect(runtimeTypeName(undefined)).toEqual('any');
-});
-
-test('runtimeTypeName nullable', () => {
-  expect(runtimeTypeName({nullable: String})).toEqual('string?');
-  expect(runtimeTypeName({nullable: [SsObject]})).toEqual('SsObject[]?');
-});
-
-test('runtimeTypeName classes', () => {
-  expect(runtimeTypeName(THREE.Vector3)).toEqual('Vector3');
-  expect(runtimeTypeName(SsObject)).toEqual('SsObject');
-  expect(runtimeTypeName(Object)).toEqual('Object');
-});
-
-test('runtimeTypeName arrays', () => {
-  expect(runtimeTypeName([null])).toEqual('null[]');
-  expect(runtimeTypeName([[Number]])).toEqual('number[][]');
-});
-
-test('runtimeTypeEquals primitives equal', () => {
-  expect(runtimeTypeEquals(Boolean, Boolean)).toBe(true);
-  expect(runtimeTypeEquals(Number, Number)).toBe(true);
-  expect(runtimeTypeEquals(String, String)).toBe(true);
-});
-
-test('runtimeTypeEquals primitives not equal', () => {
-  expect(runtimeTypeEquals(Boolean, Number)).toBe(false);
-  expect(runtimeTypeEquals(Number, String)).toBe(false);
-  expect(runtimeTypeEquals(String, Boolean)).toBe(false);
-});
-
-test('runtimeTypeEquals objects equal', () => {
-  expect(runtimeTypeEquals(SsObject, SsObject)).toBe(true);
-  expect(runtimeTypeEquals(THREE.Vector3, THREE.Vector3)).toBe(true);
-});
-
-test('runtimeTypeEquals objects not equal', () => {
-  expect(runtimeTypeEquals(SsObject, THREE.Vector3)).toBe(false);
-  expect(runtimeTypeEquals(SsObject, Boolean)).toBe(false);
-  expect(runtimeTypeEquals(null, SsObject)).toBe(false);
-});
-
-test('runtimeTypeEquals nullables equal', () => {
-  expect(runtimeTypeEquals({nullable: String}, {nullable: String})).toBe(true);
-  expect(runtimeTypeEquals({nullable: [SsObject]}, {nullable: [SsObject]})).toBe(true);
-});
-
-test('runtimeTypeEquals nullables not equal', () => {
-  expect(runtimeTypeEquals({nullable: String}, {nullable: Number})).toBe(false);
-  expect(runtimeTypeEquals(Number, {nullable: Number})).toBe(false);
-  expect(runtimeTypeEquals({nullable: Number}, null)).toBe(false);
-});
-
-test('runtimeTypeEquals arrays equal', () => {
-  expect(runtimeTypeEquals([Number], [Number])).toBe(true);
-  expect(runtimeTypeEquals([null], [null])).toBe(true);
-  expect(runtimeTypeEquals([SsObject], [SsObject])).toBe(true);
-  expect(runtimeTypeEquals([[String]], [[String]])).toBe(true);
-});
-
-test('runtimeTypeEquals arrays not equal non-arrays', () => {
-  expect(runtimeTypeEquals([null], null)).toBe(false);
-  expect(runtimeTypeEquals(null, [[Number]])).toBe(false);
-  expect(runtimeTypeEquals([String], SsObject)).toBe(false);
-  expect(runtimeTypeEquals([SsObject], Boolean)).toBe(false);
-});
-
-test('runtimeTypeEquals arrays not equal other arrays', () => {
-  expect(runtimeTypeEquals([Boolean], [Number])).toBe(false);
-  expect(runtimeTypeEquals([[[SsObject]]], [[SsObject]])).toBe(false);
-  expect(runtimeTypeEquals([null], [SsObject])).toBe(false);
-  expect(runtimeTypeEquals([THREE.Vector3], [SsObject])).toBe(false);
-});
-
-test('type assertions any type', () => {
-  testTypeAssertions<any>(undefined, 'any');
-});
-
-test('type assertions null', () => {
-  testTypeAssertions<null>(null, 'null');
-});
-
-test('type assertions boolean', () => {
-  testTypeAssertions<boolean>(Boolean, 'boolean');
-});
-
-test('type assertions number', () => {
-  testTypeAssertions<number>(Number, 'number');
-});
-
-test('type assertions string', () => {
-  testTypeAssertions<string>(String, 'string');
-});
-
-test('type assertions SsObject', () => {
-  testTypeAssertions<SsObject>(SsObject, 'SsObject');
-});
-
-/*
-test('type assertions nullable string', () => {
-  testTypeAssertions({nullable: String}, 'string?');
-});
-*/
-
-test('type assertions array of ints', () => {
-  testTypeAssertions<number[]>([Number], 'number[]');
-});
-
-test('type assertions array of array of array', () => {
-  const t = [[[String]]];
-  assertIsType([], t);
-  assertIsType([[]], t);
-  assertIsType([[[]]], t);
-  assertIsType([[[''], []], [], [['foo', 'bar', 'baz']]], t);
-  expect(() =>
-    assertIsType([null], t)
-  ).toThrow('inside array: expected string[][], got null');
-  expect(() =>
-    assertIsType([[['a']], [false]], t)
-  ).toThrow('inside array: inside array: expected string[], got boolean');
-  expect(() =>
-    assertIsType([[['a']], [[false]]], t)
-  ).toThrow('inside array: inside array: inside array: expected string, got boolean');
-});
-
-test('type assertions Vector3', () => {
-  testTypeAssertions<THREE.Vector3>(THREE.Vector3, 'Vector3');
 });
