@@ -9,6 +9,7 @@ const mockConn = {
       add: (_: any) => {}
     };
   },
+  makeRequest: () => {},
 } as any;
 
 function newObject() {
@@ -17,7 +18,7 @@ function newObject() {
 
 test('SsObject can get property', () => {
   const obj = newObject();
-  const prop = obj.property('foo');
+  const prop = obj.property('foo', Number);
   expect(prop).toBeInstanceOf(SsProperty);
 });
 
@@ -35,17 +36,17 @@ test('SsObject can get action', () => {
 
 test('SsObject getting same member multiple times returns same', () => {
   const obj = newObject();
-  const prop = obj.property('prop');
+  const prop = obj.property('prop', Number);
   const sig = obj.signal('sig', Number);
   const act = obj.action('act', Number);
-  expect(obj.property('prop')).toBe(prop);
+  expect(obj.property('prop', Number)).toBe(prop);
   expect(obj.signal('sig', Number)).toBe(sig);
   expect(obj.action('act', Number)).toBe(act);
 });
 
 test('SsObject getting different member type with same name error', () => {
   const obj = newObject();
-  obj.property('prop');
+  obj.property('prop', Number);
   obj.signal('sig', Number);
   obj.action('act', Number);
   expect(() => {
@@ -55,18 +56,21 @@ test('SsObject getting different member type with same name error', () => {
     obj.action('sig', Number);
   }).toThrow('12.sig can not be created as a SsAction because it was already created as a SsSignal')
   expect(() => {
-    obj.property('act');
+    obj.property('act', Number);
   }).toThrow('12.act can not be created as a SsProperty because it was already created as a SsAction')
 });
 
-test('SsObject getting members with different value type and same name error', () => {
+test('SsObject getting same member with different value type errors', () => {
   const obj = newObject();
-  obj.property('prop');
-  obj.signal('sig', Number);
+  obj.property('prop', Number);
+  obj.signal('sig', SsObject);
   obj.action('act', [Boolean]);
   expect(() => {
+    obj.property('prop', null);
+  }).toThrow('12.prop can not be created with type null because it was already created with type number');
+  expect(() => {
     obj.signal('sig', String);
-  }).toThrow('12.sig can not be created with type string because it was already created with type number');
+  }).toThrow('12.sig can not be created with type string because it was already created with type SsObject');
   expect(() => {
     obj.action('act', [[Boolean]]);
   }).toThrow('12.act can not be created with type array because it was already created with type array');
@@ -74,7 +78,7 @@ test('SsObject getting members with different value type and same name error', (
 
 test('SsObject kills conduits on dispose', () => {
   const obj = newObject();
-  const prop = obj.property('prop');
+  const prop = obj.property('prop', Number);
   const sig = obj.signal('sig', Number);
   const act = obj.action('act', Number);
   expect(prop.isAlive()).toEqual(true);
@@ -95,17 +99,33 @@ test('SsObject signal validates input type', () => {
   }).toThrow('12.num signal: expected number, got string')
 });
 
-test('SsObject signal validates input type', () => {
+test('SsObject property validates input type', () => {
   const obj = newObject();
-  obj.signal('num', Number);
-  obj.handleSignal('num', 7.5);
+  obj.property('num', Number);
+  obj.handleUpdate('num', 7.5);
+  obj.handleGetReply('num', 7.5);
   expect(() => {
-    obj.handleSignal('num', 'hi');
-  }).toThrow('12.num signal: expected number, got string')
+    obj.handleUpdate('num', 'hi');
+  }).toThrow('12.num property: expected number, got string')
+  expect(() => {
+    obj.handleGetReply('num', 'hi');
+  }).toThrow('12.num property: expected number, got string')
+});
+
+test('SsObject property with array type', () => {
+  const obj = newObject();
+  obj.property('prop', [Number]);
+  obj.handleGetReply('prop', [6]);
 });
 
 test('SsObject signal with array type', () => {
   const obj = newObject();
-  obj.signal('num', [Number]);
-  obj.handleSignal('num', [6]);
+  obj.signal('sig', [Number]);
+  obj.handleSignal('sig', [6]);
+});
+
+test('SsObject action with array type', () => {
+  const obj = newObject();
+  const action = obj.action('act', [Number]);
+  action.fire([6]);
 });

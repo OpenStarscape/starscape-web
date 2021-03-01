@@ -26,7 +26,8 @@ export default class ShipNameField extends React.Component<Props, State> {
     this.setState({name: name, promptForName: false});
     const ship = this.props.game.currentShip.get();
     if (ship) {
-      ship.property('name').set(name);
+      // TODO: remove bang once type system supports nullable
+      ship.property('name', String).set(name!);
     }
   }
 

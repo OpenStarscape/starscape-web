@@ -19,10 +19,10 @@ export default class ServerStats extends React.Component<Props, State> {
   }
 
   componentDidMount() {
-    this.props.game.god.property('conn_count').subscribe(this.lt, count => {
+    this.props.game.god.property('conn_count', Number).subscribe(this.lt, count => {
       this.setState({conn_count: count});
     });
-    this.props.game.god.property('max_conn_count').subscribe(this.lt, count => {
+    this.props.game.god.property('max_conn_count', Number).subscribe(this.lt, count => {
       this.setState({max_conn_count: count});
     });
   }
