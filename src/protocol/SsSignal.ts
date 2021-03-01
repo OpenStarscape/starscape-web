@@ -10,7 +10,7 @@ export class SsSignal<T extends SsValue> extends Conduit<T> {
   constructor(
     private readonly obj: SsObject,
     private readonly name: string,
-    private readonly rtType: RuntimeTypeOf<T>,
+    readonly rtType: RuntimeTypeOf<T>,
   ) {
     super();
   }

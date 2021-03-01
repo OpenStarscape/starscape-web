@@ -17,7 +17,8 @@ function newAction(requests: SsRequest[]): SsAction<number> {
   }
   return new SsAction(
     obj as unknown as SsObject,
-    'act'
+    'act',
+    Number
   );
 }
 
