@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { assertIsType, isType, RuntimeType, runtimeTypeEquals, RuntimeTypeOf, typeName, runtimeTypeName } from '../RuntimeType';
+import { assertIsType, isType, runtimeTypeEquals, RuntimeTypeOf, typeName, runtimeTypeName } from '../RuntimeType';
 import { SsObject } from '../../protocol';
 
 const mockConn = {
@@ -16,7 +16,8 @@ function obj() {
 
 function isKnownToBe<T>(_: T) {}
 
-function testTypeAssertions<V, T extends RuntimeType = RuntimeTypeOf<V>>(t: T, inTypeName: string) {
+// TODO: V seems to have no effect, it's not testing anything.
+function testTypeAssertions<V, T extends RuntimeTypeOf<V> = RuntimeTypeOf<V>>(t: T, inTypeName: string) {
   const cases: [unknown, string, string][] = [
     [null,    'null',     'null'],
     [true,    'boolean',  'boolean'],
@@ -26,6 +27,8 @@ function testTypeAssertions<V, T extends RuntimeType = RuntimeTypeOf<V>>(t: T, i
     [-7.5,    'number',   'number'],
     ['23',    'string',   'string'],
     ['',      'string',   'string'],
+    //[null,    'null',     'string?'],
+    //['hi',    'string',   'string?'],
     [[7, 2],  'array',    'number[]'],
     [[],      'array',    'number[]'],
     [obj(),   'SsObject', 'SsObject'],
@@ -98,6 +101,11 @@ test('runtimeTypeName special values', () => {
   expect(runtimeTypeName(undefined)).toEqual('any');
 });
 
+test('runtimeTypeName nullable', () => {
+  expect(runtimeTypeName({nullable: String})).toEqual('string?');
+  expect(runtimeTypeName({nullable: [SsObject]})).toEqual('SsObject[]?');
+});
+
 test('runtimeTypeName classes', () => {
   expect(runtimeTypeName(THREE.Vector3)).toEqual('Vector3');
   expect(runtimeTypeName(SsObject)).toEqual('SsObject');
@@ -126,10 +134,21 @@ test('runtimeTypeEquals objects equal', () => {
   expect(runtimeTypeEquals(THREE.Vector3, THREE.Vector3)).toBe(true);
 });
 
-test('runtimeTypeEquals not equal', () => {
+test('runtimeTypeEquals objects not equal', () => {
   expect(runtimeTypeEquals(SsObject, THREE.Vector3)).toBe(false);
   expect(runtimeTypeEquals(SsObject, Boolean)).toBe(false);
   expect(runtimeTypeEquals(null, SsObject)).toBe(false);
+});
+
+test('runtimeTypeEquals nullables equal', () => {
+  expect(runtimeTypeEquals({nullable: String}, {nullable: String})).toBe(true);
+  expect(runtimeTypeEquals({nullable: [SsObject]}, {nullable: [SsObject]})).toBe(true);
+});
+
+test('runtimeTypeEquals nullables not equal', () => {
+  expect(runtimeTypeEquals({nullable: String}, {nullable: Number})).toBe(false);
+  expect(runtimeTypeEquals(Number, {nullable: Number})).toBe(false);
+  expect(runtimeTypeEquals({nullable: Number}, null)).toBe(false);
 });
 
 test('runtimeTypeEquals arrays equal', () => {
@@ -176,6 +195,12 @@ test('type assertions string', () => {
 test('type assertions SsObject', () => {
   testTypeAssertions<SsObject>(SsObject, 'SsObject');
 });
+
+/*
+test('type assertions nullable string', () => {
+  testTypeAssertions({nullable: String}, 'string?');
+});
+*/
 
 test('type assertions array of ints', () => {
   testTypeAssertions<number[]>([Number], 'number[]');
