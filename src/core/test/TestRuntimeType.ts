@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { assertIsType, isType, RuntimeType, runtimeTypeEquals, RuntimeTypeOf, RealTypeOf, typeName } from '../RuntimeType';
+import { assertIsType, isType, RuntimeType, runtimeTypeEquals, RuntimeTypeOf, typeName } from '../RuntimeType';
 import { SsObject } from '../../protocol';
 
 const mockConn = {
@@ -34,9 +34,8 @@ function testTypeAssertions<V, T extends RuntimeType = RuntimeTypeOf<V>>(t: T, t
   for (const [value, vName] of cases) {
     if (t === undefined || vName === tName) {
       expect(isType(value, t)).toBe(true);
-      assertIsType(value, t);
+      assertIsType<V, T>(value, t);
       isKnownToBe<V>(value);
-      isKnownToBe<RealTypeOf<T>>(value);
     } else {
       expect(isType(value, t)).toBe(false);
       expect(() => {

@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import { Game, Lifetime } from "../core";
-import { SsObject } from "../protocol";
+import { SsObject, SsSignal } from "../protocol";
 import Starfield from '../graphics/Starfield';
 import BodyManager from '../graphics/BodyManager';
 import CameraManager from '../graphics/CameraManager';
@@ -72,6 +72,7 @@ export default class SpaceScene {
     this.cameraManager.setAspect(window.innerWidth / window.innerHeight);
 
     const shipCreatedLt = this.lt.newChild();
+    const sig: SsSignal<SsObject> = this.game.god.signal('ship_created', SsObject);
     this.game.god.signal('ship_created', SsObject).subscribe(shipCreatedLt, obj => {
       this.game.currentShip.set(obj);
       shipCreatedLt.dispose(); // only handle this callback once

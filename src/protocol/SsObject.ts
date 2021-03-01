@@ -1,4 +1,4 @@
-import { Lifetime, Conduit, RuntimeType, RealTypeOf} from '../core';
+import { Lifetime, Conduit, RuntimeType, RealTypeOf, indirectRuntimeType} from '../core';
 import { SsConnection } from './SsConnection';
 import { SsProperty } from './SsProperty'
 import { SsAction } from './SsAction'
@@ -6,7 +6,7 @@ import { SsSignal } from './SsSignal'
 import { SsRequest } from './SsRequest'
 import { SsValue } from './SsValue'
 
-type Member = (SsProperty | SsAction<any> | SsSignal<any, any>) & Conduit<any>;
+type Member = (SsProperty | SsAction<any> | SsSignal<any>) & Conduit<any>;
 type MemberConstructor<T extends Member> = new (...args: any[]) => T
 
 /// A handle to an object on the server. Is automatically created by the connection.
@@ -49,10 +49,10 @@ export class SsObject {
   }
 
   /// Object must have an event with the given name. This is not automatically checked.
-  signal<R extends RuntimeType, T extends SsValue = RealTypeOf<R>>(name: string, rtType: R): SsSignal<T, R> {
-    const existing = this.member<SsSignal<T, R>>(name, SsSignal);
+  signal<R extends RuntimeType, T extends SsValue = RealTypeOf<R>>(name: string, rtType: R): SsSignal<T> {
+    const existing = this.member<SsSignal<T>>(name, SsSignal);
     if (existing === undefined) {
-      const created = new SsSignal<T, R>(this, name, rtType);
+      const created = new SsSignal<T>(this, name, indirectRuntimeType(rtType));
       this.lt.add(created);
       this.members.set(name, created);
       return created;
