@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { assertIsType, isType, RuntimeType, RuntimeTypeOf, RealTypeOf, typeName } from '../RuntimeType';
+import { assertIsType, isType, RuntimeType, runtimeTypeEquals, RuntimeTypeOf, RealTypeOf, typeName } from '../RuntimeType';
 import { SsObject } from '../../protocol';
 
 const mockConn = {
@@ -86,6 +86,50 @@ test('typeName objects with weird constructors', () => {
 test('typeName arrays', () => {
   expect(typeName([])).toEqual('array');
   expect(typeName([1, 2, 3])).toEqual('array');
+});
+
+test('runtimeTypeEquals primitives equal', () => {
+  expect(runtimeTypeEquals(Boolean, Boolean)).toBe(true);
+  expect(runtimeTypeEquals(Number, Number)).toBe(true);
+  expect(runtimeTypeEquals(String, String)).toBe(true);
+});
+
+test('runtimeTypeEquals primitives not equal', () => {
+  expect(runtimeTypeEquals(Boolean, Number)).toBe(false);
+  expect(runtimeTypeEquals(Number, String)).toBe(false);
+  expect(runtimeTypeEquals(String, Boolean)).toBe(false);
+});
+
+test('runtimeTypeEquals objects equal', () => {
+  expect(runtimeTypeEquals(SsObject, SsObject)).toBe(true);
+  expect(runtimeTypeEquals(THREE.Vector3, THREE.Vector3)).toBe(true);
+});
+
+test('runtimeTypeEquals not equal', () => {
+  expect(runtimeTypeEquals(SsObject, THREE.Vector3)).toBe(false);
+  expect(runtimeTypeEquals(SsObject, Boolean)).toBe(false);
+  expect(runtimeTypeEquals(null, SsObject)).toBe(false);
+});
+
+test('runtimeTypeEquals arrays equal', () => {
+  expect(runtimeTypeEquals([Number], [Number])).toBe(true);
+  expect(runtimeTypeEquals([null], [null])).toBe(true);
+  expect(runtimeTypeEquals([SsObject], [SsObject])).toBe(true);
+  expect(runtimeTypeEquals([[String]], [[String]])).toBe(true);
+});
+
+test('runtimeTypeEquals arrays not equal non-arrays', () => {
+  expect(runtimeTypeEquals([null], null)).toBe(false);
+  expect(runtimeTypeEquals(null, [[Number]])).toBe(false);
+  expect(runtimeTypeEquals([String], SsObject)).toBe(false);
+  expect(runtimeTypeEquals([SsObject], Boolean)).toBe(false);
+});
+
+test('runtimeTypeEquals arrays not equal other arrays', () => {
+  expect(runtimeTypeEquals([Boolean], [Number])).toBe(false);
+  expect(runtimeTypeEquals([[[SsObject]]], [[SsObject]])).toBe(false);
+  expect(runtimeTypeEquals([null], [SsObject])).toBe(false);
+  expect(runtimeTypeEquals([THREE.Vector3], [SsObject])).toBe(false);
 });
 
 test('type assertions any type', () => {

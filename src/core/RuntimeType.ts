@@ -51,6 +51,20 @@ export function typeName(value: any): string {
   }
 }
 
+export function runtimeTypeEquals(a: RuntimeType, b: RuntimeType): boolean {
+  if (a === b) {
+    return true;
+  } else if (Array.isArray(a) && Array.isArray(b)) {
+    if (a.length === 1 && b.length === 1) {
+      return runtimeTypeEquals(a[0], b[0]);
+    } else {
+      throw Error('RuntimeType array with invalid length');
+    }
+  } else {
+    return false;
+  }
+}
+
 function runtimeTypeName(t: RuntimeType): string {
   switch (t as any) {
     case null:
