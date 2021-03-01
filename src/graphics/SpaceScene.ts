@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
-import { Game, Lifetime } from "../core";
+import { Game, Lifetime, RuntimeTypeOf } from "../core";
 import { SsObject } from "../protocol";
 import Starfield from '../graphics/Starfield';
 import BodyManager from '../graphics/BodyManager';
@@ -79,8 +79,7 @@ export default class SpaceScene {
 
     // Type inference is hard apparently
     this.game.god.action<
-      [new (...args: any[]) => THREE.Vector3, new (...args: any[]) => THREE.Vector3],
-      [THREE.Vector3, THREE.Vector3]
+      RuntimeTypeOf<[THREE.Vector3, THREE.Vector3]>
     >('create_ship', [THREE.Vector3, THREE.Vector3]).fire([
       new THREE.Vector3(150, 10, 0),
       new THREE.Vector3(0, 0, -30),
