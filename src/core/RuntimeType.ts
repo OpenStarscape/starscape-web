@@ -1,19 +1,26 @@
 /// A RuntimeType is a value with a distinct type, that can be used for both runtime and compile time typechecks.
 /// Runtime types are as follows (along with the compile-time types RealTypeOf maps them to):
-/// - null      -> null
-/// - undefined -> any
-/// - Boolean   -> boolean
-/// - Number    -> number
-/// - String    -> string
-/// - [T]       -> T[] (where T is any other RuntimeType)
-/// - T         -> T (where T is any non-generic object constructor)
+/// - null            -> null
+/// - undefined       -> any
+/// - Boolean         -> boolean
+/// - Number          -> number
+/// - String          -> string
+/// - {nullable: T}   -> T | null (where T is any RuntimeType)
+/// - [T]             -> T[] (where T is any RuntimeType)
+/// - T               -> T (where T is any non-generic object constructor)
 /// Note there is currently not support for generic objects except arrays. If it's needed the easiest thing to do will
 /// be to patch it on an object-by-object basis
-export type RuntimeType = null | undefined | Array<RuntimeType> | (new (...args: any[]) => any);
+export type RuntimeType =
+  null |
+  undefined |
+  {nullable: RuntimeType} |
+  Array<RuntimeType> |
+  (new (...args: any[]) => any);
 
+type RuntimeTypeNullable<T extends RuntimeType> = {nullable: T};
 type RuntimeTypeArray<T extends RuntimeType> = Array<T>;
 /// Gives access to the compile-time type of a RuntimeType
-export type RealTypeOf<T extends RuntimeType> =
+type NonNullableRealTypeOf<T extends RuntimeType> =
   T extends null ? null :
   T extends undefined ? any :
   T extends BooleanConstructor ? boolean :
@@ -22,6 +29,10 @@ export type RealTypeOf<T extends RuntimeType> =
   T extends RuntimeTypeArray<infer U> ? Array<RealTypeOf<U>> :
   T extends new (...args: any[]) => infer U ? U :
   never;
+
+export type RealTypeOf<T extends RuntimeType> =
+  T extends RuntimeTypeNullable<infer U> ? (NonNullableRealTypeOf<U> | null) :
+  NonNullableRealTypeOf<T>;
 
 export type RuntimeTypeOf<T> = RuntimeType & T extends RealTypeOf<infer U> ? U : never;
 
@@ -64,6 +75,15 @@ export function typeName(value: any): string {
 export function runtimeTypeEquals(a: RuntimeType, b: RuntimeType): boolean {
   if (a === b) {
     return true;
+  } else if (
+    typeof a === 'object' &&
+    typeof b === 'object' &&
+    a !== null &&
+    b !== null &&
+    'nullable' in a &&
+    'nullable' in b
+  ) {
+    return runtimeTypeEquals(a.nullable, b.nullable);
   } else if (Array.isArray(a) && Array.isArray(b)) {
     if (a.length === 1 && b.length === 1) {
       return runtimeTypeEquals(a[0], b[0]);
@@ -89,17 +109,21 @@ export function runtimeTypeName(t: RuntimeType): string {
     case String:
       return 'string';
     default:
-      if (Array.isArray(t)) {
-        if (t.length !== 1) {
-          throw Error('invalid RuntimeType. arrays must be length 1, not ' + t.length);
-        } else {
-          return runtimeTypeName(t[0]) + '[]';
+      if (typeof t === 'object') {
+        if (Array.isArray(t)) {
+          if (t.length !== 1) {
+            throw Error('invalid RuntimeType. arrays must be length 1, not ' + t.length);
+          } else {
+            return runtimeTypeName(t[0]) + '[]';
+          }
+        } else if ('nullable' in (t as any)) {
+          return runtimeTypeName((t as any).nullable) + '?';
         }
       } else if ('name' in (t as any) && typeof (t as any).name === 'string') {
         return (t as any).name;
-      } else {
-        throw Error('invalid RuntimeType, can not get name');
       }
+
+      throw Error('invalid RuntimeType, can not get name');
   }
 }
 
@@ -127,29 +151,31 @@ export function isType<T extends RuntimeType>(value: unknown, t: T): boolean {
     case String:
       return typeof value === 'string';
     default:
-      if (typeof t === 'function') {
-        return (
-          typeof value === 'object' &&
-          value !== null &&
-          (value as any).constructor === t
-        );
-      } else if (Array.isArray(t)) {
-        if (t.length !== 1) {
-          throw Error('invalid RuntimeType. arrays must be length 1, not ' + t.length);
-        }
-        else if (Array.isArray(value)) {
-          for (let i = 0; i < value.length; i++) {
-            if (!isType(value[i], t[0])) {
-              return false;
+      switch (typeof t) {
+        case 'function':
+          return (
+            typeof value === 'object' &&
+            value !== null &&
+            (value as any).constructor === t
+          );
+        case 'object':
+          if ('nullable' in t) {
+            return value === null || isType(value, t.nullable);
+          } else if (Array.isArray(t)) {
+            if (t.length !== 1) {
+              throw Error('invalid RuntimeType. arrays must be length 1, not ' + t.length);
+            }
+            else if (Array.isArray(value)) {
+              for (let i = 0; i < value.length; i++) {
+                if (!isType(value[i], t[0])) {
+                  return false;
+                }
+              }
+              return true;
             }
           }
-          return true;
-        } else {
-          return false;
-        }
-      } else {
-        return false;
       }
+    return false;
   }
 }
 
