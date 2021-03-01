@@ -22,7 +22,7 @@ export class SsObject {
   }
 
   /// Object must have a property with the given name. This is not automatically checked.
-  property<R extends RuntimeType, T extends SsValue = RealTypeOf<R>>(name: string, rtType: R): SsProperty<T> {
+  property<R extends RuntimeType, T extends SsValue & RealTypeOf<R>>(name: string, rtType: R): SsProperty<T> {
     const existing = this.member<SsProperty<T>>(name, SsProperty);
     if (existing === undefined) {
       const created = new SsProperty<T>(this, name, indirectRuntimeType(rtType));
@@ -44,7 +44,7 @@ export class SsObject {
   }
 
   /// Object must have an action with the given name. This is not automatically checked.
-  action<R extends RuntimeType, T extends SsValue = RealTypeOf<R>>(name: string, rtType: R): SsAction<T> {
+  action<R extends RuntimeType, T extends SsValue & RealTypeOf<R>>(name: string, rtType: R): SsAction<T> {
     // _rtType is used only for type deduction
     const existing = this.member<SsAction<T>>(name, SsAction);
     if (existing === undefined) {
@@ -67,7 +67,7 @@ export class SsObject {
   }
 
   /// Object must have an event with the given name. This is not automatically checked.
-  signal<R extends RuntimeType, T extends SsValue = RealTypeOf<R>>(name: string, rtType: R): SsSignal<T> {
+  signal<R extends RuntimeType, T extends SsValue & RealTypeOf<R>>(name: string, rtType: R): SsSignal<T> {
     const existing = this.member<SsSignal<T>>(name, SsSignal);
     if (existing === undefined) {
       const created = new SsSignal<T>(this, name, indirectRuntimeType(rtType));

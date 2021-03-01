@@ -16,23 +16,23 @@ function obj() {
 
 function isKnownToBe<T>(_: T) {}
 
-function testTypeAssertions<V, T extends RuntimeType = RuntimeTypeOf<V>>(t: T, tName: string) {
-  const cases: [unknown, string][] = [
-    [null, 'null'],
-    [true, 'boolean'],
-    [false, 'boolean'],
-    [3, 'number'],
-    [0, 'number'],
-    [-7.5, 'number'],
-    ['23', 'string'],
-    ['', 'string'],
-    [[7, 2], 'array'],
-    [[], 'array'],
-    [obj(), 'SsObject'],
-    [new THREE.Vector3(), 'Vector3']
+function testTypeAssertions<V, T extends RuntimeType = RuntimeTypeOf<V>>(t: T, inTypeName: string) {
+  const cases: [unknown, string, string][] = [
+    [null,    'null',     'null'],
+    [true,    'boolean',  'boolean'],
+    [false,   'boolean',  'boolean'],
+    [3,       'number',   'number'],
+    [0,       'number',   'number'],
+    [-7.5,    'number',   'number'],
+    ['23',    'string',   'string'],
+    ['',      'string',   'string'],
+    [[7, 2],  'array',    'number[]'],
+    [[],      'array',    'number[]'],
+    [obj(),   'SsObject', 'SsObject'],
+    [new THREE.Vector3(), 'Vector3', 'Vector3']
   ];
-  for (const [value, vName] of cases) {
-    if (t === undefined || vName === tName) {
+  for (const [value, valueName, typeName] of cases) {
+    if (t === undefined || typeName === inTypeName) {
       expect(isType(value, t)).toBe(true);
       assertIsType<V, T>(value, t);
       isKnownToBe<V>(value);
@@ -40,7 +40,7 @@ function testTypeAssertions<V, T extends RuntimeType = RuntimeTypeOf<V>>(t: T, t
       expect(isType(value, t)).toBe(false);
       expect(() => {
         assertIsType(value, t);
-      }).toThrow('expected ' + tName + ', got ' + vName);
+      }).toThrow('expected ' + inTypeName + ', got ' + valueName);
     }
   }
 }
@@ -105,8 +105,8 @@ test('runtimeTypeName classes', () => {
 });
 
 test('runtimeTypeName arrays', () => {
-  expect(runtimeTypeName([null])).toEqual('array');
-  expect(runtimeTypeName([[Number]])).toEqual('array');
+  expect(runtimeTypeName([null])).toEqual('null[]');
+  expect(runtimeTypeName([[Number]])).toEqual('number[][]');
 });
 
 test('runtimeTypeEquals primitives equal', () => {
@@ -178,10 +178,10 @@ test('type assertions SsObject', () => {
 });
 
 test('type assertions array of ints', () => {
-  testTypeAssertions<number[]>([Number], 'array');
+  testTypeAssertions<number[]>([Number], 'number[]');
 });
 
-test('type assertions array of array 0f array', () => {
+test('type assertions array of array of array', () => {
   const t = [[[String]]];
   assertIsType([], t);
   assertIsType([[]], t);
@@ -189,10 +189,10 @@ test('type assertions array of array 0f array', () => {
   assertIsType([[[''], []], [], [['foo', 'bar', 'baz']]], t);
   expect(() =>
     assertIsType([null], t)
-  ).toThrow('inside array: expected array, got null');
+  ).toThrow('inside array: expected string[][], got null');
   expect(() =>
     assertIsType([[['a']], [false]], t)
-  ).toThrow('inside array: inside array: expected array, got boolean');
+  ).toThrow('inside array: inside array: expected string[], got boolean');
   expect(() =>
     assertIsType([[['a']], [[false]]], t)
   ).toThrow('inside array: inside array: inside array: expected string, got boolean');
