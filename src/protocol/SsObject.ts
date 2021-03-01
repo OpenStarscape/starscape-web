@@ -30,16 +30,15 @@ export class SsObject {
   }
 
   /// Object must have an action with the given name. This is not automatically checked.
-  action(name: string): SsAction {
-    return this.member(
-      name,
-      SsAction,
-      () => new SsAction(this, name),
-    );
+  action<R extends RuntimeType, T extends SsValue = RealTypeOf<R>>(name: string, _rtType: R): SsAction<T> {
+    // _rtType is used only for type deduction
+    return this.member(name, SsAction, () => {
+      return new SsAction<T>(this, name);
+    });
   }
 
   /// Object must have an event with the given name. This is not automatically checked.
-  signal<R extends RuntimeType, T = RealTypeOf<R>>(name: string, rtType: R): SsSignal<T, R> {
+  signal<R extends RuntimeType, T extends SsValue = RealTypeOf<R>>(name: string, rtType: R): SsSignal<T, R> {
     return this.member(name, SsSignal, () => {
         return new SsSignal<T, R>(this, name, rtType);
     });
