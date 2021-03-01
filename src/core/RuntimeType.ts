@@ -23,14 +23,16 @@ export type RealTypeOf<T extends RuntimeType> =
   T extends new (...args: any[]) => infer U ? U :
   never;
 
-export type RuntimeTypeOf<T> =
-  T extends null ? null :
-  T extends boolean ? BooleanConstructor :
-  T extends number ? NumberConstructor :
-  T extends string ? StringConstructor :
-  T extends Array<infer T> ? Array<RuntimeTypeOf<T>> :
-  T extends Object ? new (...args: any[]) => T :
-  undefined;
+export type RuntimeTypeOf<T> = RuntimeType & T extends RealTypeOf<infer U> ? U : never;
+
+/// Needed sometimes because typescript is bad
+export function indirectRuntimeType<T extends RuntimeType>(rtType: T) {
+  return rtType as any as RuntimeTypeOf<RealTypeOf<T>>;
+}
+
+export function indirectRealType<T>(value: T) {
+  return value as any as RealTypeOf<RuntimeTypeOf<T>>;
+}
 
 export function typeName(value: any): string {
   if (typeof value === 'object') {
@@ -143,7 +145,7 @@ export function isType<T extends RuntimeType>(value: unknown, t: T): boolean {
   }
 }
 
-export function assertIsType<T extends RuntimeType>(value: unknown, t: T): asserts value is RealTypeOf<T> {
+export function assertIsType<T, R extends RuntimeType = RuntimeTypeOf<T>>(value: unknown, t: R): asserts value is T {
   if (!isType(value, t)) {
     throw Error(typeErrorMessage(value, t));
   }
