@@ -14,8 +14,8 @@ const sceneScale = 1;
 export class Body {
   /// Instead of us subscribing, the manager subscribes and uses the setter
   private name: string | null = null;
-  private readonly getMass: () => any;
-  private readonly getRawPos: () => any;
+  private readonly getMass: () => number | undefined;
+  private readonly getRawPos: () => THREE.Vector3 | undefined;
   private readonly orbitLine: THREE.LineLoop;
   private readonly labelDiv: HTMLDivElement;
   private readonly label: CSS2DObject;
@@ -34,7 +34,7 @@ export class Body {
   private getGravBodyMass: () => number | undefined = () => undefined;
 
   protected size = 1;
-  protected readonly getVelocity: () => any;
+  protected readonly getVelocity: () => THREE.Vector3 | undefined;
   protected readonly mesh = new THREE.Mesh(emptyGeom, this.wireMat);
 
   constructor(
@@ -95,8 +95,8 @@ export class Body {
 
   setToPosition(vec: THREE.Vector3) {
     const raw = this.getRawPos();
-    if (raw) {
-      vec.copy(this.getRawPos());
+    if (raw !== undefined) {
+      vec.copy(raw);
       vec.multiplyScalar(sceneScale);
     }
   }
@@ -145,20 +145,27 @@ export class Body {
       this.mesh.material = this.wireMat;
     }
 
-    if (this.getVelocity() !== undefined &&
-        this.getGravBodyPos() !== undefined &&
-        this.getGravBodyVel() !== undefined &&
-        this.getGravBodyMass() !== undefined &&
-        this.getGravBodyMass()! > this.getMass()) {
+    const velocity = this.getVelocity();
+    const gravBodyPos = this.getGravBodyPos();
+    const gravBodyVel = this.getGravBodyVel();
+    const gravBodyMass = this.getGravBodyMass();
+    const mass = this.getMass();
+    if (velocity !== undefined &&
+      gravBodyPos !== undefined &&
+      gravBodyVel !== undefined &&
+      gravBodyMass !== undefined &&
+      mass !== undefined &&
+      gravBodyMass > mass
+    ) {
       this.orbitLine.visible = true;
-      this.orbitLine.position.copy(this.getGravBodyPos()!);
+      this.orbitLine.position.copy(gravBodyPos);
       this.orbitLine.position.multiplyScalar(sceneScale);
       const distance = this.orbitLine.position.distanceTo(this.mesh.position);
       this.orbitLine.scale.setScalar(distance);
-      this.orbitUp.copy(this.getGravBodyPos()!);
+      this.orbitUp.copy(gravBodyPos);
       this.orbitUp.sub(this.mesh.position);
-      this.velRelToGravBody.copy(this.getVelocity());
-      this.velRelToGravBody.sub(this.getGravBodyVel()!);
+      this.velRelToGravBody.copy(velocity);
+      this.velRelToGravBody.sub(gravBodyVel);
       this.orbitUp.cross(this.velRelToGravBody);
       this.orbitUp.normalize();
       this.orbitLine.quaternion.setFromUnitVectors(zVec, this.orbitUp);
@@ -186,7 +193,7 @@ class Celestial extends Body {
 
 class Ship extends Body {
   private readonly direction = new THREE.Vector3();
-  private readonly getAccel: () => any;
+  private readonly getAccel: () => THREE.Vector3 | undefined;
 
   constructor(lifetime: Lifetime, scene: THREE.Scene, obj: SsObject) {
     super(lifetime, scene, obj);
@@ -203,11 +210,13 @@ class Ship extends Body {
 
   update(cameraPosition: THREE.Vector3) {
     super.update(cameraPosition);
-    if (this.getAccel() !== undefined) {
-      this.direction.copy(this.getAccel());
+    const accel = this.getAccel();
+    if (accel !== undefined) {
+      this.direction.copy(accel);
     }
-    if (this.direction.lengthSq() < 0.0005 && this.getVelocity() !== undefined) {
-      this.direction.copy(this.getVelocity());
+    const velocity = this.getVelocity();
+    if (this.direction.lengthSq() < 0.0005 && velocity !== undefined) {
+      this.direction.copy(velocity);
     }
     this.direction.normalize();
     this.mesh.quaternion.setFromUnitVectors(yVec, this.direction);
