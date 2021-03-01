@@ -5,7 +5,7 @@ import { SsValue } from './SsValue'
 
 /// An action the client can perform on a server object. We can also subscribe to it locally. Created and returned by
 /// SsObject.action().
-export class SsAction extends Conduit<SsValue> {
+export class SsAction<T extends SsValue> extends Conduit<T> {
   constructor(
     private readonly obj: SsObject,
     private readonly name: string,
@@ -14,7 +14,7 @@ export class SsAction extends Conduit<SsValue> {
   }
 
   /// Fire the action, which results in a server request and local subscribers being notified.
-  fire(value: SsValue) {
+  fire(value: T) {
     if (!this.isAlive()) {
       throw new Error('fire() called after object destroyed');
     }

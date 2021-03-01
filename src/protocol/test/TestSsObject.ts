@@ -29,7 +29,7 @@ test('SsObject can get signal', () => {
 
 test('SsObject can get action', () => {
   const obj = newObject();
-  const act = obj.action('foo');
+  const act = obj.action('foo', Number);
   expect(act).toBeInstanceOf(SsAction);
 });
 
@@ -37,22 +37,22 @@ test('SsObject getting same member multiple times returns same', () => {
   const obj = newObject();
   const prop = obj.property('prop');
   const sig = obj.signal('sig', Number);
-  const act = obj.action('act');
+  const act = obj.action('act', Number);
   expect(obj.property('prop')).toBe(prop);
   expect(obj.signal('sig', Number)).toBe(sig);
-  expect(obj.action('act')).toBe(act);
+  expect(obj.action('act', Number)).toBe(act);
 });
 
 test('SsObject getting different member type with same name error', () => {
   const obj = newObject();
   obj.property('prop');
   obj.signal('sig', Number);
-  obj.action('act');
+  obj.action('act', Number);
   expect(() => {
     obj.signal('prop', Number);
   }).toThrow('12.prop can not be created as a SsSignal because it was already created as a SsProperty')
   expect(() => {
-    obj.action('sig');
+    obj.action('sig', Number);
   }).toThrow('12.sig can not be created as a SsAction because it was already created as a SsSignal')
   expect(() => {
     obj.property('act');
@@ -76,7 +76,7 @@ test('SsObject kills conduits on dispose', () => {
   const obj = newObject();
   const prop = obj.property('prop');
   const sig = obj.signal('sig', Number);
-  const act = obj.action('act');
+  const act = obj.action('act', Number);
   expect(prop.isAlive()).toEqual(true);
   expect(sig.isAlive()).toEqual(true);
   expect(act.isAlive()).toEqual(true);

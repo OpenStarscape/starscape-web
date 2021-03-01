@@ -8,7 +8,7 @@ const ltMock = {
   add: (_disp: any) => {},
 } as unknown as Lifetime;
 
-function newAction(requests: SsRequest[]): SsAction {
+function newAction(requests: SsRequest[]): SsAction<number> {
   const obj = {
     id: 88,
     makeRequest: (rq: SsRequest) => {
