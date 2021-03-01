@@ -73,7 +73,7 @@ test('SsObject getting same member with different value type errors', () => {
   }).toThrow('12.sig can not be created with type string because it was already created with type SsObject');
   expect(() => {
     obj.action('act', [[Boolean]]);
-  }).toThrow('12.act can not be created with type array because it was already created with type array');
+  }).toThrow('12.act can not be created with type boolean[][] because it was already created with type boolean[]');
 });
 
 test('SsObject kills conduits on dispose', () => {

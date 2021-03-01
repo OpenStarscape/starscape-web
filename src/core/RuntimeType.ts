@@ -1,12 +1,12 @@
 /// A RuntimeType is a value with a distinct type, that can be used for both runtime and compile time typechecks.
 /// Runtime types are as follows (along with the compile-time types RealTypeOf maps them to):
-/// - null -> null
+/// - null      -> null
 /// - undefined -> any
-/// - Boolean -> boolean
-/// - Number -> number
-/// - String -> string
-/// - [T] -> T[] (where T is any other RuntimeType)
-/// - T -> T (where T is any non-generic object constructor)
+/// - Boolean   -> boolean
+/// - Number    -> number
+/// - String    -> string
+/// - [T]       -> T[] (where T is any other RuntimeType)
+/// - T         -> T (where T is any non-generic object constructor)
 /// Note there is currently not support for generic objects except arrays. If it's needed the easiest thing to do will
 /// be to patch it on an object-by-object basis
 export type RuntimeType = null | undefined | Array<RuntimeType> | (new (...args: any[]) => any);
@@ -30,10 +30,17 @@ export function indirectRuntimeType<T extends RuntimeType>(rtType: T) {
   return rtType as any as RuntimeTypeOf<RealTypeOf<T>>;
 }
 
+/// Needed sometimes because typescript is bad
 export function indirectRealType<T>(value: T) {
   return value as any as RealTypeOf<RuntimeTypeOf<T>>;
 }
 
+/// Returns the name of a value's type. For primitive type. For example:
+/// - true  -> 'boolean'
+/// - 88    -> 'number'
+/// - {}    -> 'object'
+/// -> [1]  -> 'array' (does not try to work out inner type)
+/// for objects of classes it returns the class name.
 export function typeName(value: any): string {
   if (typeof value === 'object') {
     if (value === null) {
@@ -53,6 +60,7 @@ export function typeName(value: any): string {
   }
 }
 
+/// Returns true if two runtime types are equal
 export function runtimeTypeEquals(a: RuntimeType, b: RuntimeType): boolean {
   if (a === b) {
     return true;
@@ -67,6 +75,7 @@ export function runtimeTypeEquals(a: RuntimeType, b: RuntimeType): boolean {
   }
 }
 
+/// Returns the name of a runtime type. Similar to typeName() except it returns 'number[]' instead of 'array'
 export function runtimeTypeName(t: RuntimeType): string {
   switch (t as any) {
     case null:
@@ -84,8 +93,7 @@ export function runtimeTypeName(t: RuntimeType): string {
         if (t.length !== 1) {
           throw Error('invalid RuntimeType. arrays must be length 1, not ' + t.length);
         } else {
-          return 'array';
-          //return runtimeTypeName(t[0]) + '[]';
+          return runtimeTypeName(t[0]) + '[]';
         }
       } else if ('name' in (t as any) && typeof (t as any).name === 'string') {
         return (t as any).name;
