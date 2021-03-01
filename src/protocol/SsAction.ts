@@ -1,4 +1,4 @@
-import { Conduit } from '../core';
+import { Conduit, RuntimeTypeOf } from '../core';
 import { SsObject } from './SsObject'
 import { SsRequestType } from './SsRequest'
 import { SsValue } from './SsValue'
@@ -9,6 +9,7 @@ export class SsAction<T extends SsValue> extends Conduit<T> {
   constructor(
     private readonly obj: SsObject,
     private readonly name: string,
+    readonly rtType: RuntimeTypeOf<T>,
   ) {
     super();
   }

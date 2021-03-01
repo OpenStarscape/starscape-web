@@ -1,4 +1,4 @@
-import { Lifetime, Conduit, RuntimeType, RealTypeOf, indirectRuntimeType} from '../core';
+import { Lifetime, Conduit, RuntimeType, RealTypeOf, runtimeTypeEquals, runtimeTypeName, indirectRuntimeType} from '../core';
 import { SsConnection } from './SsConnection';
 import { SsProperty } from './SsProperty'
 import { SsAction } from './SsAction'
@@ -35,15 +35,24 @@ export class SsObject {
   }
 
   /// Object must have an action with the given name. This is not automatically checked.
-  action<R extends RuntimeType, T extends SsValue = RealTypeOf<R>>(name: string, _rtType: R): SsAction<T> {
+  action<R extends RuntimeType, T extends SsValue = RealTypeOf<R>>(name: string, rtType: R): SsAction<T> {
     // _rtType is used only for type deduction
     const existing = this.member<SsAction<T>>(name, SsAction);
     if (existing === undefined) {
-      const created = new SsAction<T>(this, name);
+      const created = new SsAction<T>(this, name, indirectRuntimeType(rtType));
       this.lt.add(created);
       this.members.set(name, created);
       return created;
     } else {
+      if (!runtimeTypeEquals(existing.rtType, rtType)) {
+        throw Error(
+          this.id + '.' + name +
+          ' can not be created with type ' +
+          runtimeTypeName(rtType) +
+          ' because it was already created with type ' +
+          runtimeTypeName(existing.rtType)
+        );
+      }
       return existing;
     }
   }
@@ -57,6 +66,15 @@ export class SsObject {
       this.members.set(name, created);
       return created;
     } else {
+      if (!runtimeTypeEquals(existing.rtType, rtType)) {
+        throw Error(
+          this.id + '.' + name +
+          ' can not be created with type ' +
+          runtimeTypeName(rtType) +
+          ' because it was already created with type ' +
+          runtimeTypeName(existing.rtType)
+        );
+      }
       return existing;
     }
   }

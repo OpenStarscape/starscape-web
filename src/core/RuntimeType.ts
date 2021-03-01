@@ -67,7 +67,7 @@ export function runtimeTypeEquals(a: RuntimeType, b: RuntimeType): boolean {
   }
 }
 
-function runtimeTypeName(t: RuntimeType): string {
+export function runtimeTypeName(t: RuntimeType): string {
   switch (t as any) {
     case null:
       return 'null';

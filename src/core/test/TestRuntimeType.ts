@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { assertIsType, isType, RuntimeType, runtimeTypeEquals, RuntimeTypeOf, typeName } from '../RuntimeType';
+import { assertIsType, isType, RuntimeType, runtimeTypeEquals, RuntimeTypeOf, typeName, runtimeTypeName } from '../RuntimeType';
 import { SsObject } from '../../protocol';
 
 const mockConn = {
@@ -85,6 +85,28 @@ test('typeName objects with weird constructors', () => {
 test('typeName arrays', () => {
   expect(typeName([])).toEqual('array');
   expect(typeName([1, 2, 3])).toEqual('array');
+});
+
+test('runtimeTypeName primitives', () => {
+  expect(runtimeTypeName(Number)).toEqual('number');
+  expect(runtimeTypeName(Boolean)).toEqual('boolean');
+  expect(runtimeTypeName(String)).toEqual('string');
+});
+
+test('runtimeTypeName special values', () => {
+  expect(runtimeTypeName(null)).toEqual('null');
+  expect(runtimeTypeName(undefined)).toEqual('any');
+});
+
+test('runtimeTypeName classes', () => {
+  expect(runtimeTypeName(THREE.Vector3)).toEqual('Vector3');
+  expect(runtimeTypeName(SsObject)).toEqual('SsObject');
+  expect(runtimeTypeName(Object)).toEqual('Object');
+});
+
+test('runtimeTypeName arrays', () => {
+  expect(runtimeTypeName([null])).toEqual('array');
+  expect(runtimeTypeName([[Number]])).toEqual('array');
 });
 
 test('runtimeTypeEquals primitives equal', () => {
