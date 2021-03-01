@@ -51,6 +51,10 @@ const types: ValueType<any, any>[] = [
   new ValueType('[null]',   [null],     'array',      {arrayOf: {nullable: SsObject}}, 'SsObject?[]'),
   new ValueType('{}',       {},         'object',     Object,               'Object'),
   new ValueType('{a: "b"}', {a: 'b'},   'object',     Object,               'Object'),
+  new ValueType('[]',       [],         'array',      [],                   '[]'),
+  new ValueType('[7]',      [7],        'array',      [{nullable: Number}], '[number?]'),
+  new ValueType('[null]',   [null],     'array',      [{nullable: Number}], '[number?]'), // multiple instances of same type for equality test
+  new ValueType('[1, ["hi"], obj()]', [1, ['hi'], obj()], 'array', [Number, {arrayOf: String}, SsObject], '[number, string[], SsObject]'),
 ];
 
 for (const vt of types) {
@@ -97,7 +101,9 @@ for (const vt of types) {
         (vt.valueStr === 'null' && otherVt.rtTypeName.endsWith('?')) ||
         (vt.valueStr === 'null' && otherVt.rtTypeName === 'null') ||
         (vt.valueStr === '[null]' && otherVt.rtTypeName.endsWith('?[]')) ||
-        (vt.valueStr === '[null]' && otherVt.rtTypeName === 'null[]')
+        (vt.valueStr === '[null]' && otherVt.rtTypeName === 'null[]') ||
+        (vt.valueStr === '[null]' && otherVt.rtTypeName === '[number?]') ||
+        (vt.valueStr === '[7]' && otherVt.rtTypeName === 'number[]')
       );
       if (isType(vt.value, otherVt.rtType) !== shouldMatch) {
         expect(vt.describe() + ' unexpectidly does ' + (shouldMatch ? 'not ' : '') + 'match ' + otherVt.rtTypeName).toBe(null);

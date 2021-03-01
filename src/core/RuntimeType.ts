@@ -15,8 +15,12 @@ export type RuntimeType =
   undefined |
   {nullable: RuntimeType} |
   {arrayOf: RuntimeType} |
+  Array<RuntimeType> |
   (new (...args: any[]) => any);
 
+type RuntimeTypeTyple1<A extends RuntimeType> = [A];
+type RuntimeTypeTyple2<A extends RuntimeType, B extends RuntimeType> = [A, B];
+type RuntimeTypeTyple3<A extends RuntimeType, B extends RuntimeType, C extends RuntimeType> = [A, B, C];
 type RuntimeTypeNullable<T extends RuntimeType> = {nullable: T};
 type RuntimeTypeArray<T extends RuntimeType> = {arrayOf: T};
 /// Gives access to the compile-time type of a RuntimeType
@@ -27,6 +31,10 @@ type NonNullableRealTypeOf<T extends RuntimeType> =
   T extends NumberConstructor ? number :
   T extends StringConstructor ? string:
   T extends RuntimeTypeArray<infer U> ? Array<RealTypeOf<U>> :
+  T extends [] ? [] :
+  T extends RuntimeTypeTyple1<infer A> ? [RealTypeOf<A>] :
+  T extends RuntimeTypeTyple2<infer A, infer B> ? [RealTypeOf<A>, RealTypeOf<B>] :
+  T extends RuntimeTypeTyple3<infer A, infer B, infer C> ? [RealTypeOf<A>, RealTypeOf<B>, RealTypeOf<C>] :
   T extends new (...args: any[]) => infer U ? U :
   never;
 
@@ -85,14 +93,19 @@ export function runtimeTypeEquals(a: RuntimeType, b: RuntimeType): boolean {
       return runtimeTypeEquals(a.nullable, b.nullable);
     } else if ('arrayOf' in a && 'arrayOf' in b) {
       return runtimeTypeEquals(a.arrayOf, b.arrayOf);
+    } else if (Array.isArray(a) && Array.isArray(b)) {
+      if (a.length === b.length) {
+        for (let i = 0; i < a.length; i++) {
+          if (!runtimeTypeEquals(a[i], b[i])) {
+            return false;
+          }
+        }
+        return true;
+      } else {
+        return false;
+      }
     } else {
       return false;
-    }
-  } else if (Array.isArray(a) && Array.isArray(b)) {
-    if (a.length === 1 && b.length === 1) {
-      return runtimeTypeEquals(a[0], b[0]);
-    } else {
-      throw Error('RuntimeType array with invalid length');
     }
   } else {
     return false;
@@ -118,6 +131,15 @@ export function runtimeTypeName(t: RuntimeType): string {
           return runtimeTypeName((t as any).nullable) + '?';
         } else if ('arrayOf' in (t as any)) {
           return runtimeTypeName((t as any).arrayOf) + '[]';
+        } else if (Array.isArray(t)) {
+          let result = '';
+          for (let i = 0; i < t.length; i++) {
+            if (i !== 0) {
+              result += ', ';
+            }
+            result += runtimeTypeName(t[i]);
+          }
+          return '[' + result + ']';
         }
       } else if ('name' in (t as any) && typeof (t as any).name === 'string') {
         return (t as any).name;
@@ -169,6 +191,17 @@ export function isType<T extends RuntimeType>(value: unknown, t: T): boolean {
                 }
               }
               return true;
+            }
+          } else if (Array.isArray(t)) {
+            if (Array.isArray(value)) {
+              if (t.length === value.length) {
+                for (let i = 0; i < value.length; i++) {
+                  if (!isType(value[i], t[i])) {
+                    return false;
+                  }
+                }
+                return true;
+              }
             }
           }
       }
