@@ -59,18 +59,18 @@ test('SsObject getting different member type with same name error', () => {
   }).toThrow('12.act can not be created as a SsProperty because it was already created as a SsAction')
 });
 
-/*
-TODO
 test('SsObject getting members with different value type and same name error', () => {
   const obj = newObject();
   obj.property('prop');
   obj.signal('sig', Number);
-  obj.action('act');
+  obj.action('act', [Boolean]);
   expect(() => {
     obj.signal('sig', String);
-  }).toThrow('12.prop can not be created with type String because it was already created with type Number')
+  }).toThrow('12.sig can not be created with type string because it was already created with type number');
+  expect(() => {
+    obj.action('act', [[Boolean]]);
+  }).toThrow('12.act can not be created with type array because it was already created with type array');
 });
-*/
 
 test('SsObject kills conduits on dispose', () => {
   const obj = newObject();
@@ -104,13 +104,8 @@ test('SsObject signal validates input type', () => {
   }).toThrow('12.num signal: expected number, got string')
 });
 
-/*
-TODO: fix
 test('SsObject signal with array type', () => {
-  // Mostly this test is here to make sure this typechecks
   const obj = newObject();
-  const a: RuntimeType<Array<RuntimeType<number>>, RuntimeType<number>> = [Number];
-  obj.signal<Array<RuntimeType<number>>, RuntimeType<number>>('num', [Number]);
+  obj.signal('num', [Number]);
   obj.handleSignal('num', [6]);
 });
-*/
