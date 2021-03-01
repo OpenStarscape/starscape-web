@@ -176,7 +176,6 @@ export class SsConnection {
     } else {
       throw new Error('Request has invalid request type: ' + JSON.stringify(rq));
     }
-    console.log('Sending ' + json)
     this.session.sendPacket(json + '\n');
   }
 
