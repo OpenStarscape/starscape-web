@@ -18,7 +18,7 @@ export default class BodyManager {
     new SsSet(bodyListProp, this.lt, (itemLt, obj) => {
       makeBody(itemLt, this.scene, obj, body => {
         this.bodyMap.set(obj, body);
-        obj.property('name', String).subscribe(itemLt, (name: any) => {
+        obj.property('name', {nullable: String}).subscribe(itemLt, (name: any) => {
           this.setBodyName(body, name);
         });
         itemLt.addCallback(() => {

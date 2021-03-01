@@ -22,7 +22,7 @@ class OrbitButton extends React.Component<ButtonProps, {}> {
   }
 
   componentDidMount() {
-    this.props.obj.property('name', String).subscribe(this.props.lt, name => {
+    this.props.obj.property('name', {nullable: String}).subscribe(this.props.lt, name => {
       this.setState({text: 'Orbit ' + name});
     })
   }
@@ -75,7 +75,7 @@ export default class OrbitList extends React.Component<ListProps, ListState> {
     } else if (ship && targetObj) {
       ship.property('ap_scheme', String).set('orbit');
       ship.property('ap_target', SsObject).set(targetObj);
-      ship.property('ap_distance', null).set(null);
+      ship.property('ap_distance', {nullable: Number}).set(null);
       //this.manualControls = false;
     } else {
       console.error('Could not set up autopilot');

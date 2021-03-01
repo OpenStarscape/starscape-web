@@ -43,7 +43,7 @@ export class Body {
     readonly obj: SsObject
   ) {
     this.getMass = this.obj.property('mass', Number).getter(this.lt);
-    this.getVelocity = this.obj.property('velocity', Number).getter(this.lt);
+    this.getVelocity = this.obj.property('velocity', THREE.Vector3).getter(this.lt);
     this.getRawPos = this.obj.property('position', THREE.Vector3).getter(this.lt);
 
     this.lt.add(this.solidMat);
@@ -57,7 +57,7 @@ export class Body {
     this.scene.add(this.orbitLine);
 
     this.setGravBody(null);
-    this.obj.property('grav_parent', SsObject).subscribe(this.lt, grav_parent => {
+    this.obj.property('grav_parent', {nullable: SsObject}).subscribe(this.lt, grav_parent => {
       this.setGravBody(grav_parent);
     });
 
