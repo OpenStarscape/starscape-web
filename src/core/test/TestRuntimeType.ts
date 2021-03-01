@@ -29,27 +29,28 @@ class ValueType<T, R extends RuntimeType> {
 }
 
 const types: ValueType<any, any>[] = [
-  new ValueType('null',     null,       'null',       null,     'null'),
+  new ValueType('null',     null,       'null',       null,                 'null'),
   //new ValueType(undefined,  'undefined',  undefined,'any'),
-  new ValueType('true',     true,       'boolean',    Boolean,  'boolean'),
-  new ValueType('false',    false,      'boolean',    Boolean,  'boolean'),
-  new ValueType('3',        3,          'number',     Number,   'number'),
-  new ValueType('0',        0,          'number',     Number,   'number'),
-  new ValueType('-7.5',     -7.5,       'number',     Number,   'number'),
-  new ValueType('NaN',      NaN,        'number',     Number,   'number'), // lol
-  new ValueType('"23"',     '23',       'string',     String,   'string'),
-  new ValueType('""',       '',         'string',     String,   'string'),
-  new ValueType('SsObject', obj(),      'SsObject',   SsObject, 'SsObject'),
+  new ValueType('true',     true,       'boolean',    Boolean,              'boolean'),
+  new ValueType('false',    false,      'boolean',    Boolean,              'boolean'),
+  new ValueType('3',        3,          'number',     Number,               'number'),
+  new ValueType('0',        0,          'number',     Number,               'number'),
+  new ValueType('-7.5',     -7.5,       'number',     Number,               'number'),
+  new ValueType('NaN',      NaN,        'number',     Number,               'number'), // lol
+  new ValueType('"23"',     '23',       'string',     String,               'string'),
+  new ValueType('""',       '',         'string',     String,               'string'),
+  new ValueType('SsObject', obj(),      'SsObject',   SsObject,             'SsObject'),
   new ValueType('THREE.Vector3', new THREE.Vector3(), 'Vector3', THREE.Vector3, 'Vector3'),
   new ValueType('null',     null,       'null',       {nullable: SsObject}, 'SsObject?'),
-  new ValueType('"hi"',     'hi',       'string',     {nullable: String}, 'string?'),
-  new ValueType('[1, 2, 3]', [1, 2, 3], 'array',      [Number], 'number[]'),
-  new ValueType('[[], [[1, 2]]]', [[], [[1, 2]]], 'array',  [[[Number]]], 'number[][][]'),
-  new ValueType('[]',       [],         'array',      [String], 'string[]'),
-  new ValueType('[null]',   [null],     'array',      [null],   'null[]'),
-  new ValueType('[null]',   [null],     'array',      [{nullable: SsObject}], 'SsObject?[]'),
-  new ValueType('{}',       {},         'object',     Object,   'Object'),
-  new ValueType('{a: "b"}', {a: 'b'},   'object',     Object,   'Object'),
+  new ValueType('"hi"',     'hi',       'string',     {nullable: String},   'string?'),
+  new ValueType('"abc"',    'abc',      'string',     {nullable: String},   'string?'), // multiple instances of same type for equality test
+  new ValueType('[1, 2, 3]', [1, 2, 3], 'array',      {arrayOf: Number},    'number[]'),
+  new ValueType('[]',       [],         'array',      {arrayOf: Number},    'number[]'), // multiple instances of same type for equality test
+  new ValueType('[[], [[1, 2]]]', [[], [[1, 2]]], 'array', {arrayOf: {arrayOf: {arrayOf: Number}}}, 'number[][][]'),
+  new ValueType('[null]',   [null],     'array',      {arrayOf: null},      'null[]'),
+  new ValueType('[null]',   [null],     'array',      {arrayOf: {nullable: SsObject}}, 'SsObject?[]'),
+  new ValueType('{}',       {},         'object',     Object,               'Object'),
+  new ValueType('{a: "b"}', {a: 'b'},   'object',     Object,               'Object'),
 ];
 
 for (const vt of types) {

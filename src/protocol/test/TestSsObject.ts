@@ -64,7 +64,7 @@ test('SsObject getting same member with different value type errors', () => {
   const obj = newObject();
   obj.property('prop', Number);
   obj.signal('sig', SsObject);
-  obj.action('act', [Boolean]);
+  obj.action('act', {arrayOf: Boolean});
   expect(() => {
     obj.property('prop', null);
   }).toThrow('12.prop can not be created with type null because it was already created with type number');
@@ -72,7 +72,7 @@ test('SsObject getting same member with different value type errors', () => {
     obj.signal('sig', String);
   }).toThrow('12.sig can not be created with type string because it was already created with type SsObject');
   expect(() => {
-    obj.action('act', [[Boolean]]);
+    obj.action('act', {arrayOf: {arrayOf: Boolean}});
   }).toThrow('12.act can not be created with type boolean[][] because it was already created with type boolean[]');
 });
 
@@ -114,18 +114,18 @@ test('SsObject property validates input type', () => {
 
 test('SsObject property with array type', () => {
   const obj = newObject();
-  obj.property('prop', [Number]);
+  obj.property('prop', {arrayOf: Number});
   obj.handleGetReply('prop', [6]);
 });
 
 test('SsObject signal with array type', () => {
   const obj = newObject();
-  obj.signal('sig', [Number]);
+  obj.signal('sig', {arrayOf: Number});
   obj.handleSignal('sig', [6]);
 });
 
 test('SsObject action with array type', () => {
   const obj = newObject();
-  const action = obj.action('act', [Number]);
+  const action = obj.action('act', {arrayOf: Number});
   action.fire([6]);
 });

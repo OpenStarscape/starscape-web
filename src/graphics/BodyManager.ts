@@ -14,7 +14,7 @@ export default class BodyManager {
     readonly god: SsObject
   ) {
     // Will attach itself to the lifetime, no need to hold a reference
-    const bodyListProp = this.god.property('bodies', [SsObject]);
+    const bodyListProp = this.god.property('bodies', {arrayOf: SsObject});
     new SsSet(bodyListProp, this.lt, (itemLt, obj) => {
       makeBody(itemLt, this.scene, obj, body => {
         this.bodyMap.set(obj, body);

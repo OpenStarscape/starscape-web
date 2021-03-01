@@ -6,7 +6,7 @@
 /// - Number          -> number
 /// - String          -> string
 /// - {nullable: T}   -> T | null (where T is any RuntimeType)
-/// - [T]             -> T[] (where T is any RuntimeType)
+/// - {arrayOf: T}    -> T[] (where T is any RuntimeType)
 /// - T               -> T (where T is any non-generic object constructor)
 /// Note there is currently not support for generic objects except arrays. If it's needed the easiest thing to do will
 /// be to patch it on an object-by-object basis
@@ -14,11 +14,11 @@ export type RuntimeType =
   null |
   undefined |
   {nullable: RuntimeType} |
-  Array<RuntimeType> |
+  {arrayOf: RuntimeType} |
   (new (...args: any[]) => any);
 
 type RuntimeTypeNullable<T extends RuntimeType> = {nullable: T};
-type RuntimeTypeArray<T extends RuntimeType> = Array<T>;
+type RuntimeTypeArray<T extends RuntimeType> = {arrayOf: T};
 /// Gives access to the compile-time type of a RuntimeType
 type NonNullableRealTypeOf<T extends RuntimeType> =
   T extends null ? null :
@@ -79,11 +79,15 @@ export function runtimeTypeEquals(a: RuntimeType, b: RuntimeType): boolean {
     typeof a === 'object' &&
     typeof b === 'object' &&
     a !== null &&
-    b !== null &&
-    'nullable' in a &&
-    'nullable' in b
+    b !== null
   ) {
-    return runtimeTypeEquals(a.nullable, b.nullable);
+    if ('nullable' in a && 'nullable' in b) {
+      return runtimeTypeEquals(a.nullable, b.nullable);
+    } else if ('arrayOf' in a && 'arrayOf' in b) {
+      return runtimeTypeEquals(a.arrayOf, b.arrayOf);
+    } else {
+      return false;
+    }
   } else if (Array.isArray(a) && Array.isArray(b)) {
     if (a.length === 1 && b.length === 1) {
       return runtimeTypeEquals(a[0], b[0]);
@@ -110,14 +114,10 @@ export function runtimeTypeName(t: RuntimeType): string {
       return 'string';
     default:
       if (typeof t === 'object') {
-        if (Array.isArray(t)) {
-          if (t.length !== 1) {
-            throw Error('invalid RuntimeType. arrays must be length 1, not ' + t.length);
-          } else {
-            return runtimeTypeName(t[0]) + '[]';
-          }
-        } else if ('nullable' in (t as any)) {
+        if ('nullable' in (t as any)) {
           return runtimeTypeName((t as any).nullable) + '?';
+        } else if ('arrayOf' in (t as any)) {
+          return runtimeTypeName((t as any).arrayOf) + '[]';
         }
       } else if ('name' in (t as any) && typeof (t as any).name === 'string') {
         return (t as any).name;
@@ -161,13 +161,10 @@ export function isType<T extends RuntimeType>(value: unknown, t: T): boolean {
         case 'object':
           if ('nullable' in t) {
             return value === null || isType(value, t.nullable);
-          } else if (Array.isArray(t)) {
-            if (t.length !== 1) {
-              throw Error('invalid RuntimeType. arrays must be length 1, not ' + t.length);
-            }
-            else if (Array.isArray(value)) {
+          } else if ('arrayOf' in t) {
+            if (Array.isArray(value)) {
               for (let i = 0; i < value.length; i++) {
-                if (!isType(value[i], t[0])) {
+                if (!isType(value[i], (t as any).arrayOf)) {
                   return false;
                 }
               }
