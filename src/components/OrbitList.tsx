@@ -102,7 +102,7 @@ export default class OrbitList extends React.Component<ListProps, ListState> {
   }
 
   componentDidMount() {
-    const bodyListProp = this.props.game.god.property('bodies', [SsObject]);
+    const bodyListProp = this.props.game.god.property('bodies', {arrayOf: SsObject});
     new SsSet(bodyListProp, this.lt, (itemLt: Lifetime, obj: SsObject) => {
       const handleSelected = (button: OrbitButton) => {
         if (this.selectedButton) {
