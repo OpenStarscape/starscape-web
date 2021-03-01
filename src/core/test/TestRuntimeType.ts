@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { assertIsType, isType, RuntimeType, runtimeTypeEquals, RuntimeTypeOf, typeName, runtimeTypeName } from '../RuntimeType';
+import { assertIsType, isType, RuntimeType, runtimeTypeEquals, typeName, runtimeTypeName } from '../RuntimeType';
 import { SsObject } from '../../protocol';
 
 const mockConn = {
