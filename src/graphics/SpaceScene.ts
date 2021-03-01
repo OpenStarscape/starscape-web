@@ -77,7 +77,7 @@ export default class SpaceScene {
       shipCreatedLt.dispose(); // only handle this callback once
     });
 
-    this.game.god.action('create_ship').fire([
+    this.game.god.action('create_ship', [THREE.Vector3]).fire([
       new THREE.Vector3(150, 10, 0),
       new THREE.Vector3(0, 0, -30),
     ]);
