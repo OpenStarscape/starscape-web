@@ -14,10 +14,11 @@ export default class BodyManager {
     readonly god: SsObject
   ) {
     // Will attach itself to the lifetime, no need to hold a reference
-    new SsSet(this.god.property('bodies'), this.lt, (itemLt, obj) => {
+    const bodyListProp = this.god.property('bodies', [SsObject]);
+    new SsSet(bodyListProp, this.lt, (itemLt, obj) => {
       makeBody(itemLt, this.scene, obj, body => {
         this.bodyMap.set(obj, body);
-        obj.property('name').subscribe(itemLt, (name: any) => {
+        obj.property('name', String).subscribe(itemLt, (name: any) => {
           this.setBodyName(body, name);
         });
         itemLt.addCallback(() => {

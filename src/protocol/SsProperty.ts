@@ -1,12 +1,12 @@
-import { Subscriber, Conduit, valuesEqual, Lifetime } from '../core'
+import { Subscriber, Conduit, valuesEqual, assertIsType, RuntimeTypeOf, Lifetime } from '../core'
 import { SsObject } from './SsObject'
 import { SsRequestType } from './SsRequest'
 import { SsValue } from './SsValue'
 
 /// A specialized subscriber used for receiving property get requests. Unlike a normal subscriber,
 /// it's only supposed to be notified once and so removes itself from the element and lifetime.
-class GetSubscriber extends Subscriber<any> {
-  elementUpdate(value: any) {
+class GetSubscriber<T> extends Subscriber<T> {
+  elementUpdate(value: T) {
     super.elementUpdate(value);
     this.dispose();
   }
@@ -17,13 +17,14 @@ class GetSubscriber extends Subscriber<any> {
 }
 
 /// A named piece of data on an object. Created and returned by SsObject.property()
-export class SsProperty extends Conduit<any> {
+export class SsProperty<T extends SsValue> extends Conduit<T> {
   private isSubscribed = false;
   private hasPendingGet = false;
 
   constructor(
     private readonly obj: SsObject,
     private readonly name: string,
+    readonly rtType: RuntimeTypeOf<T>,
   ) {
     super();
   }
@@ -34,7 +35,7 @@ export class SsProperty extends Conduit<any> {
 
   /// Sends a set request to the server. The value is only updates and subscribers are only notified
   /// if and when the server responds to the request.
-  set(value: any) {
+  set(value: T) {
     if (!valuesEqual(value, this.value)) {
       this.obj.makeRequest({
         method: SsRequestType.Set,
@@ -50,7 +51,7 @@ export class SsProperty extends Conduit<any> {
   /// invokes the given callback when it's completed. If the current value is known no request is
   /// made and the callback is called immediately. If the object or lifetime die before the request
   /// completes, the callback may never be called.
-  getThen(lifetime: Lifetime, callback: (value: any) => void) {
+  getThen(lifetime: Lifetime, callback: (value: T) => void) {
     const subscriber = new GetSubscriber(this, lifetime, callback);
     // Note that we call the super version, we don't want to call connection.subscribeTo()
     super.addSubscriber(subscriber);
@@ -72,7 +73,7 @@ export class SsProperty extends Conduit<any> {
   getter(lifetime: Lifetime) {
     const subscriber = new Subscriber(this, lifetime, null);
     this.addSubscriber(subscriber);
-    return (): any => {
+    return (): T | undefined => {
       lifetime.verifyAlive();
       return this.cachedValue();
     };
@@ -82,7 +83,7 @@ export class SsProperty extends Conduit<any> {
   /// when there are no subscribers. WHen the first subscriber is added returns undefined until
   /// the initial request completes. Using a getter function returned by .getter() is recommended
   /// over calling this directly since that ensures we are subscribed.
-  cachedValue(): SsValue | undefined {
+  cachedValue(): T | undefined {
     if (!this.isAlive()) {
       throw new Error('cachedValue() called after object destroyed');
     }
@@ -90,7 +91,7 @@ export class SsProperty extends Conduit<any> {
   }
 
   /// Overrides parent method, generally not called externally.
-  addSubscriber(subscriber: Subscriber<any>) {
+  addSubscriber(subscriber: Subscriber<T>) {
     super.addSubscriber(subscriber);
     if (!this.isSubscribed) {
       this.isSubscribed = true;
@@ -103,7 +104,7 @@ export class SsProperty extends Conduit<any> {
   }
 
   /// Overrides parent method, generally not called externally.
-  deleteSubscriber(subscriber: Subscriber<any>) {
+  deleteSubscriber(subscriber: Subscriber<T>) {
     super.deleteSubscriber(subscriber);
     if (this.subscribers.size === 0 && this.isSubscribed) {
       this.isSubscribed = false;
@@ -117,7 +118,8 @@ export class SsProperty extends Conduit<any> {
   }
 
   /// Called by this property's object when the value gets an update.
-  handleUpdate(value: any) {
+  handleUpdate(value: SsValue) {
+    assertIsType<T>(value, this.rtType);
     if (this.isSubscribed) {
       this.value = value;
     }
@@ -126,7 +128,7 @@ export class SsProperty extends Conduit<any> {
   }
 
   /// Called by this property's object when a get request is responded to.
-  handleGetReply(value: any) {
+  handleGetReply(value: SsValue) {
     this.hasPendingGet = false;
     this.handleUpdate(value);
   }

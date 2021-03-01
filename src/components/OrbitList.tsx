@@ -22,7 +22,7 @@ class OrbitButton extends React.Component<ButtonProps, {}> {
   }
 
   componentDidMount() {
-    this.props.obj.property('name').subscribe(this.props.lt, (name: string) => {
+    this.props.obj.property('name', String).subscribe(this.props.lt, name => {
       this.setState({text: 'Orbit ' + name});
     })
   }
@@ -69,13 +69,13 @@ export default class OrbitList extends React.Component<ListProps, ListState> {
       targetObj = null;
     }
     if (ship && targetObj === null) {
-      ship.property('ap_scheme').set('off');
-      ship.property('accel').set(new THREE.Vector3(0, 0, 0));
+      ship.property('ap_scheme', String).set('off');
+      ship.property('accel', THREE.Vector3).set(new THREE.Vector3(0, 0, 0));
       //this.manualControls = true;
     } else if (ship && targetObj) {
-      ship.property('ap_scheme').set('orbit');
-      ship.property('ap_target').set(targetObj);
-      ship.property('ap_distance').set(null);
+      ship.property('ap_scheme', String).set('orbit');
+      ship.property('ap_target', SsObject).set(targetObj);
+      ship.property('ap_distance', null).set(null);
       //this.manualControls = false;
     } else {
       console.error('Could not set up autopilot');
@@ -102,7 +102,8 @@ export default class OrbitList extends React.Component<ListProps, ListState> {
   }
 
   componentDidMount() {
-    new SsSet(this.props.game.god.property('bodies'), this.lt, (itemLt: Lifetime, obj: SsObject) => {
+    const bodyListProp = this.props.game.god.property('bodies', [SsObject]);
+    new SsSet(bodyListProp, this.lt, (itemLt: Lifetime, obj: SsObject) => {
       const handleSelected = (button: OrbitButton) => {
         if (this.selectedButton) {
           this.selectedButton.showUnselected();

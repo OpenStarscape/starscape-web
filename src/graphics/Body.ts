@@ -29,9 +29,9 @@ export class Body {
   private orbitUp = new THREE.Vector3();
   private velRelToGravBody = new THREE.Vector3();
   private gravBodyLt: Lifetime | null = null;
-  private getGravBodyPos = () => undefined;
-  private getGravBodyVel = () => undefined;
-  private getGravBodyMass = () => undefined;
+  private getGravBodyPos: () => THREE.Vector3 | undefined = () => undefined;
+  private getGravBodyVel: () => THREE.Vector3 | undefined = () => undefined;
+  private getGravBodyMass: () => number | undefined = () => undefined;
 
   protected size = 1;
   protected readonly getVelocity: () => any;
@@ -42,9 +42,9 @@ export class Body {
     readonly scene: THREE.Scene,
     readonly obj: SsObject
   ) {
-    this.getMass = this.obj.property('mass').getter(this.lt);
-    this.getVelocity = this.obj.property('velocity').getter(this.lt);
-    this.getRawPos = this.obj.property('position').getter(this.lt);
+    this.getMass = this.obj.property('mass', Number).getter(this.lt);
+    this.getVelocity = this.obj.property('velocity', Number).getter(this.lt);
+    this.getRawPos = this.obj.property('position', THREE.Vector3).getter(this.lt);
 
     this.lt.add(this.solidMat);
     this.lt.add(this.wireMat);
@@ -57,7 +57,7 @@ export class Body {
     this.scene.add(this.orbitLine);
 
     this.setGravBody(null);
-    this.obj.property('grav_parent').subscribe(this.lt, grav_parent => {
+    this.obj.property('grav_parent', SsObject).subscribe(this.lt, grav_parent => {
       this.setGravBody(grav_parent);
     });
 
@@ -82,9 +82,9 @@ export class Body {
     if (gravBody !== null) {
       this.gravBodyLt = new Lifetime();
       this.lt.add(this.gravBodyLt)
-      this.getGravBodyPos = gravBody.property('position').getter(this.gravBodyLt);
-      this.getGravBodyVel = gravBody.property('velocity').getter(this.gravBodyLt);
-      this.getGravBodyMass = gravBody.property('mass').getter(this.gravBodyLt);
+      this.getGravBodyPos = gravBody.property('position', THREE.Vector3).getter(this.gravBodyLt);
+      this.getGravBodyVel = gravBody.property('velocity', THREE.Vector3).getter(this.gravBodyLt);
+      this.getGravBodyMass = gravBody.property('mass', Number).getter(this.gravBodyLt);
     } else {
       this.gravBodyLt = null;
       this.getGravBodyPos = () => undefined;
@@ -175,8 +175,8 @@ export class Body {
 class Celestial extends Body {
   constructor(lifetime: Lifetime, scene: THREE.Scene, obj: SsObject) {
     super(lifetime, scene, obj)
-    this.obj.property('color').subscribe(this.lt, color => this.setColor(color));
-    this.obj.property('size').getThen(this.lt, km => {
+    this.obj.property('color', String).subscribe(this.lt, color => this.setColor(color));
+    this.obj.property('size', Number).getThen(this.lt, km => {
       this.size = km * sceneScale;
       this.mesh.geometry = new THREE.SphereBufferGeometry(this.size, 16, 16);
       this.lt.add(this.mesh.geometry);
@@ -194,7 +194,7 @@ class Ship extends Body {
     this.size = 0.01;
     this.mesh.geometry = new THREE.ConeBufferGeometry(0.01, 0.03, 16);
     this.lt.add(this.mesh.geometry);
-    this.getAccel = this.obj.property('accel').getter(this.lt);
+    this.getAccel = this.obj.property('accel', THREE.Vector3).getter(this.lt);
   }
 
   isShip() {
@@ -220,7 +220,7 @@ export function makeBody(
   obj: SsObject,
   callback: (body: Body) => void
 ) {
-  obj.property('class').getThen(lifetime, cls => {
+  obj.property('class', String).getThen(lifetime, cls => {
     if (cls === 'celestial') {
       callback(new Celestial(lifetime, scene, obj));
     } else if (cls === 'ship') {

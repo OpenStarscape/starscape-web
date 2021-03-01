@@ -41,7 +41,7 @@ export default class SpaceScene {
       if (obj) {
         console.log('Switching to ship ', obj.id);
         this.thrustLt = this.lt.newChild();
-        obj.property('accel').subscribe(this.thrustLt, (accel: any) => {
+        obj.property('accel', THREE.Vector3).subscribe(this.thrustLt, (accel: any) => {
           const vec = accel.clone();
           vec.normalize();
           this.thrustMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), vec);

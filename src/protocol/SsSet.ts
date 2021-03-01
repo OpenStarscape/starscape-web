@@ -1,18 +1,19 @@
 import { Lifetime } from '../core';
 import { SsObject } from './SsObject';
 import { SsProperty } from './SsProperty';
+import { SsValue } from './SsValue';
 
 /// Keeps track of a starscape property that is a set (a list of items that are guaranteed to be
 /// unique and are in an arbitrary order). The callback is given two arguments whenever a new item
 /// is added to the set: the lifetime for which the item is in the set and the item.
-export class SsSet {
+export class SsSet<T extends SsValue> {
   private readonly lt: Lifetime;
   private items = new Map<any, Lifetime>();
 
   constructor(
-    property: SsProperty,
+    property: SsProperty<T[]>,
     lifetime: Lifetime,
-    callback: (itemLt: Lifetime, item: any) => void
+    callback: (itemLt: Lifetime, item: T) => void
   ) {
     this.lt = lifetime.newChild()
     property.lifetime().addChild(this.lt);

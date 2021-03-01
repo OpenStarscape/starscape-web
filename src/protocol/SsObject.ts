@@ -6,7 +6,7 @@ import { SsSignal } from './SsSignal'
 import { SsRequest } from './SsRequest'
 import { SsValue } from './SsValue'
 
-type Member = (SsProperty | SsAction<any> | SsSignal<any>) & Conduit<any>;
+type Member = (SsProperty<any> | SsAction<any> | SsSignal<any>) & Conduit<any>;
 type MemberConstructor<T extends Member> = new (...args: any[]) => T
 
 /// A handle to an object on the server. Is automatically created by the connection.
@@ -22,14 +22,23 @@ export class SsObject {
   }
 
   /// Object must have a property with the given name. This is not automatically checked.
-  property(name: string): SsProperty {
-    const existing = this.member(name, SsProperty);
+  property<R extends RuntimeType, T extends SsValue = RealTypeOf<R>>(name: string, rtType: R): SsProperty<T> {
+    const existing = this.member<SsProperty<T>>(name, SsProperty);
     if (existing === undefined) {
-      const created = new SsProperty(this, name);
+      const created = new SsProperty<T>(this, name, indirectRuntimeType(rtType));
       this.lt.add(created);
       this.members.set(name, created);
       return created;
     } else {
+      if (!runtimeTypeEquals(existing.rtType, rtType)) {
+        throw Error(
+          this.id + '.' + name +
+          ' can not be created with type ' +
+          runtimeTypeName(rtType) +
+          ' because it was already created with type ' +
+          runtimeTypeName(existing.rtType)
+        );
+      }
       return existing;
     }
   }
@@ -107,12 +116,20 @@ export class SsObject {
 
   /// Called by the connection.
   handleUpdate(name: string, value: SsValue) {
-    this.property(name).handleUpdate(value);
+    try {
+      this.member(name, SsProperty)?.handleUpdate(value);
+    } catch (e) {
+      throw new Error(this.id + '.' + name + ' property: ' + e.message);
+    }
   }
 
   /// Called by the connection.
   handleGetReply(name: string, value: SsValue) {
-    this.property(name).handleGetReply(value);
+    try {
+      this.member(name, SsProperty)?.handleGetReply(value);
+    } catch (e) {
+      throw new Error(this.id + '.' + name + ' property: ' + e.message);
+    }
   }
 
   /// Called by the connection.
