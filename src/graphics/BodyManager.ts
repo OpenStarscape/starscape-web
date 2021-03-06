@@ -11,12 +11,13 @@ export default class BodyManager {
   constructor(
     readonly lt: Lifetime,
     readonly scene: THREE.Scene,
-    readonly god: SsObject
+    readonly god: SsObject,
+    scale: number,
   ) {
     // Will attach itself to the lifetime, no need to hold a reference
     const bodyListProp = this.god.property('bodies', {arrayOf: SsObject});
     new SsSet(bodyListProp, this.lt, (itemLt, obj) => {
-      makeBody(itemLt, this.scene, obj, body => {
+      makeBody(itemLt, this.scene, obj, scale, body => {
         this.bodyMap.set(obj, body);
         obj.property('name', {nullable: String}).subscribe(itemLt, (name: any) => {
           this.setBodyName(body, name);

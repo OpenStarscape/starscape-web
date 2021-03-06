@@ -1,8 +1,9 @@
 import * as THREE from 'three';
 
 /// The type for incoming 3D vectors. An immutable version of THREE.Vector3. only one object is created no matter how
-/// many things are subscribed, so it's important nothing can change them. Methods with the same name as THREE.Vector3
-/// methods do the same thing.
+/// many things are subscribed, so it's important nothing changes it. Methods with the same name as THREE.Vector3
+/// methods do the same thing. When converting to/from a THREE.Vector3, a scale is required. Vec3s should have the scale
+/// of the Starscape protocol, and THREE.Vector3 should have the scale of the 3D scene.
 export class Vec3 {
   readonly x: number;
   readonly y: number;
@@ -10,7 +11,9 @@ export class Vec3 {
 
   constructor();
   constructor(x: number, y: number, z: number);
-  constructor(threeVec: THREE.Vector3, scale?: number);
+  /// When constructing from a THREE.Vector3, inverse_scale should be the same value as is sent as the scale when
+  /// copying into a THREE.Vector3. It's "inverse" because in this case it's being used the divide the input.
+  constructor(threeVec: THREE.Vector3, inverse_scale: number);
   constructor(first?: number | THREE.Vector3, second?: number, third?: number) {
     if (first === undefined) {
       this.x = 0;
@@ -21,7 +24,7 @@ export class Vec3 {
       this.y = second!;
       this.z = third!;
     } else {
-      const scale = second ?? 1;
+      const scale = 1 / second!;
       this.x = first.x * scale;
       this.y = first.y * scale;
       this.z = first.z * scale;
@@ -36,12 +39,11 @@ export class Vec3 {
     return this.x === other.x && this.y === other.y && this.z === other.z;
   }
 
-  newThreeVector3(): THREE.Vector3 {
-    return new THREE.Vector3(this.x, this.y, this.z);
+  newThreeVector3(scale: number): THREE.Vector3 {
+    return new THREE.Vector3(this.x * scale, this.y * scale, this.z * scale);
   }
 
-  copyInto(vec: THREE.Vector3, maybe_scale?: number) {
-    const scale = maybe_scale ?? 1;
+  copyInto(vec: THREE.Vector3, scale: number) {
     vec.set(this.x * scale, this.y * scale, this.z * scale);
   }
 

@@ -15,6 +15,7 @@ export default class SpaceScene {
   readonly starfield: Starfield;
   readonly bodies: BodyManager;
   readonly cameraManager: CameraManager;
+  readonly scale = 1;
 
   // TODO: move this to Body
   private readonly thrustMesh: THREE.Mesh;
@@ -42,10 +43,10 @@ export default class SpaceScene {
         console.log('Switching to ship ', obj.id);
         this.thrustLt = this.lt.newChild();
         obj.property('accel', Vec3).subscribe(this.thrustLt, accel => {
-          const vec = accel.newThreeVector3();
+          const vec = accel.newThreeVector3(this.scale);
           vec.normalize();
           this.thrustMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), vec);
-          let len = accel.length();
+          let len = accel.length() * this.scale;
           this.thrustMesh.scale.set(len, len, len);
         });
       }
@@ -62,7 +63,7 @@ export default class SpaceScene {
     this.domParent.appendChild(this.overlayRenderer.domElement);
 
     this.starfield = new Starfield(this.lt, this.scene);
-    this.bodies = new BodyManager(this.lt, this.scene, this.game.god);
+    this.bodies = new BodyManager(this.lt, this.scene, this.game.god, this.scale);
     this.cameraManager = new CameraManager(
       this.lt,
       this.scene,
