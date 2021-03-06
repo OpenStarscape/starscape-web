@@ -1,6 +1,5 @@
 import React from 'react';
-import * as THREE from "three";
-import { Game, Lifetime } from '../core';
+import { Game, Lifetime, Vec3 } from '../core';
 import { SsObject, SsSet } from '../protocol';
 
 type ButtonProps = {
@@ -70,7 +69,7 @@ export default class OrbitList extends React.Component<ListProps, ListState> {
     }
     if (ship && targetObj === null) {
       ship.property('ap_scheme', String).set('off');
-      ship.property('accel', THREE.Vector3).set(new THREE.Vector3(0, 0, 0));
+      ship.property('accel', Vec3).set(new Vec3());
       //this.manualControls = true;
     } else if (ship && targetObj) {
       ship.property('ap_scheme', String).set('orbit');

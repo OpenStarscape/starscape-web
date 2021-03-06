@@ -1,4 +1,4 @@
-import * as THREE from 'three'
+import { Vec3, RuntimeType } from '../core'
 import { SsObject } from './SsObject'
 
 export type SsValue =
@@ -8,7 +8,7 @@ export type SsValue =
   string |
   SsObject |
   SsValue[] |
-  THREE.Vector3;
+  Vec3;
 
 export type SsValueRuntimeType =
   RuntimeType & (
@@ -19,6 +19,6 @@ export type SsValueRuntimeType =
     {arrayOf: SsValueRuntimeType} |
     {nullable: SsValueRuntimeType} |
     (new (...args: any[]) => SsObject) |
-    (new (...args: any[]) => THREE.Vector3) |
+    (new (...args: any[]) => Vec3) |
     Array<SsValueRuntimeType>
   );

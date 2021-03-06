@@ -1,5 +1,4 @@
-import { Vector3 } from 'three';
-import { Lifetime } from '../core';
+import { Vec3, Lifetime } from '../core';
 import { SsObject } from './SsObject';
 import { SsValue } from './SsValue';
 import { SsRequest, SsRequestType } from './SsRequest';
@@ -79,7 +78,7 @@ export class SsConnection {
           throw new Error('array-wrapped value is not a number or array');
         }
       } else if (value.length === 3) {
-        return new Vector3(value[0], value[1], value[2]);
+        return new Vec3(value[0], value[1], value[2]);
       } else {
         throw new Error('array-wrapped value has invalid length ' + value.length);
       }
@@ -91,7 +90,7 @@ export class SsConnection {
   /// Turns a value from the app into one ready to be converted to JSON. In many cases this does
   /// nothing but in some some translation is required.
   encodeValue(value: SsValue | undefined): any {
-    if (value instanceof Vector3) {
+    if (value instanceof Vec3) {
       return value.toArray();
     } else if (value instanceof SsObject) {
       return [value.id];
