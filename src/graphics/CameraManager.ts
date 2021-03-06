@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
-import { Game, Lifetime, LocalProperty } from '../core';
+import { Lifetime, LocalProperty } from '../core';
+import { Game } from '../game';
 import { SsObject } from '../protocol';
 import BodyManager from './BodyManager';
 

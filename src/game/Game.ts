@@ -1,4 +1,4 @@
-import { LocalProperty } from './LocalProperty';
+import { LocalProperty } from '../core';
 import { SsConnection, SsSessionType, SsObject } from '../protocol';
 
 export interface Game {

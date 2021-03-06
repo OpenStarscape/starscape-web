@@ -1,5 +1,5 @@
 import React from 'react';
-import { Game } from '../core';
+import { Game } from '../game';
 import SpaceScene from '../graphics/SpaceScene';
 import ShipNameField from './ShipNameField';
 import ServerStats from './ServerStats';

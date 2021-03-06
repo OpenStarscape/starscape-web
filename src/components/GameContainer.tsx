@@ -1,5 +1,5 @@
 import React from 'react';
-import { Game, GameImpl } from '../core';
+import { Game, GameImpl } from '../game';
 import Helms from './Helms';
 
 /// All the pieces of an active game, holds a single active connection to a Starscape server.
