@@ -8,7 +8,6 @@ const circleGeom = new THREE.CircleGeometry(1, 120);
 circleGeom.vertices.shift(); // Remove center vertex
 const yVec = new THREE.Vector3(0, 1, 0);
 const zVec = new THREE.Vector3(0, 0, 1);
-const sceneScale = 1;
 
 /// The parent class for all 3D body types.
 export class Body {
@@ -40,7 +39,8 @@ export class Body {
   constructor(
     readonly lt: Lifetime,
     readonly scene: THREE.Scene,
-    readonly obj: SsObject
+    readonly obj: SsObject,
+    readonly scale: number,
   ) {
     this.getMass = this.obj.property('mass', Number).getter(this.lt);
     this.getVelocity = this.obj.property('velocity', Vec3).getter(this.lt);
@@ -96,7 +96,7 @@ export class Body {
   setToPosition(vec: THREE.Vector3) {
     const raw = this.getRawPos();
     if (raw !== undefined) {
-      raw.copyInto(vec, sceneScale);
+      raw.copyInto(vec, this.scale);
     }
   }
 
@@ -157,13 +157,13 @@ export class Body {
       gravBodyMass > mass
     ) {
       this.orbitLine.visible = true;
-      gravBodyPos.copyInto(this.orbitLine.position, sceneScale);
+      gravBodyPos.copyInto(this.orbitLine.position, this.scale);
       const distance = this.orbitLine.position.distanceTo(this.mesh.position);
       this.orbitLine.scale.setScalar(distance);
-      gravBodyPos.copyInto(this.orbitUp, sceneScale);
+      gravBodyPos.copyInto(this.orbitUp, this.scale);
       this.orbitUp.sub(this.mesh.position);
-      velocity.copyInto(this.velRelToGravBody);
-      this.velRelToGravBody.sub(gravBodyVel.newThreeVector3());
+      velocity.copyInto(this.velRelToGravBody, this.scale);
+      this.velRelToGravBody.sub(gravBodyVel.newThreeVector3(this.scale));
       this.orbitUp.cross(this.velRelToGravBody);
       this.orbitUp.normalize();
       this.orbitLine.quaternion.setFromUnitVectors(zVec, this.orbitUp);
@@ -178,11 +178,11 @@ export class Body {
 }
 
 class Celestial extends Body {
-  constructor(lifetime: Lifetime, scene: THREE.Scene, obj: SsObject) {
-    super(lifetime, scene, obj)
+  constructor(lifetime: Lifetime, scene: THREE.Scene, obj: SsObject, scale: number) {
+    super(lifetime, scene, obj, scale)
     this.obj.property('color', String).subscribe(this.lt, color => this.setColor(color));
     this.obj.property('size', Number).getThen(this.lt, km => {
-      this.size = km * sceneScale;
+      this.size = km * this.scale;
       this.mesh.geometry = new THREE.SphereBufferGeometry(this.size, 16, 16);
       this.lt.add(this.mesh.geometry);
     });
@@ -193,8 +193,8 @@ class Ship extends Body {
   private readonly direction = new THREE.Vector3();
   private readonly getAccel: () => Vec3 | undefined;
 
-  constructor(lifetime: Lifetime, scene: THREE.Scene, obj: SsObject) {
-    super(lifetime, scene, obj);
+  constructor(lifetime: Lifetime, scene: THREE.Scene, obj: SsObject, scale: number) {
+    super(lifetime, scene, obj, scale);
     this.setColor('0xFFFFFF');
     this.size = 0.01;
     this.mesh.geometry = new THREE.ConeBufferGeometry(0.01, 0.03, 16);
@@ -210,11 +210,11 @@ class Ship extends Body {
     super.update(cameraPosition);
     const accel = this.getAccel();
     if (accel !== undefined) {
-      accel.copyInto(this.direction);
+      accel.copyInto(this.direction, this.scale);
     }
     const velocity = this.getVelocity();
     if (this.direction.lengthSq() < 0.0005 && velocity !== undefined) {
-      velocity.copyInto(this.direction);
+      velocity.copyInto(this.direction, this.scale);
     }
     this.direction.normalize();
     this.mesh.quaternion.setFromUnitVectors(yVec, this.direction);
@@ -225,13 +225,14 @@ export function makeBody(
   lifetime: Lifetime,
   scene: THREE.Scene,
   obj: SsObject,
+  scale: number,
   callback: (body: Body) => void
 ) {
   obj.property('class', String).getThen(lifetime, cls => {
     if (cls === 'celestial') {
-      callback(new Celestial(lifetime, scene, obj));
+      callback(new Celestial(lifetime, scene, obj, scale));
     } else if (cls === 'ship') {
-      callback(new Ship(lifetime, scene, obj));
+      callback(new Ship(lifetime, scene, obj, scale));
     } else {
       console.error('unknown body class ', cls);
     }

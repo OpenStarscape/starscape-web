@@ -10,15 +10,14 @@ test('Vec3 can be created with values', () => {
 
 test('Vec3 can be created with THREE.Vector3', () => {
   const a = new THREE.Vector3(1, 2, 3);
-  const b = new Vec3(a);
+  const b = new Vec3(a, 1);
   expect(b.x).toEqual(1);
   expect(b.y).toEqual(2);
   expect(b.z).toEqual(3);
 });
 
 test('Vec3 can be created with THREE.Vector3 and scaled', () => {
-  const a = new THREE.Vector3(2, 4, 6);
-  const b = new Vec3(a, 0.5);
+  const b = new Vec3(new THREE.Vector3(2, 4, 6), 2);
   expect(b.x).toEqual(1);
   expect(b.y).toEqual(2);
   expect(b.z).toEqual(3);
@@ -58,14 +57,20 @@ test('Vec3 equality with other types', () => {
 
 test('Vec3 to THREE.Vector3', () => {
   const a = new Vec3(1, 2, 3);
-  const b = a.newThreeVector3();
+  const b = a.newThreeVector3(1);
   expect(b.equals(new THREE.Vector3(1, 2, 3))).toBe(true);
+});
+
+test('Vec3 to THREE.Vector3 scaled', () => {
+  const a = new Vec3(1, 2, 3);
+  const b = a.newThreeVector3(2);
+  expect(b.equals(new THREE.Vector3(2, 4, 6))).toBe(true);
 });
 
 test('Vec3 copyInto()', () => {
   const a = new Vec3(1, 2, 3);
   const b = new THREE.Vector3();
-  a.copyInto(b);
+  a.copyInto(b, 1);
   expect(b.equals(new THREE.Vector3(1, 2, 3))).toBe(true);
 });
 
