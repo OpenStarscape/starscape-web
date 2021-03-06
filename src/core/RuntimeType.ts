@@ -15,6 +15,10 @@ export type RuntimeType =
   undefined |
   {nullable: RuntimeType} |
   {arrayOf: RuntimeType} |
+  [] |
+  [RuntimeType] |
+  [RuntimeType, RuntimeType] |
+  [RuntimeType, RuntimeType, RuntimeType] |
   Array<RuntimeType> |
   (new (...args: any[]) => any);
 
@@ -30,11 +34,11 @@ type NonNullableRealTypeOf<T extends RuntimeType> =
   T extends BooleanConstructor ? boolean :
   T extends NumberConstructor ? number :
   T extends StringConstructor ? string:
-  T extends RuntimeTypeArray<infer U> ? Array<RealTypeOf<U>> :
   T extends [] ? [] :
   T extends RuntimeTypeTyple1<infer A> ? [RealTypeOf<A>] :
   T extends RuntimeTypeTyple2<infer A, infer B> ? [RealTypeOf<A>, RealTypeOf<B>] :
   T extends RuntimeTypeTyple3<infer A, infer B, infer C> ? [RealTypeOf<A>, RealTypeOf<B>, RealTypeOf<C>] :
+  T extends RuntimeTypeArray<infer U> ? Array<RealTypeOf<U>> :
   T extends new (...args: any[]) => infer U ? U :
   never;
 
@@ -42,7 +46,18 @@ export type RealTypeOf<T extends RuntimeType> =
   T extends RuntimeTypeNullable<infer U> ? (NonNullableRealTypeOf<U> | null) :
   NonNullableRealTypeOf<T>;
 
-export type RuntimeTypeOf<T> = RuntimeType & T extends RealTypeOf<infer U> ? U : never;
+export type RuntimeTypeOf<T> =
+  T extends null ? null :
+  T extends boolean ? BooleanConstructor :
+  T extends number ? NumberConstructor :
+  T extends string ? StringConstructor :
+  T extends Array<infer U> ? {arrayOf: RuntimeTypeOf<U>} :
+  T extends Object ? new (...args: any[]) => T :
+  T extends [] ? [] :
+  T extends [infer A] ? [RuntimeTypeOf<A>] :
+  T extends [infer A, infer B] ? [RuntimeTypeOf<A>, RuntimeTypeOf<B>] :
+  T extends [infer A, infer B, infer C] ? [RuntimeTypeOf<A>, RuntimeTypeOf<B>, RuntimeTypeOf<C>] :
+  undefined;
 
 /// Needed sometimes because typescript is bad
 export function indirectRuntimeType<T extends RuntimeType>(rtType: T) {
