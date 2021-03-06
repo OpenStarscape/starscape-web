@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { valuesEqual } from '../valuesEqual';
+import { Vec3 } from '../Vec3';
 
 test('valuesEqual() with numbers', () => {
   expect(valuesEqual(7, 7)).toBe(true);
@@ -26,6 +27,25 @@ test('valuesEqual() with THREE.Vector3', () => {
   expect(valuesEqual(a, a)).toBe(true);
   expect(valuesEqual(a, b)).toBe(true);
   expect(valuesEqual(a, c)).toBe(false);
+});
+
+test('valuesEqual() with Vec3', () => {
+  const a = new Vec3(1, 2, 3);
+  const b = new Vec3(1, 2, 3);
+  const c = new Vec3(1, 1, 1);
+  expect(valuesEqual(a, a)).toBe(true);
+  expect(valuesEqual(a, b)).toBe(true);
+  expect(valuesEqual(a, c)).toBe(false);
+});
+
+test('valuesEqual() Vec3 never equal THREE.Vector3', () => {
+  const a = new THREE.Vector3(1, 2, 3);;
+  const b = new Vec3(1, 2, 3);
+  const c = new Vec3(1, 1, 1);
+  expect(valuesEqual(a, b)).toBe(false);
+  expect(valuesEqual(a, c)).toBe(false);
+  expect(valuesEqual(b, a)).toBe(false);
+  expect(valuesEqual(c, a)).toBe(false);
 });
 
 test('valuesEqual() with arrays', () => {

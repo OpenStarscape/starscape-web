@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
-import { Game, Lifetime, RuntimeTypeOf } from "../core";
+import { Game, Lifetime, Vec3 } from "../core";
 import { SsObject } from "../protocol";
 import Starfield from '../graphics/Starfield';
 import BodyManager from '../graphics/BodyManager';
@@ -41,8 +41,8 @@ export default class SpaceScene {
       if (obj) {
         console.log('Switching to ship ', obj.id);
         this.thrustLt = this.lt.newChild();
-        obj.property('accel', THREE.Vector3).subscribe(this.thrustLt, (accel: any) => {
-          const vec = accel.clone();
+        obj.property('accel', Vec3).subscribe(this.thrustLt, accel => {
+          const vec = accel.newThreeVector3();
           vec.normalize();
           this.thrustMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), vec);
           let len = accel.length();
@@ -78,11 +78,9 @@ export default class SpaceScene {
     });
 
     // Type inference is hard apparently
-    this.game.god.action<
-      RuntimeTypeOf<[THREE.Vector3, THREE.Vector3]>
-    >('create_ship', [THREE.Vector3, THREE.Vector3]).fire([
-      new THREE.Vector3(150, 10, 0),
-      new THREE.Vector3(0, 0, -30),
+    this.game.god.action('create_ship', {arrayOf: Vec3}).fire([
+      new Vec3(150, 10, 0),
+      new Vec3(0, 0, -30),
     ]);
 
     document.addEventListener("resize", () => {
