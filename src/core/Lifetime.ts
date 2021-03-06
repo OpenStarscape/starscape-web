@@ -22,19 +22,6 @@ export class CallbackDisposable {
 /// as element subscribers (these are created automatically when elements are subscribed to).
 export class Lifetime {
   private disposables = new Set<Disposable>();
-  private dead = false;
-
-  /// Returns true if the lifetime has not been disposed.
-  isAlive() {
-    return !this.dead;
-  }
-
-  /// Throws if this lifetime has been disposed.
-  verifyAlive() {
-    if (this.dead) {
-      throw new Error('relevant Lifetime is dead');
-    }
-  }
 
   /// Create a new lifetime that will be disposed of with this one, but can also be disposed of
   /// sooner
@@ -63,7 +50,6 @@ export class Lifetime {
   /// Adds an object with a .dispose() method. .dispose() will be called when this lifetime is
   /// disposed of unless the object is deleted from it before then.
   add(disposable: Disposable) {
-    this.verifyAlive()
     this.disposables.add(disposable);
   }
 
@@ -73,19 +59,9 @@ export class Lifetime {
     this.disposables.delete(disposable);
   }
 
-  /// Like .delete(), except calls .dispose() on the object (even if it was not known).
-  disposeOf(disposable: Disposable) {
-    this.disposables.delete(disposable);
-    disposable.dispose();
-  }
-
   /// Calls .dispose() on all added objects. This marks the lifetime as dead and it should not be
   /// used afterwards, except to dispose again (which does nothing but is allowed)
   dispose() {
-    if (this.dead) {
-      return;
-    }
-    this.dead = true;
     const disposables = this.disposables;
     this.disposables = new Set();
     for (const disposable of disposables) {

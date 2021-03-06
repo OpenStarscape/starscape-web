@@ -11,14 +11,15 @@ type MemberConstructor<T extends Member> = new (...args: any[]) => T
 
 /// A handle to an object on the server. Is automatically created by the connection.
 export class SsObject {
-  readonly lt = new Lifetime();
   private members = new Map<string, Member>();
+  private alive = true;
+  readonly lt = new Lifetime();
 
   constructor(
     readonly connection: SsConnection,
     readonly id: number
   ) {
-    connection.lifetime().add(this.lt);
+    connection.lifetime().add(this);
   }
 
   /// Object must have a property with the given name. This is not automatically checked.
@@ -26,7 +27,6 @@ export class SsObject {
     const existing = this.member<SsProperty<RealTypeOf<R>>>(name, SsProperty);
     if (existing === undefined) {
       const created = new SsProperty(this, name, indirectRuntimeType(rtType));
-      this.lt.add(created);
       this.members.set(name, created);
       return created;
     } else {
@@ -49,7 +49,6 @@ export class SsObject {
     const existing = this.member<SsAction<RealTypeOf<R>>>(name, SsAction);
     if (existing === undefined) {
       const created = new SsAction<RealTypeOf<R>>(this, name, indirectRuntimeType(rtType));
-      this.lt.add(created);
       this.members.set(name, created);
       return created;
     } else {
@@ -71,7 +70,6 @@ export class SsObject {
     const existing = this.member<SsSignal<RealTypeOf<R>>>(name, SsSignal);
     if (existing === undefined) {
       const created = new SsSignal<any>(this, name, indirectRuntimeType(rtType));
-      this.lt.add(created);
       this.members.set(name, created);
       return created;
     } else {
@@ -90,7 +88,7 @@ export class SsObject {
 
   /// Used internally, Get or create a property, action or event
   private member<T extends Member>(name: string, memberClass: MemberConstructor<T>): T | undefined {
-    if (!this.lt.isAlive()) {
+    if (!this.alive) {
       throw new Error(
         this.id + '.' + name +
         ' can not be created since the object has been destroyed'
@@ -142,8 +140,14 @@ export class SsObject {
   }
 
   dispose() {
-    this.members.clear();
+    this.alive = false;
+    this.connection.lifetime().delete(this);
     this.lt.dispose();
+    // eslint-disable-next-line
+    for (let [_, value] of this.members) {
+      value.dispose();
+    }
+    this.members.clear();
   }
 }
 

@@ -27,7 +27,7 @@ export class Body {
   // These do not
   private orbitUp = new THREE.Vector3();
   private velRelToGravBody = new THREE.Vector3();
-  private gravBodyLt: Lifetime | null = null;
+  private gravBodyLt: Lifetime;
   private getGravBodyPos: () => Vec3 | undefined = () => undefined;
   private getGravBodyVel: () => Vec3 | undefined = () => undefined;
   private getGravBodyMass: () => number | undefined = () => undefined;
@@ -46,6 +46,7 @@ export class Body {
     this.getVelocity = this.obj.property('velocity', Vec3).getter(this.lt);
     this.getRawPos = this.obj.property('position', Vec3).getter(this.lt);
 
+    this.gravBodyLt = this.lt.newChild();
     this.lt.add(this.solidMat);
     this.lt.add(this.wireMat);
     this.lt.add(this.lineMat);
@@ -76,17 +77,12 @@ export class Body {
   setGravBody(gravBody: SsObject | null) {
     // this.gravBodyLt is only used directly by this function. It gets recreated every time the
     // gravity body changes.
-    if (this.gravBodyLt) {
-      this.lt.disposeOf(this.gravBodyLt);
-    }
+    this.gravBodyLt.dispose();
     if (gravBody !== null) {
-      this.gravBodyLt = new Lifetime();
-      this.lt.add(this.gravBodyLt)
       this.getGravBodyPos = gravBody.property('position', Vec3).getter(this.gravBodyLt);
       this.getGravBodyVel = gravBody.property('velocity', Vec3).getter(this.gravBodyLt);
       this.getGravBodyMass = gravBody.property('mass', Number).getter(this.gravBodyLt);
     } else {
-      this.gravBodyLt = null;
       this.getGravBodyPos = () => undefined;
       this.getGravBodyVel = () => undefined;
       this.getGravBodyMass = () => undefined;
