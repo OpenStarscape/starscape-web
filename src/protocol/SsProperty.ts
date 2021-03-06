@@ -30,7 +30,7 @@ export class SsProperty<T extends SsValue> extends Conduit<T> {
   }
 
   lifetime(): Lifetime {
-    return this.obj.lt;
+    return this.obj;
   }
 
   /// Sends a set request to the server. The value is only updates and subscribers are only notified
