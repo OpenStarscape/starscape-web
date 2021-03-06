@@ -1,5 +1,5 @@
 import React from 'react';
-import { Game } from '../core'
+import { Game } from '../game'
 
 type Props = {
   game: Game

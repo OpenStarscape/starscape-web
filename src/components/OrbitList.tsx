@@ -1,5 +1,6 @@
 import React from 'react';
-import { Game, Lifetime, Vec3 } from '../core';
+import { Lifetime, Vec3 } from '../core';
+import { Game } from '../game';
 import { SsObject, SsSet } from '../protocol';
 
 type ButtonProps = {

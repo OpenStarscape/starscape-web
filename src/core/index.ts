@@ -1,7 +1,6 @@
 export * from './Conduit'
 export * from './LocalProperty'
 export * from './Lifetime'
-export * from './Game'
 export * from './valuesEqual'
 export * from './RuntimeType'
 export * from './Vec3'
