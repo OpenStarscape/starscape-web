@@ -14,7 +14,7 @@ function newSignal(requests: SsRequest[]): SsSignal<number> {
       requests.push(rq);
     }
   }
-  return new SsSignal(
+  return new SsSignal<number>(
     obj as any,
     'sig',
     Number,

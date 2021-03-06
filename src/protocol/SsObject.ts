@@ -1,10 +1,10 @@
-import { Lifetime, Conduit, RuntimeType, RealTypeOf, runtimeTypeEquals, runtimeTypeName, indirectRuntimeType} from '../core';
+import { Lifetime, Conduit, RealTypeOf, runtimeTypeEquals, runtimeTypeName, indirectRuntimeType} from '../core';
 import { SsConnection } from './SsConnection';
 import { SsProperty } from './SsProperty'
 import { SsAction } from './SsAction'
 import { SsSignal } from './SsSignal'
 import { SsRequest } from './SsRequest'
-import { SsValue } from './SsValue'
+import { SsValue, SsValueRuntimeType } from './SsValue'
 
 type Member = (SsProperty<any> | SsAction<any> | SsSignal<any>) & Conduit<any>;
 type MemberConstructor<T extends Member> = new (...args: any[]) => T
@@ -22,10 +22,10 @@ export class SsObject {
   }
 
   /// Object must have a property with the given name. This is not automatically checked.
-  property<R extends RuntimeType, T extends SsValue & RealTypeOf<R> = RealTypeOf<R>>(name: string, rtType: R): SsProperty<T> {
-    const existing = this.member<SsProperty<T>>(name, SsProperty);
+  property<R extends SsValueRuntimeType>(name: string, rtType: R): SsProperty<RealTypeOf<R>> {
+    const existing = this.member<SsProperty<RealTypeOf<R>>>(name, SsProperty);
     if (existing === undefined) {
-      const created = new SsProperty<T>(this, name, indirectRuntimeType(rtType));
+      const created = new SsProperty(this, name, indirectRuntimeType(rtType));
       this.lt.add(created);
       this.members.set(name, created);
       return created;
@@ -44,11 +44,11 @@ export class SsObject {
   }
 
   /// Object must have an action with the given name. This is not automatically checked.
-  action<R extends RuntimeType, T extends SsValue & RealTypeOf<R> = RealTypeOf<R>>(name: string, rtType: R): SsAction<T> {
+  action<R extends SsValueRuntimeType>(name: string, rtType: R): SsAction<RealTypeOf<R>> {
     // _rtType is used only for type deduction
-    const existing = this.member<SsAction<T>>(name, SsAction);
+    const existing = this.member<SsAction<RealTypeOf<R>>>(name, SsAction);
     if (existing === undefined) {
-      const created = new SsAction<T>(this, name, indirectRuntimeType(rtType));
+      const created = new SsAction<RealTypeOf<R>>(this, name, indirectRuntimeType(rtType));
       this.lt.add(created);
       this.members.set(name, created);
       return created;
@@ -67,10 +67,10 @@ export class SsObject {
   }
 
   /// Object must have an event with the given name. This is not automatically checked.
-  signal<R extends RuntimeType, T extends SsValue & RealTypeOf<R> = RealTypeOf<R>>(name: string, rtType: R): SsSignal<T> {
-    const existing = this.member<SsSignal<T>>(name, SsSignal);
+  signal<R extends SsValueRuntimeType>(name: string, rtType: R): SsSignal<RealTypeOf<R>> {
+    const existing = this.member<SsSignal<RealTypeOf<R>>>(name, SsSignal);
     if (existing === undefined) {
-      const created = new SsSignal<T>(this, name, indirectRuntimeType(rtType));
+      const created = new SsSignal<any>(this, name, indirectRuntimeType(rtType));
       this.lt.add(created);
       this.members.set(name, created);
       return created;
@@ -126,7 +126,7 @@ export class SsObject {
   /// Called by the connection.
   handleGetReply(name: string, value: SsValue) {
     try {
-      this.member(name, SsProperty)?.handleGetReply(value);
+      this.member<any>(name, SsProperty)?.handleGetReply(value);
     } catch (e) {
       throw new Error(this.id + '.' + name + ' property: ' + e.message);
     }
@@ -135,7 +135,7 @@ export class SsObject {
   /// Called by the connection.
   handleSignal(name: string, value: SsValue) {
     try {
-      this.member(name, SsSignal)?.handleSignal(value);
+      this.member<any>(name, SsSignal)?.handleSignal(value);
     } catch (e) {
       throw new Error(this.id + '.' + name + ' signal: ' + e.message);
     }
