@@ -4,12 +4,8 @@ import { SsSignal } from '../SsSignal';
 import { SsAction } from '../SsAction';
 
 const mockConn = {
-  lifetime: () => {
-    return {
-      add: (_: any) => {},
-      delete: (_: any) => {},
-    };
-  },
+  add: (_: any) => {},
+  addChild: (_: any) => {},
   makeRequest: () => {},
 } as any;
 

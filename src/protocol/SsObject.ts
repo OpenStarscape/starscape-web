@@ -10,16 +10,16 @@ type Member = (SsProperty<any> | SsAction<any> | SsSignal<any>) & Conduit<any>;
 type MemberConstructor<T extends Member> = new (...args: any[]) => T
 
 /// A handle to an object on the server. Is automatically created by the connection.
-export class SsObject {
+export class SsObject extends Lifetime {
   private members = new Map<string, Member>();
   private alive = true;
-  readonly lt = new Lifetime();
 
   constructor(
     readonly connection: SsConnection,
     readonly id: number
   ) {
-    connection.lifetime().add(this);
+    super();
+    connection.addChild(this);
   }
 
   /// Object must have a property with the given name. This is not automatically checked.
@@ -141,13 +141,12 @@ export class SsObject {
 
   dispose() {
     this.alive = false;
-    this.connection.lifetime().delete(this);
-    this.lt.dispose();
     // eslint-disable-next-line
     for (let [_, value] of this.members) {
       value.dispose();
     }
     this.members.clear();
+    super.dispose();
   }
 }
 

@@ -3,11 +3,8 @@ import { assertIsType, isType, RuntimeType, runtimeTypeEquals, typeName, runtime
 import { SsObject } from '../../protocol';
 
 const mockConn = {
-  lifetime: () => {
-    return {
-      add: (_d: any) => {}
-    };
-  },
+  add: (_d: any) => {},
+  addChild: (_d: any) => {},
 } as any;
 
 function obj() {

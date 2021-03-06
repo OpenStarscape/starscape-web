@@ -2,7 +2,7 @@ export interface Disposable {
   dispose(): any;
 }
 
-export class CallbackDisposable {
+class CallbackDisposable {
   private callback: (() => void) | null;
 
   constructor(callback: () => void) {

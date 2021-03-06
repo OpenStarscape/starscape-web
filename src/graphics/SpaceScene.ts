@@ -8,8 +8,7 @@ import BodyManager from '../graphics/BodyManager';
 import CameraManager from '../graphics/CameraManager';
 
 /// Manages everything required to render a 3D space view with three.js.
-export default class SpaceScene {
-  readonly lt = new Lifetime();
+export default class SpaceScene extends Lifetime {
   readonly scene = new THREE.Scene();
   readonly renderer = new THREE.WebGLRenderer({antialias: true});
   readonly overlayRenderer = new CSS2DRenderer();
@@ -26,23 +25,24 @@ export default class SpaceScene {
     readonly game: Game,
     readonly domParent: HTMLDivElement
   ) {
+    super();
     // TODO: move this to Body
     const mat = new THREE.MeshBasicMaterial({color: 0x20ff40, wireframe: true});
     const geom = new THREE.ConeGeometry(0.5, 3, 3);
     geom.translate(0, 4, 0);
     this.thrustMesh = new THREE.Mesh(geom, mat);
     this.scene.add(this.thrustMesh);
-    this.lt.add(mat);
-    this.lt.add(geom);
+    this.add(mat);
+    this.add(geom);
 
-    this.game.currentShip.subscribe(this.lt, obj => {
+    this.game.currentShip.subscribe(this, obj => {
       if (this.thrustLt) {
         this.thrustLt.dispose();
         this.thrustLt = null;
       }
       if (obj) {
         console.log('Switching to ship ', obj.id);
-        this.thrustLt = this.lt.newChild();
+        this.thrustLt = this.newChild();
         obj.property('accel', Vec3).subscribe(this.thrustLt, accel => {
           const vec = accel.newThreeVector3(this.scale);
           vec.normalize();
@@ -63,17 +63,17 @@ export default class SpaceScene {
     this.overlayRenderer.domElement.style.top = '0px';
     this.domParent.appendChild(this.overlayRenderer.domElement);
 
-    this.starfield = new Starfield(this.lt, this.scene);
-    this.bodies = new BodyManager(this.lt, this.scene, this.game.god, this.scale);
+    this.starfield = new Starfield(this, this.scene);
+    this.bodies = new BodyManager(this, this.scene, this.game.god, this.scale);
     this.cameraManager = new CameraManager(
-      this.lt,
+      this,
       this.scene,
       this.overlayRenderer.domElement,
       this.bodies,
       this.game);
     this.cameraManager.setAspect(window.innerWidth / window.innerHeight);
 
-    const shipCreatedLt = this.lt.newChild();
+    const shipCreatedLt = this.newChild();
     this.game.god.signal('ship_created', SsObject).subscribe(shipCreatedLt, obj => {
       this.game.currentShip.set(obj);
       shipCreatedLt.dispose(); // only handle this callback once

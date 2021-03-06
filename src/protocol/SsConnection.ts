@@ -13,13 +13,13 @@ export enum SsSessionType {
 
 /// The toplevel object of a connection to an OpenStarscape server. sessionType should be either
 /// 'webrtc' or 'websocket'. The .god object property is the entry point to accessing everything.
-export class SsConnection {
+export class SsConnection extends Lifetime {
   private readonly session: SsSession;
-  private readonly lt = new Lifetime();
   private readonly objects: Map<number, SsObject | null> = new Map();
   readonly god: SsObject;
 
   constructor(sessionType: SsSessionType) {
+    super();
     if (sessionType === SsSessionType.WebRTC) {
       this.session = new SsRTCSession(this);
     } else if (sessionType === SsSessionType.WebSocket) {
@@ -30,10 +30,6 @@ export class SsConnection {
     this.god = this.getObj(1);
   }
 
-  lifetime(): Lifetime {
-    return this.lt;
-  }
-
   /// Used internally to get or create an object with a given object ID.
   getObj(id: number): SsObject {
     if (typeof id !== 'number' || !Number.isInteger(id)) {
@@ -42,7 +38,7 @@ export class SsConnection {
     let obj = this.objects.get(id);
     if (obj === undefined) {
       obj = new SsObject(this, id);
-      this.lt.add(obj);
+      this.add(obj);
       this.objects.set(id, obj);
     } else if (obj === null) {
       throw new Error('object ' + id + ' has already been destroyed');
@@ -176,9 +172,5 @@ export class SsConnection {
       throw new Error('Request has invalid request type: ' + JSON.stringify(rq));
     }
     this.session.sendPacket(json + '\n');
-  }
-
-  dispose() {
-    this.lt.dispose();
   }
 }
