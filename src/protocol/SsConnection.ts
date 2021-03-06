@@ -16,7 +16,7 @@ export enum SsSessionType {
 export class SsConnection {
   private readonly session: SsSession;
   private readonly lt = new Lifetime();
-  private readonly objects = new Map();
+  private readonly objects: Map<number, SsObject | null> = new Map();
   readonly god: SsObject;
 
   constructor(sessionType: SsSessionType) {
@@ -30,7 +30,7 @@ export class SsConnection {
     this.god = this.getObj(1);
   }
 
-  lifetime() {
+  lifetime(): Lifetime {
     return this.lt;
   }
 
@@ -55,11 +55,11 @@ export class SsConnection {
     window.alert(message + '\n\nIf you continue to have problems, try refreshing');
   }
 
-  /// Used internally when an object should be destroyed (not yet implemented)
+  /// Used internally when an object should be destroyed
   destroyObj(id: number) {
     const obj = this.objects.get(id);
-    if (obj) {
-      this.lt.disposeOf(obj);
+    if (obj !== undefined && obj !== null) {
+      obj.dispose();
     }
     /// Set to null instead of removing so a new object can't be made with the same ID
     this.objects.set(id, null);

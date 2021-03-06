@@ -74,7 +74,6 @@ export class SsProperty<T extends SsValue> extends Conduit<T> {
     const subscriber = new Subscriber(this, lifetime, null);
     this.addSubscriber(subscriber);
     return (): T | undefined => {
-      lifetime.verifyAlive();
       return this.cachedValue();
     };
   }

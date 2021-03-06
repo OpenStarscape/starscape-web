@@ -57,11 +57,17 @@ test('Lifetime can have disposable deleted', () => {
   expect(a.disposed).toBe(false);
 });
 
-test('Lifetime disposeOf', () => {
+test('Lifetime can be used multiple times', () => {
   const lt = new Lifetime();
   const a = new MockDisposable();
+  const b = new MockDisposable();
+  const c = new MockDisposable();
   lt.add(a);
-  lt.disposeOf(a);
-  expect(a.disposed).toBe(true);
   lt.dispose();
+  lt.add(b);
+  lt.dispose();
+  lt.add(c);
+  expect(a.disposed).toBe(true);
+  expect(b.disposed).toBe(true);
+  expect(c.disposed).toBe(false);
 });

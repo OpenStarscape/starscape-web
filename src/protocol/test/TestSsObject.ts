@@ -6,7 +6,8 @@ import { SsAction } from '../SsAction';
 const mockConn = {
   lifetime: () => {
     return {
-      add: (_: any) => {}
+      add: (_: any) => {},
+      delete: (_: any) => {},
     };
   },
   makeRequest: () => {},
