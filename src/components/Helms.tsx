@@ -1,16 +1,16 @@
 import React from 'react';
 import { Game } from '../game';
+import { LifetimeComponent } from './LifetimeComponent';
 import SpaceScene from '../graphics/SpaceScene';
 import ShipNameField from './ShipNameField';
 import ServerStats from './ServerStats';
 import OrbitList from './OrbitList';
 
-export default class Helms extends React.Component<{game: Game}, {}> {
+export default class Helms extends LifetimeComponent<{game: Game}, {}> {
   private divRef = React.createRef<HTMLDivElement>();
 
   componentDidMount() {
-    new SpaceScene(this.props.game, this.divRef.current!);
-    // TODO: dispose of SpaceScene on unmount
+    this.add(new SpaceScene(this.props.game, this.divRef.current!));
   }
 
   render() {

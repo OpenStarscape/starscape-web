@@ -1,15 +1,14 @@
-import React from 'react';
-import { Lifetime, Vec3 } from '../core';
+import { Vec3 } from '../core';
 import { Game } from '../game';
 import { SsObject, SsSet } from '../protocol';
+import { LifetimeComponent } from './LifetimeComponent';
 
 type ButtonProps = {
   obj: SsObject,
-  lt: Lifetime,
   handleSelected: (button: OrbitButton) => void
 }
 
-class OrbitButton extends React.Component<ButtonProps, {}> {
+class OrbitButton extends LifetimeComponent<ButtonProps, {}> {
   state = {text: ''}
 
   showSelected() {
@@ -22,7 +21,7 @@ class OrbitButton extends React.Component<ButtonProps, {}> {
   }
 
   componentDidMount() {
-    this.props.obj.property('name', {nullable: String}).subscribe(this.props.lt, name => {
+    this.props.obj.property('name', {nullable: String}).subscribe(this, name => {
       this.setState({text: 'Orbit ' + name});
     })
   }
@@ -51,16 +50,12 @@ type ListState = {
   buttons: JSX.Element[]
 }
 
-export default class OrbitList extends React.Component<ListProps, ListState> {
-  private lt = new Lifetime();
+export default class OrbitList extends LifetimeComponent<ListProps, ListState> {
   private selectedButton: OrbitButton | null = null;
 
   constructor(props: ListProps) {
     super(props);
     this.state = {buttons: []};
-    //this.selectedButton = new Button(this, lifetime, 'Manual Control', () => callback(null));
-    //this.selectedButton.setText('Manual Control');
-    //this.selectedButton.showSelected();
   }
 
   orbit(targetObj: SsObject | null) {
@@ -103,7 +98,7 @@ export default class OrbitList extends React.Component<ListProps, ListState> {
 
   componentDidMount() {
     const bodyListProp = this.props.game.god.property('bodies', {arrayOf: SsObject});
-    new SsSet(bodyListProp, this.lt, (itemLt: Lifetime, obj: SsObject) => {
+    new SsSet(bodyListProp, this, (itemLt, obj) => {
       const handleSelected = (button: OrbitButton) => {
         if (this.selectedButton) {
           this.selectedButton.showUnselected();
@@ -112,7 +107,7 @@ export default class OrbitList extends React.Component<ListProps, ListState> {
         this.orbit(obj);
       };
       const button = (
-        <OrbitButton obj={obj} lt={itemLt} handleSelected={handleSelected} />
+        <OrbitButton obj={obj} handleSelected={handleSelected} />
       );
       this.addButton(button);
       // When body is destroyed, remove its button
@@ -123,7 +118,7 @@ export default class OrbitList extends React.Component<ListProps, ListState> {
   }
 
   componentWillUnmount() {
-    this.lt.dispose();
+    super.componentWillUnmount();
     this.setState({buttons: []});
   }
 
