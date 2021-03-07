@@ -23,6 +23,14 @@ class CallbackDisposable {
 export class Lifetime {
   private disposables = new Set<Disposable>();
 
+  /// So it can be used as a mixin
+  initLifetime() {
+    if ('disposables' in (this as any)) {
+      throw Error('initLifetime() called after disposables set');
+    }
+    this.disposables = new Set();
+  }
+
   /// Create a new lifetime that will be disposed of with this one, but can also be disposed of
   /// sooner
   newChild() {
