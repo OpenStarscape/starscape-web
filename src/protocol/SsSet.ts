@@ -40,7 +40,7 @@ export class SsSet<T extends SsValue> {
           const itemLifetime = this.lt.newChild();
           // if it's an object, should die with object (though the server should remove it for us)
           if (item instanceof SsObject) {
-            item.lt.addChild(itemLifetime);
+            item.addChild(itemLifetime);
           }
           this.items.set(item, itemLifetime);
           callback(itemLifetime, item);
