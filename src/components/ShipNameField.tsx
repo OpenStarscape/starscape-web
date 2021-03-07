@@ -1,5 +1,5 @@
-import React from 'react';
 import { Game } from '../game'
+import { LifetimeComponent } from './LifetimeComponent'
 
 type Props = {
   game: Game
@@ -11,7 +11,7 @@ type State = {
   value?: string
 }
 
-export default class ShipNameField extends React.Component<Props, State> {
+export default class ShipNameField extends LifetimeComponent<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = {name: null, promptForName: true};

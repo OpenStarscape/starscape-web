@@ -70,10 +70,12 @@ export class Lifetime {
   /// Calls .dispose() on all added objects. This marks the lifetime as dead and it should not be
   /// used afterwards, except to dispose again (which does nothing but is allowed)
   dispose() {
-    const disposables = this.disposables;
-    this.disposables = new Set();
-    for (const disposable of disposables) {
-      disposable.dispose();
+    if (this.disposables.size !== 0) {
+      const disposables = this.disposables;
+      this.disposables = new Set();
+      for (const disposable of disposables) {
+        disposable.dispose();
+      }
     }
   }
 }

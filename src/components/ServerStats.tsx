@@ -1,6 +1,5 @@
-import React from 'react'
-import { Lifetime } from '../core'
 import { Game } from '../game'
+import { LifetimeComponent } from './LifetimeComponent'
 
 type Props = {
   game: Game
@@ -11,25 +10,19 @@ type State = {
   max_conn_count?: number
 }
 
-export default class ServerStats extends React.Component<Props, State> {
-  private readonly lt = new Lifetime();
-
+export default class ServerStats extends LifetimeComponent<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = {}
   }
 
   componentDidMount() {
-    this.props.game.god.property('conn_count', Number).subscribe(this.lt, count => {
+    this.props.game.god.property('conn_count', Number).subscribe(this, count => {
       this.setState({conn_count: count});
     });
-    this.props.game.god.property('max_conn_count', Number).subscribe(this.lt, count => {
+    this.props.game.god.property('max_conn_count', Number).subscribe(this, count => {
       this.setState({max_conn_count: count});
     });
-  }
-
-  componentWillUnmount() {
-    this.lt.dispose();
   }
 
   render() {
