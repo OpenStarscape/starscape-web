@@ -10,7 +10,7 @@ type State = {
   max_conn_count?: number
 }
 
-export default class ServerStats extends LifetimeComponent<Props, State> {
+export class GameStats extends LifetimeComponent<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = {}
