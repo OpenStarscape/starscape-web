@@ -23,6 +23,6 @@ export default class Helms extends LifetimeComponent<{game: Game}, {}> {
           <OrbitList game={this.props.game} />
         </div>
       </div>
-    )
+    );
   }
 }

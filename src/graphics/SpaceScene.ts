@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import { Lifetime, Vec3 } from '../core';
-import { Game } from '../game';
+import { Game, FramerateTracker } from '../game';
 import { SsObject } from '../protocol';
 import Starfield from '../graphics/Starfield';
 import BodyManager from '../graphics/BodyManager';
@@ -15,6 +15,7 @@ export default class SpaceScene extends Lifetime {
   readonly starfield: Starfield;
   readonly bodies: BodyManager;
   readonly cameraManager: CameraManager;
+  readonly fps = new FramerateTracker();
   readonly scale = 1;
 
   // TODO: move this to Body
@@ -26,6 +27,9 @@ export default class SpaceScene extends Lifetime {
     readonly domParent: HTMLDivElement
   ) {
     super();
+
+    this.game.fps.addTracker(this, this.fps);
+
     // TODO: move this to Body
     const mat = new THREE.MeshBasicMaterial({color: 0x20ff40, wireframe: true});
     const geom = new THREE.ConeGeometry(0.5, 3, 3);
@@ -95,6 +99,7 @@ export default class SpaceScene extends Lifetime {
   }
 
   render() {
+    this.fps.recordFrame();
     this.cameraManager.update();
     this.bodies.update(this.cameraManager.camera.position);
 
