@@ -51,12 +51,12 @@ export type RuntimeTypeOf<T> =
   T extends boolean ? BooleanConstructor :
   T extends number ? NumberConstructor :
   T extends string ? StringConstructor :
-  T extends Array<infer U> ? {arrayOf: RuntimeTypeOf<U>} :
   T extends Object ? new (...args: any[]) => T :
   T extends [] ? [] :
   T extends [infer A] ? [RuntimeTypeOf<A>] :
   T extends [infer A, infer B] ? [RuntimeTypeOf<A>, RuntimeTypeOf<B>] :
   T extends [infer A, infer B, infer C] ? [RuntimeTypeOf<A>, RuntimeTypeOf<B>, RuntimeTypeOf<C>] :
+  T extends Array<infer U> ? {arrayOf: RuntimeTypeOf<U>} :
   undefined;
 
 /// Needed sometimes because typescript is bad
