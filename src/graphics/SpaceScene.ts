@@ -16,7 +16,6 @@ export default class SpaceScene extends Lifetime {
   readonly bodies: BodyManager;
   readonly cameraManager: CameraManager;
   readonly fps = new FramerateTracker();
-  readonly scale = 1;
 
   // TODO: move this to Body
   private readonly thrustMesh: THREE.Mesh;
@@ -28,6 +27,7 @@ export default class SpaceScene extends Lifetime {
   ) {
     super();
 
+    Vec3.threeScale = 1;
     THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
     this.game.fps.addTracker(this, this.fps);
@@ -57,10 +57,10 @@ export default class SpaceScene extends Lifetime {
         console.log('Switching to ship ', obj.id);
         this.thrustLt = this.newChild();
         obj.property('accel', Vec3).subscribe(this.thrustLt, accel => {
-          const vec = accel.newThreeVector3(this.scale);
+          const vec = accel.newThreeVector3();
           vec.normalize();
           this.thrustMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), vec);
-          let len = accel.length() * this.scale;
+          let len = accel.length() * Vec3.threeScale;
           this.thrustMesh.scale.set(len, len, len);
         });
       }
@@ -77,7 +77,7 @@ export default class SpaceScene extends Lifetime {
     this.domParent.appendChild(this.overlayRenderer.domElement);
 
     this.starfield = new Starfield(this, this.scene);
-    this.bodies = new BodyManager(this, this.scene, this.game.god, this.scale);
+    this.bodies = new BodyManager(this, this.scene, this.game.god);
     this.cameraManager = new CameraManager(
       this,
       this.scene,

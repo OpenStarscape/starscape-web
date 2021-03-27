@@ -40,7 +40,6 @@ export class Body extends Lifetime {
     readonly manager: BodyManager,
     readonly scene: THREE.Scene,
     readonly obj: SsObject,
-    readonly scale: number,
   ) {
     super();
 
@@ -76,14 +75,14 @@ export class Body extends Lifetime {
   copyPositionInto(vec: THREE.Vector3) {
     const raw = this.getRawPos();
     if (raw !== undefined) {
-      raw.copyInto(vec, this.scale);
+      raw.copyInto(vec);
     }
   }
 
   copyVelocityInto(vec: THREE.Vector3) {
     const raw = this.getVelocity();
     if (raw !== undefined) {
-      raw.copyInto(vec, this.scale);
+      raw.copyInto(vec);
     }
   }
 
@@ -143,7 +142,7 @@ export class Body extends Lifetime {
       this.orbitLine.scale.setScalar(distance);
       this.parent.copyPositionInto(this.orbitUp);
       this.orbitUp.sub(this.mesh.position);
-      velocity.copyInto(this.velRelToGravBody, this.scale);
+      velocity.copyInto(this.velRelToGravBody);
       this.parent.copyVelocityInto(this.parentVel);
       this.velRelToGravBody.sub(this.parentVel);
       this.orbitUp.cross(this.velRelToGravBody);
@@ -160,11 +159,11 @@ export class Body extends Lifetime {
 }
 
 export class Celestial extends Body {
-  constructor(manager: BodyManager, scene: THREE.Scene, obj: SsObject, scale: number) {
-    super(manager, scene, obj, scale)
+  constructor(manager: BodyManager, scene: THREE.Scene, obj: SsObject) {
+    super(manager, scene, obj)
     this.obj.property('color', String).subscribe(this, color => this.setColor(color));
     this.obj.property('size', Number).getThen(this, km => {
-      this.size = km * this.scale;
+      this.size = km * Vec3.threeScale;
       this.mesh.geometry = new THREE.SphereBufferGeometry(this.size, 16, 16);
       this.add(this.mesh.geometry);
     });
@@ -175,8 +174,8 @@ export class Ship extends Body {
   private readonly direction = new THREE.Vector3();
   private readonly getAccel: () => Vec3 | undefined;
 
-  constructor(manager: BodyManager, scene: THREE.Scene, obj: SsObject, scale: number) {
-    super(manager, scene, obj, scale);
+  constructor(manager: BodyManager, scene: THREE.Scene, obj: SsObject) {
+    super(manager, scene, obj);
     this.setColor('0xFFFFFF');
     this.size = 0.01;
     this.mesh.geometry = new THREE.ConeBufferGeometry(0.01, 0.03, 16);
@@ -192,11 +191,11 @@ export class Ship extends Body {
     super.update(cameraPosition);
     const accel = this.getAccel();
     if (accel !== undefined) {
-      accel.copyInto(this.direction, this.scale);
+      accel.copyInto(this.direction);
     }
     const velocity = this.getVelocity();
     if (this.direction.lengthSq() < 0.0005 && velocity !== undefined) {
-      velocity.copyInto(this.direction, this.scale);
+      velocity.copyInto(this.direction);
     }
     this.direction.normalize();
     this.mesh.quaternion.setFromUnitVectors(yVec, this.direction);
