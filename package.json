@@ -11,6 +11,7 @@
     "@types/node": "^14.14.31",
     "@types/react": "^17.0.2",
     "@types/react-dom": "^17.0.1",
+    "jest": "^26.6.0",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
     "react-scripts": "^4.0.3",
@@ -22,7 +23,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "GENERATE_SOURCEMAP=false react-scripts build",
-    "test": "jest --config ./src/jest/jest.config.json",
+    "test": "./node_modules/.bin/jest --config ./src/jest/jest.config.json",
     "jest-clear-cache": "jest --clearCache",
     "eject": "react-scripts eject"
   },
