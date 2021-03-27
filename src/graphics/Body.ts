@@ -10,7 +10,7 @@ const yVec = new THREE.Vector3(0, 1, 0);
 const zVec = new THREE.Vector3(0, 0, 1);
 
 /// The parent class for all 3D body types.
-export class Body {
+export class Body extends Lifetime {
   /// Instead of us subscribing, the manager subscribes and uses the setter
   private name: string | null = null;
   private readonly getMass: () => number | undefined;
@@ -37,19 +37,20 @@ export class Body {
   protected readonly mesh = new THREE.Mesh(emptyGeom, this.wireMat);
 
   constructor(
-    readonly lt: Lifetime,
     readonly scene: THREE.Scene,
     readonly obj: SsObject,
     readonly scale: number,
   ) {
-    this.getMass = this.obj.property('mass', Number).getter(this.lt);
-    this.getVelocity = this.obj.property('velocity', Vec3).getter(this.lt);
-    this.getRawPos = this.obj.property('position', Vec3).getter(this.lt);
+    super();
 
-    this.gravBodyLt = this.lt.newChild();
-    this.lt.add(this.solidMat);
-    this.lt.add(this.wireMat);
-    this.lt.add(this.lineMat);
+    this.getMass = this.obj.property('mass', Number).getter(this);
+    this.getVelocity = this.obj.property('velocity', Vec3).getter(this);
+    this.getRawPos = this.obj.property('position', Vec3).getter(this);
+
+    this.gravBodyLt = this.newChild();
+    this.add(this.solidMat);
+    this.add(this.wireMat);
+    this.add(this.lineMat);
 
     // This is probs a better way: https://stackoverflow.com/a/21742175
     this.orbitLine = new THREE.LineLoop(circleGeom, this.lineMat);
@@ -58,7 +59,7 @@ export class Body {
     this.scene.add(this.orbitLine);
 
     this.setGravBody(null);
-    this.obj.property('grav_parent', {nullable: SsObject}).subscribe(this.lt, grav_parent => {
+    this.obj.property('grav_parent', {nullable: SsObject}).subscribe(this, grav_parent => {
       this.setGravBody(grav_parent);
     });
 
@@ -173,29 +174,29 @@ export class Body {
   }
 }
 
-class Celestial extends Body {
-  constructor(lifetime: Lifetime, scene: THREE.Scene, obj: SsObject, scale: number) {
-    super(lifetime, scene, obj, scale)
-    this.obj.property('color', String).subscribe(this.lt, color => this.setColor(color));
-    this.obj.property('size', Number).getThen(this.lt, km => {
+export class Celestial extends Body {
+  constructor(scene: THREE.Scene, obj: SsObject, scale: number) {
+    super(scene, obj, scale)
+    this.obj.property('color', String).subscribe(this, color => this.setColor(color));
+    this.obj.property('size', Number).getThen(this, km => {
       this.size = km * this.scale;
       this.mesh.geometry = new THREE.SphereBufferGeometry(this.size, 16, 16);
-      this.lt.add(this.mesh.geometry);
+      this.add(this.mesh.geometry);
     });
   }
 }
 
-class Ship extends Body {
+export class Ship extends Body {
   private readonly direction = new THREE.Vector3();
   private readonly getAccel: () => Vec3 | undefined;
 
-  constructor(lifetime: Lifetime, scene: THREE.Scene, obj: SsObject, scale: number) {
-    super(lifetime, scene, obj, scale);
+  constructor(scene: THREE.Scene, obj: SsObject, scale: number) {
+    super(scene, obj, scale);
     this.setColor('0xFFFFFF');
     this.size = 0.01;
     this.mesh.geometry = new THREE.ConeBufferGeometry(0.01, 0.03, 16);
-    this.lt.add(this.mesh.geometry);
-    this.getAccel = this.obj.property('accel', Vec3).getter(this.lt);
+    this.add(this.mesh.geometry);
+    this.getAccel = this.obj.property('accel', Vec3).getter(this);
   }
 
   isShip() {
@@ -215,22 +216,4 @@ class Ship extends Body {
     this.direction.normalize();
     this.mesh.quaternion.setFromUnitVectors(yVec, this.direction);
   }
-}
-
-export function makeBody(
-  lifetime: Lifetime,
-  scene: THREE.Scene,
-  obj: SsObject,
-  scale: number,
-  callback: (body: Body) => void
-) {
-  obj.property('class', String).getThen(lifetime, cls => {
-    if (cls === 'celestial') {
-      callback(new Celestial(lifetime, scene, obj, scale));
-    } else if (cls === 'ship') {
-      callback(new Ship(lifetime, scene, obj, scale));
-    } else {
-      console.error('unknown body class ', cls);
-    }
-  });
 }
