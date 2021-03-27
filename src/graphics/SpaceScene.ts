@@ -28,6 +28,8 @@ export default class SpaceScene extends Lifetime {
   ) {
     super();
 
+    THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
+
     this.game.fps.addTracker(this, this.fps);
 
     try {
@@ -92,8 +94,8 @@ export default class SpaceScene extends Lifetime {
 
     // Type inference is hard apparently
     this.game.god.action('create_ship', {arrayOf: Vec3}).fire([
-      new Vec3(150, 10, 0),
-      new Vec3(0, 0, -30),
+      new Vec3(150, 0, 10),
+      new Vec3(0, -30, 0),
     ]);
 
     document.addEventListener("resize", () => {
