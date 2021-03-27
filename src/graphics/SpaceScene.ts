@@ -10,7 +10,7 @@ import CameraManager from '../graphics/CameraManager';
 /// Manages everything required to render a 3D space view with three.js.
 export default class SpaceScene extends Lifetime {
   readonly scene = new THREE.Scene();
-  readonly renderer = new THREE.WebGLRenderer({antialias: true});
+  readonly renderer: THREE.WebGLRenderer;
   readonly overlayRenderer = new CSS2DRenderer();
   readonly starfield: Starfield;
   readonly bodies: BodyManager;
@@ -30,6 +30,13 @@ export default class SpaceScene extends Lifetime {
 
     this.game.fps.addTracker(this, this.fps);
 
+    try {
+      this.renderer = new THREE.WebGLRenderer({antialias: true});
+    } catch (e) {
+      // TODO: some standard mechanism for alerts that looks good?
+      window.alert('Failed to initialize WebGL: ' + e.message);
+      throw (e);
+    }
     // TODO: move this to Body
     const mat = new THREE.MeshBasicMaterial({color: 0x20ff40, wireframe: true});
     const geom = new THREE.ConeGeometry(0.5, 3, 3);
