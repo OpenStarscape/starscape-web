@@ -4,7 +4,7 @@ import { Lifetime, Vec3 } from '../core';
 import { Game, FramerateTracker } from '../game';
 import { SsObject } from '../protocol';
 import Starfield from '../graphics/Starfield';
-import BodyManager from '../graphics/BodyManager';
+import { BodyManager } from '../graphics/BodyManager';
 import CameraManager from '../graphics/CameraManager';
 
 /// Manages everything required to render a 3D space view with three.js.
