@@ -4,7 +4,7 @@ import { Lifetime } from "../core";
 import { Body, Celestial, Ship } from "../graphics/Body";
 
 /// Keeps track of creating and destroying bodies in the 3D scene.
-export default class BodyManager {
+export class BodyManager {
   private readonly bodyMap = new Map<SsObject, Body>();
   private readonly nameMap = new Map<string, Body[]>();
 
@@ -20,9 +20,9 @@ export default class BodyManager {
       obj.property('class', String).getThen(itemLt, cls => {
         let body: Body;
         if (cls === 'celestial') {
-          body = new Celestial(scene, obj, scale);
+          body = new Celestial(this, scene, obj, scale);
         } else if (cls === 'ship') {
-          body = new Ship(scene, obj, scale);
+          body = new Ship(this, scene, obj, scale);
         } else {
           console.error('unknown body class ', cls);
           return;
