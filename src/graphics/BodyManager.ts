@@ -12,7 +12,6 @@ export class BodyManager {
     readonly lt: Lifetime,
     readonly scene: THREE.Scene,
     readonly god: SsObject,
-    scale: number,
   ) {
     // Will attach itself to the lifetime, no need to hold a reference
     const bodyListProp = this.god.property('bodies', {arrayOf: SsObject});
@@ -20,9 +19,9 @@ export class BodyManager {
       obj.property('class', String).getThen(itemLt, cls => {
         let body: Body;
         if (cls === 'celestial') {
-          body = new Celestial(this, scene, obj, scale);
+          body = new Celestial(this, scene, obj);
         } else if (cls === 'ship') {
-          body = new Ship(this, scene, obj, scale);
+          body = new Ship(this, scene, obj);
         } else {
           console.error('unknown body class ', cls);
           return;
