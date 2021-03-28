@@ -10,6 +10,8 @@ export default class CameraManager {
   readonly camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
   readonly cameraController: OrbitControls;
   private readonly currentShip: LocalProperty<SsObject | null>;
+  private readonly bodyPos = new THREE.Vector3();
+  private readonly posDelta = new THREE.Vector3();
 
   constructor(
     readonly lt: Lifetime,
@@ -33,14 +35,12 @@ export default class CameraManager {
 
   update() {
     let body = this.bodies.get(this.currentShip.get());
-    let pos = new THREE.Vector3();
-    if (body) {
-      pos.copy(body.getPosition());
+    if (body !== undefined) {
+      body.copyPositionInto(this.bodyPos);
     }
-    let delta = new THREE.Vector3();
-    delta.subVectors(pos, this.cameraController.target);
-    this.camera.position.add(delta);
-    this.cameraController.target.copy(pos);
+    this.posDelta.subVectors(this.bodyPos, this.cameraController.target);
+    this.camera.position.add(this.posDelta);
+    this.cameraController.target.copy(this.bodyPos);
     this.cameraController.update();
   }
 }
