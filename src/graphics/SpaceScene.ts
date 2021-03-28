@@ -112,9 +112,9 @@ export default class SpaceScene extends Lifetime {
     this.cameraManager.update();
     this.bodies.update(this.cameraManager.camera.position);
 
-    let body = this.bodies.get(this.game.currentShip.get());
-    if (body) {
-      this.thrustMesh.position.copy(body.getPosition());
+    const body = this.bodies.get(this.game.currentShip.get());
+    if (body !== undefined) {
+      body.copyPositionInto(this.thrustMesh.position);
     }
 
     this.renderer.render(this.scene, this.cameraManager.camera);

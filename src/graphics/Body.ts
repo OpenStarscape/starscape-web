@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import { Lifetime, Vec3 } from "../core";
 import { SsObject } from "../protocol";
+import { CartesianBodySpatial } from './CartesianBodySpatial'
 import type { BodyManager } from './BodyManager'
 
 const emptyGeom = new THREE.BufferGeometry();
@@ -10,14 +11,26 @@ circleGeom.vertices.shift(); // Remove center vertex
 const yVec = new THREE.Vector3(0, 1, 0);
 const zVec = new THREE.Vector3(0, 0, 1);
 
+/// Just the spacial aspects of a body (not things like name or color)
+export interface BodySpatial {
+  /// Returns if returned values will be meaningful
+  isReady(): boolean;
+  /// Get the position, may leave input unchanged if position is not available
+  copyPositionInto(vec: THREE.Vector3): void;
+  /// Get the velocity, may leave input unchanged if position is not available
+  copyVelocityInto(vec: THREE.Vector3): void;
+  /// Returns the mass of the body
+  getMass(): number;
+  /// Returns the "gravity parent" of the body (body this body is orbiting around)
+  getParent(): Body | null;
+}
+
 /// The parent class for all 3D body types.
 export class Body extends Lifetime {
   /// The body manager subscribes and uses the setters for name and parent
   private name: string | null = null;
-  private parent: Body | null = null;
+  readonly spatial: BodySpatial & Lifetime;
 
-  private readonly getMass: () => number | undefined;
-  private readonly getRawPos: () => Vec3 | undefined;
   private readonly orbitLine: THREE.LineLoop;
   private readonly labelDiv: HTMLDivElement;
   private readonly label: CSS2DObject;
@@ -33,23 +46,18 @@ export class Body extends Lifetime {
   private parentVel = new THREE.Vector3();
 
   protected size = 1;
-  protected readonly getVelocity: () => Vec3 | undefined;
   protected readonly mesh = new THREE.Mesh(emptyGeom, this.wireMat);
 
   constructor(
-    readonly manager: BodyManager,
+    manager: BodyManager,
     readonly scene: THREE.Scene,
     readonly obj: SsObject,
   ) {
     super();
 
-    this.getMass = this.obj.property('mass', Number).getter(this);
-    this.getVelocity = this.obj.property('velocity', Vec3).getter(this);
-    this.getRawPos = this.obj.property('position', Vec3).getter(this);
-    this.obj.property('grav_parent', {nullable: SsObject}).subscribe(this, parent_obj => {
-      this.parent = this.manager.get(parent_obj) ?? null;
-    });
+    this.spatial = new CartesianBodySpatial(manager, obj);
 
+    this.addChild(this.spatial);
     this.add(this.solidMat);
     this.add(this.wireMat);
     this.add(this.lineMat);
@@ -72,24 +80,20 @@ export class Body extends Lifetime {
     return false;
   }
 
-  copyPositionInto(vec: THREE.Vector3) {
-    const raw = this.getRawPos();
-    if (raw !== undefined) {
-      raw.copyInto(vec);
-    }
+  copyPositionInto(vec: THREE.Vector3): void {
+    this.spatial.copyPositionInto(vec);
   }
 
-  copyVelocityInto(vec: THREE.Vector3) {
-    const raw = this.getVelocity();
-    if (raw !== undefined) {
-      raw.copyInto(vec);
-    }
+  copyVelocityInto(vec: THREE.Vector3): void {
+    this.spatial.copyVelocityInto(vec);
   }
 
-  getPosition() {
-    const result = new THREE.Vector3();
-    this.copyPositionInto(result);
-    return result;
+  getMass(): number {
+    return this.spatial.getMass();
+  }
+
+  getParent(): Body | null {
+    return this.spatial.getParent();
   }
 
   setColor(color: string) {
@@ -104,7 +108,7 @@ export class Body extends Lifetime {
     this.labelDiv.style.color = color;
   }
 
-  getName() {
+  getName(): string | null {
     return this.name;
   }
 
@@ -119,7 +123,7 @@ export class Body extends Lifetime {
   }
 
   update(cameraPosition: THREE.Vector3) {
-    this.copyPositionInto(this.mesh.position);
+    this.spatial.copyPositionInto(this.mesh.position);
     const dist = this.mesh.position.distanceTo(cameraPosition);
     const scale = dist / 100 / this.size;
     if (scale > 1) {
@@ -130,20 +134,16 @@ export class Body extends Lifetime {
       this.mesh.material = this.wireMat;
     }
 
-    const velocity = this.getVelocity();
-    const mass = this.getMass();
-    if (velocity !== undefined &&
-        mass !== undefined &&
-        this.parent !== null
-    ) {
+    const parent = this.spatial.getParent();
+    if (this.spatial.isReady() && parent !== null) {
       this.orbitLine.visible = true;
-      this.parent.copyPositionInto(this.orbitLine.position);
+      parent.copyPositionInto(this.orbitLine.position);
       const distance = this.orbitLine.position.distanceTo(this.mesh.position);
       this.orbitLine.scale.setScalar(distance);
-      this.parent.copyPositionInto(this.orbitUp);
+      parent.copyPositionInto(this.orbitUp);
       this.orbitUp.sub(this.mesh.position);
-      velocity.copyInto(this.velRelToGravBody);
-      this.parent.copyVelocityInto(this.parentVel);
+      this.spatial.copyVelocityInto(this.velRelToGravBody);
+      parent.copyVelocityInto(this.parentVel);
       this.velRelToGravBody.sub(this.parentVel);
       this.orbitUp.cross(this.velRelToGravBody);
       this.orbitUp.normalize();
@@ -172,7 +172,7 @@ export class Celestial extends Body {
 
 export class Ship extends Body {
   private readonly direction = new THREE.Vector3();
-  private readonly getAccel: () => Vec3 | undefined;
+  private accel: Vec3 | undefined;
 
   constructor(manager: BodyManager, scene: THREE.Scene, obj: SsObject) {
     super(manager, scene, obj);
@@ -180,7 +180,9 @@ export class Ship extends Body {
     this.size = 0.01;
     this.mesh.geometry = new THREE.ConeBufferGeometry(0.01, 0.03, 16);
     this.add(this.mesh.geometry);
-    this.getAccel = this.obj.property('accel', Vec3).getter(this);
+    this.obj.property('accel', Vec3).subscribe(this, accel => {
+      this.accel = accel;
+    });
   }
 
   isShip() {
@@ -189,13 +191,11 @@ export class Ship extends Body {
 
   update(cameraPosition: THREE.Vector3) {
     super.update(cameraPosition);
-    const accel = this.getAccel();
-    if (accel !== undefined) {
-      accel.copyInto(this.direction);
+    if (this.accel !== undefined) {
+      this.accel.copyInto(this.direction);
     }
-    const velocity = this.getVelocity();
-    if (this.direction.lengthSq() < 0.0005 && velocity !== undefined) {
-      velocity.copyInto(this.direction);
+    if (this.direction.lengthSq() < 0.0005 && this.spatial.isReady()) {
+      this.spatial.copyVelocityInto(this.direction);
     }
     this.direction.normalize();
     this.mesh.quaternion.setFromUnitVectors(yVec, this.direction);
