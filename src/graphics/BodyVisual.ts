@@ -27,7 +27,7 @@ export class BodyVisual extends Lifetime {
   private parentVel = new THREE.Vector3();
 
   protected size = 1;
-  protected readonly mesh = new THREE.Mesh(emptyGeom, this.wireMat);
+  protected readonly mesh;
 
   constructor(
     readonly scene: THREE.Scene,
@@ -44,6 +44,10 @@ export class BodyVisual extends Lifetime {
 
     // This is probs a better way: https://stackoverflow.com/a/21742175
     this.orbitLine = new THREE.LineLoop(circleGeom, this.lineMat);
+    this.orbitLine.matrixAutoUpdate = false;
+
+    this.mesh = new THREE.Mesh(emptyGeom, this.wireMat);
+    this.mesh.matrixAutoUpdate = true;
 
     this.scene.add(this.mesh);
     this.scene.add(this.orbitLine);
@@ -107,6 +111,7 @@ export class BodyVisual extends Lifetime {
       this.orbitUp.cross(this.velRelToGravBody);
       this.orbitUp.normalize();
       this.orbitLine.quaternion.setFromUnitVectors(zVec, this.orbitUp);
+      this.orbitLine.updateMatrix();
     } else {
       this.orbitLine.visible = false;
     }
