@@ -8,7 +8,6 @@ const emptyGeom = new THREE.BufferGeometry();
 const circleGeom = new THREE.CircleGeometry(1, 120);
 circleGeom.vertices.shift(); // Remove center vertex
 const yVec = new THREE.Vector3(0, 1, 0);
-const zVec = new THREE.Vector3(0, 0, 1);
 
 /// The parent class for all 3D body types.
 export class BodyVisual extends Lifetime {
@@ -20,11 +19,6 @@ export class BodyVisual extends Lifetime {
   private readonly solidMat = new THREE.MeshBasicMaterial({color: 'white'});
   private readonly wireMat = new THREE.MeshBasicMaterial({color: 'white', wireframe: true});
   private readonly lineMat = new THREE.LineBasicMaterial({color: 'white'});
-
-  // These do not
-  private orbitUp = new THREE.Vector3();
-  private velRelToGravBody = new THREE.Vector3();
-  private parentVel = new THREE.Vector3();
 
   protected size = 1;
   protected readonly mesh;
@@ -97,21 +91,10 @@ export class BodyVisual extends Lifetime {
       this.mesh.material = this.wireMat;
     }
 
-    const parent = this.spatial.getParent();
-    if (this.spatial.isReady() && parent !== null) {
+    if (this.spatial.isReady() && this.spatial.getParent() !== null) {
       this.orbitLine.visible = true;
-      parent.copyPositionInto(this.orbitLine.position);
-      const distance = this.orbitLine.position.distanceTo(this.mesh.position);
-      this.orbitLine.scale.setScalar(distance);
-      parent.copyPositionInto(this.orbitUp);
-      this.orbitUp.sub(this.mesh.position);
-      this.spatial.copyVelocityInto(this.velRelToGravBody);
-      parent.copyVelocityInto(this.parentVel);
-      this.velRelToGravBody.sub(this.parentVel);
-      this.orbitUp.cross(this.velRelToGravBody);
-      this.orbitUp.normalize();
-      this.orbitLine.quaternion.setFromUnitVectors(zVec, this.orbitUp);
-      this.orbitLine.updateMatrix();
+      this.spatial.copyOrbitMatrixInto(this.orbitLine.matrix);
+      //this.orbitLine.updateMatrix();
     } else {
       this.orbitLine.visible = false;
     }

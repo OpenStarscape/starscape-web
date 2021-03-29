@@ -17,10 +17,12 @@ export interface BodySpatial {
   getMass(): number;
   /// Returns the "gravity parent" of the body (body this body is orbiting around)
   getParent(): Body | null;
+  /// Sets the transform for an orbit loop, asumes the orbit is a circle on the unit X/Y plane
+  copyOrbitMatrixInto(mat: THREE.Matrix4): void;
 }
 
 /// The parent class for all 3D body types.
-export class Body extends Lifetime {
+export class Body extends Lifetime implements BodySpatial {
   /// The body manager subscribes and uses the setters for name and parent
   private name: string | null = null;
   private visual: BodyVisual | null = null;
@@ -53,6 +55,10 @@ export class Body extends Lifetime {
     return this.bodyClass === 'ship';
   }
 
+  isReady() {
+    return this.spatial.isReady();
+  }
+
   copyPositionInto(vec: THREE.Vector3): void {
     this.spatial.copyPositionInto(vec);
   }
@@ -67,6 +73,10 @@ export class Body extends Lifetime {
 
   getParent(): Body | null {
     return this.spatial.getParent();
+  }
+
+  copyOrbitMatrixInto(mat: THREE.Matrix4): void {
+    this.spatial.copyOrbitMatrixInto(mat);
   }
 
   getName(): string | null {
