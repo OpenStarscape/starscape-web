@@ -25,6 +25,46 @@ export type RuntimeType =
 type RuntimeTypeTyple1<A extends RuntimeType> = [A];
 type RuntimeTypeTyple2<A extends RuntimeType, B extends RuntimeType> = [A, B];
 type RuntimeTypeTyple3<A extends RuntimeType, B extends RuntimeType, C extends RuntimeType> = [A, B, C];
+type RuntimeTypeTyple4<
+  A extends RuntimeType,
+  B extends RuntimeType,
+  C extends RuntimeType,
+  D extends RuntimeType,
+> = [A, B, C, D];
+type RuntimeTypeTyple5<
+  A extends RuntimeType,
+  B extends RuntimeType,
+  C extends RuntimeType,
+  D extends RuntimeType,
+  E extends RuntimeType,
+> = [A, B, C, D, E];
+type RuntimeTypeTyple6<
+  A extends RuntimeType,
+  B extends RuntimeType,
+  C extends RuntimeType,
+  D extends RuntimeType,
+  E extends RuntimeType,
+  F extends RuntimeType,
+> = [A, B, C, D, E, F];
+type RuntimeTypeTyple7<
+  A extends RuntimeType,
+  B extends RuntimeType,
+  C extends RuntimeType,
+  D extends RuntimeType,
+  E extends RuntimeType,
+  F extends RuntimeType,
+  G extends RuntimeType,
+> = [A, B, C, D, E, F, G];
+type RuntimeTypeTyple8<
+  A extends RuntimeType,
+  B extends RuntimeType,
+  C extends RuntimeType,
+  D extends RuntimeType,
+  E extends RuntimeType,
+  F extends RuntimeType,
+  G extends RuntimeType,
+  H extends RuntimeType,
+> = [A, B, C, D, E, F, G, H];
 type RuntimeTypeNullable<T extends RuntimeType> = {nullable: T};
 type RuntimeTypeArray<T extends RuntimeType> = {arrayOf: T};
 /// Gives access to the compile-time type of a RuntimeType
@@ -38,6 +78,16 @@ type NonNullableRealTypeOf<T extends RuntimeType> =
   T extends RuntimeTypeTyple1<infer A> ? [RealTypeOf<A>] :
   T extends RuntimeTypeTyple2<infer A, infer B> ? [RealTypeOf<A>, RealTypeOf<B>] :
   T extends RuntimeTypeTyple3<infer A, infer B, infer C> ? [RealTypeOf<A>, RealTypeOf<B>, RealTypeOf<C>] :
+  T extends RuntimeTypeTyple4<infer A, infer B, infer C, infer D> ?
+    [RealTypeOf<A>, RealTypeOf<B>, RealTypeOf<C>, RealTypeOf<D>] :
+  T extends RuntimeTypeTyple5<infer A, infer B, infer C, infer D, infer E> ?
+    [RealTypeOf<A>, RealTypeOf<B>, RealTypeOf<C>, RealTypeOf<D>, RealTypeOf<E>] :
+  T extends RuntimeTypeTyple6<infer A, infer B, infer C, infer D, infer E, infer F> ?
+    [RealTypeOf<A>, RealTypeOf<B>, RealTypeOf<C>, RealTypeOf<D>, RealTypeOf<E>, RealTypeOf<F>] :
+  T extends RuntimeTypeTyple7<infer A, infer B, infer C, infer D, infer E, infer F, infer G> ?
+    [RealTypeOf<A>, RealTypeOf<B>, RealTypeOf<C>, RealTypeOf<D>, RealTypeOf<E>, RealTypeOf<F>, RealTypeOf<G>] :
+  T extends RuntimeTypeTyple8<infer A, infer B, infer C, infer D, infer E, infer F, infer G, infer H> ?
+    [RealTypeOf<A>, RealTypeOf<B>, RealTypeOf<C>, RealTypeOf<D>, RealTypeOf<E>, RealTypeOf<F>, RealTypeOf<G>, RealTypeOf<H>] :
   T extends RuntimeTypeArray<infer U> ? Array<RealTypeOf<U>> :
   T extends new (...args: any[]) => infer U ? U :
   never;
@@ -56,6 +106,33 @@ export type RuntimeTypeOf<T> =
   T extends [infer A] ? [RuntimeTypeOf<A>] :
   T extends [infer A, infer B] ? [RuntimeTypeOf<A>, RuntimeTypeOf<B>] :
   T extends [infer A, infer B, infer C] ? [RuntimeTypeOf<A>, RuntimeTypeOf<B>, RuntimeTypeOf<C>] :
+  T extends [infer A, infer B, infer C, infer D] ?
+    [RuntimeTypeOf<A>, RuntimeTypeOf<B>, RuntimeTypeOf<C>, RuntimeTypeOf<D>] :
+  T extends [infer A, infer B, infer C, infer D, infer E] ?
+    [RuntimeTypeOf<A>, RuntimeTypeOf<B>, RuntimeTypeOf<C>, RuntimeTypeOf<D>, RuntimeTypeOf<E>] :
+  T extends [infer A, infer B, infer C, infer D, infer E, infer F] ?
+    [RuntimeTypeOf<A>, RuntimeTypeOf<B>, RuntimeTypeOf<C>, RuntimeTypeOf<D>, RuntimeTypeOf<E>, RuntimeTypeOf<F>] :
+  T extends [infer A, infer B, infer C, infer D, infer E, infer F, infer G] ?
+    [
+      RuntimeTypeOf<A>,
+      RuntimeTypeOf<B>,
+      RuntimeTypeOf<C>,
+      RuntimeTypeOf<D>,
+      RuntimeTypeOf<E>,
+      RuntimeTypeOf<F>,
+      RuntimeTypeOf<G>,
+    ] :
+  T extends [infer A, infer B, infer C, infer D, infer E, infer F, infer G, infer H] ?
+    [
+      RuntimeTypeOf<A>,
+      RuntimeTypeOf<B>,
+      RuntimeTypeOf<C>,
+      RuntimeTypeOf<D>,
+      RuntimeTypeOf<E>,
+      RuntimeTypeOf<F>,
+      RuntimeTypeOf<G>,
+      RuntimeTypeOf<H>,
+    ] :
   T extends Array<infer U> ? {arrayOf: RuntimeTypeOf<U>} :
   undefined;
 
