@@ -23,7 +23,7 @@ export default class CameraManager {
     this.scene = scene;
     this.scene.add(this.camera); // only required so children of the camera are visible
     this.cameraController = new OrbitControls(this.camera, domElement);
-    this.cameraController.target.set(0, 0, -50);
+    this.cameraController.target.set(-20, -20, -10);
     this.bodies = bodies;
     this.currentShip = game.currentShip;
   }

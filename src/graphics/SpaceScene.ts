@@ -92,10 +92,9 @@ export default class SpaceScene extends Lifetime {
       shipCreatedLt.dispose(); // only handle this callback once
     });
 
-    // Type inference is hard apparently
     this.game.god.action('create_ship', {arrayOf: Vec3}).fire([
       new Vec3(150, 0, 10),
-      new Vec3(0, -30, 0),
+      new Vec3(0, 30, 0),
     ]);
 
     document.addEventListener("resize", () => {
