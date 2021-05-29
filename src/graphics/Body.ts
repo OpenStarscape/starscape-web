@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { Lifetime } from "../core";
 import { SsObject } from "../protocol";
+import { OrbitBodySpatial } from './OrbitBodySpatial'
 import { CartesianBodySpatial } from './CartesianBodySpatial'
 import { BodyVisual, CelestialVisual, ShipVisual } from './BodyVisual'
 import type { BodyManager } from './BodyManager'
@@ -31,20 +32,19 @@ export class Body extends Lifetime implements BodySpatial {
 
   constructor(
     manager: BodyManager,
-    readonly scene: THREE.Scene,
     readonly obj: SsObject,
   ) {
     super();
 
-    this.spatial = new CartesianBodySpatial(manager, obj);
+    this.spatial = new OrbitBodySpatial(manager, obj);
     this.addChild(this.spatial);
 
     obj.property('class', String).getThen(this, cls => {
       this.bodyClass = cls;
       if (cls === 'celestial') {
-        this.visual = new CelestialVisual(this.scene, this.obj, this.name, this.spatial);
+        this.visual = new CelestialVisual(manager.scene, this.obj, this.name, this.spatial);
       } else if (cls === 'ship') {
-        this.visual = new ShipVisual(this.scene, this.obj, this.name, this.spatial);
+        this.visual = new ShipVisual(manager.scene, this.obj, this.name, this.spatial);
       } else {
         console.error('unknown body class ', cls);
       }
