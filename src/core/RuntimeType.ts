@@ -249,7 +249,7 @@ function typeErrorMessage<T extends RuntimeType>(value: unknown, t: T): string {
       }
     }
   }
-  return 'expected ' + runtimeTypeName(t) + ', got ' + typeName(value);
+  return 'expected ' + runtimeTypeName(t) + ', got ' + typeName(value) + ' (' + String(value) + ')';
 }
 
 export function isType<T extends RuntimeType>(value: unknown, t: T): boolean {
