@@ -15,7 +15,7 @@ function isCloseTo(a: number, b: number) {
 
 expect.extend({
   toBeCloseToVec: (a: Vec3 | THREE.Vector3, b: Vec3 | THREE.Vector3) => ({
-    message: () => 'expected ' + a + ' to be close to ' + b,
+    message: () => 'expected ' + a.toArray() + ' to be close to ' + b.toArray(),
     pass: isCloseTo(a.x, b.x) && isCloseTo(a.y, b.y) && isCloseTo(a.z, b.z),
   }),
 });
