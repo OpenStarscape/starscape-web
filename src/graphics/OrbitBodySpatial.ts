@@ -72,7 +72,7 @@ export class OrbitBodySpatial extends Lifetime implements BodySpatial {
     this.transform.setPosition(-centerToFoci, 0, 0);
     matTemp.makeRotationZ(periapsis);
     this.transform.premultiply(matTemp);
-    matTemp.makeRotationY(inclination);
+    matTemp.makeRotationX(inclination);
     this.transform.premultiply(matTemp);
     matTemp.makeRotationZ(ascendingNode);
     this.transform.premultiply(matTemp);
