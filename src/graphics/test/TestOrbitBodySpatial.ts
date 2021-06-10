@@ -55,6 +55,9 @@ test('OrbitBodySpatial has no issue with undefined mass', () => {
   expect(spatial.getMass()).toEqual(0);
 });
 
+/// Distance from center to foci, if semi major is 2 and semi minor is 1
+const focusOffset = Math.sqrt(2 * 2 - 1 * 1);
+
 // For these tests base time is 0 and period time is 1
 const orbitPositionTests = [
   {
@@ -159,7 +162,7 @@ const orbitPositionTests = [
     inclination: 0,
     ascendingNode: 0,
     periapsis: 0,
-    expectedPos: [2 - Math.sqrt(2 * 2 - 1), 0, 0],
+    expectedPos: [2 - focusOffset, 0, 0],
     mockTime: 0,
   }, {
     semiMajor: 2,
@@ -167,7 +170,7 @@ const orbitPositionTests = [
     inclination: 0,
     ascendingNode: 0,
     periapsis: 0,
-    expectedPos: [-2 - Math.sqrt(2 * 2 - 1), 0, 0],
+    expectedPos: [-2 - focusOffset, 0, 0],
     mockTime: 0.5,
   }, {
     semiMajor: 2,
@@ -175,7 +178,7 @@ const orbitPositionTests = [
     inclination: 0,
     ascendingNode: 0,
     periapsis: 0.25 * TAU,
-    expectedPos: [0, 2 - Math.sqrt(2 * 2 - 1), 0],
+    expectedPos: [0, 2 - focusOffset, 0],
     mockTime: 0,
   }, {
     semiMajor: 2,
@@ -183,7 +186,7 @@ const orbitPositionTests = [
     inclination: 0,
     ascendingNode: 0.25 * TAU,
     periapsis: 0.25 * TAU,
-    expectedPos: [-2 + Math.sqrt(2 * 2 - 1), 0, 0],
+    expectedPos: [-2 + focusOffset, 0, 0],
     mockTime: 0,
   }, {
     semiMajor: 2,
@@ -191,7 +194,7 @@ const orbitPositionTests = [
     inclination: 0.1 * TAU,
     ascendingNode: 0.25 * TAU,
     periapsis: 0.5 * TAU,
-    expectedPos: [0, -2 + Math.sqrt(2 * 2 - 1), 0],
+    expectedPos: [0, -2 + focusOffset, 0],
     mockTime: 0,
   }, {
     semiMajor: 2,
@@ -199,7 +202,7 @@ const orbitPositionTests = [
     inclination: 0.1 * TAU,
     ascendingNode: 0.25 * TAU,
     periapsis: 0.5 * TAU,
-    expectedPos: [0, -2 + Math.sqrt(2 * 2 - 1), 0],
+    expectedPos: [0, -2 + focusOffset, 0],
     mockTime: 0,
   }, {
     semiMajor: 2,
@@ -207,7 +210,7 @@ const orbitPositionTests = [
     inclination: 0.25 * TAU,
     ascendingNode: 0.25 * TAU,
     periapsis: 0.25 * TAU,
-    expectedPos: [0, 0, 2 - Math.sqrt(2 * 2 - 1)],
+    expectedPos: [0, 0, 2 - focusOffset],
     mockTime: 0,
   }, {
     semiMajor: 2,
@@ -215,7 +218,7 @@ const orbitPositionTests = [
     inclination: 0.25 * TAU,
     ascendingNode: 0.25 * TAU,
     periapsis: 0.25 * TAU,
-    expectedPos: [0, 0, -2 - Math.sqrt(2 * 2 - 1)],
+    expectedPos: [0, 0, -2 - focusOffset],
     mockTime: 0.5,
   },
 ]
