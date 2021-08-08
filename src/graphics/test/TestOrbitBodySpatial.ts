@@ -8,12 +8,17 @@ const orbitTestData = require('./orbit-test-data.json')
 // import * as orbitTestData from './orbit-test-data.json'
 
 const mockParent = {};
+const parentPos = new THREE.Vector3(1, 2, 3);
 
 function mockBodyManager(time?: number) {
   const manager = {
     get: (_obj: any) => {
       // return object's parent body
-      return {};
+      return {
+        copyPositionInto: (vec: THREE.Vector3) => {
+          vec.copy(parentPos);
+        }
+      };
     },
     game: {
       frameTime: () => {
@@ -59,12 +64,12 @@ test('OrbitBodySpatial has no issue with undefined mass', () => {
 });
 
 test('OrbitBodySpatial test data available', () => {
-  expect(orbitTestData.length).toBeGreaterThan(0);
+  expect(orbitTestData.length).toBeGreaterThan(1);
 });
 
 for (let i = 0; i < orbitTestData.length; i++) {
   const testData = orbitTestData[i];
-  test('OrbitBodySpatial ' + JSON.stringify(testData), () => {
+  test('orbit params: ' + testData.name, () => {
     const obj = mockObj();
     const spatial = new OrbitBodySpatial(mockBodyManager(testData.at_time), obj);
     // Cut off one element at the end (the parent ID, always 1) and replace it with the mock parent object
