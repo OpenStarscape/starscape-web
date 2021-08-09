@@ -1,6 +1,6 @@
 [
   {
-    "name": "default orbit",
+    "name": "start of default orbit",
     "paramaters": [
       1,
       1,
@@ -15,6 +15,11 @@
     "position": [
       1,
       0,
+      0
+    ],
+    "velocity": [
+      0,
+      6.283185307179586,
       0
     ]
   },
@@ -35,6 +40,11 @@
       0,
       1,
       0
+    ],
+    "velocity": [
+      -6.283185307179586,
+      0,
+      0
     ]
   },
   {
@@ -53,6 +63,11 @@
     "position": [
       -1,
       0,
+      0
+    ],
+    "velocity": [
+      0,
+      -6.283185307179586,
       0
     ]
   },
@@ -73,10 +88,15 @@
       1,
       0,
       0
+    ],
+    "velocity": [
+      0,
+      6.283185307179586,
+      0
     ]
   },
   {
-    "name": "inclanation does not effect position at start",
+    "name": "start of inclined orbit",
     "paramaters": [
       1,
       1,
@@ -92,105 +112,15 @@
       1,
       0,
       0
-    ]
-  },
-  {
-    "name": "inclanation deos not effect position at half past",
-    "paramaters": [
-      1,
-      1,
-      0.6283185307179586,
-      0,
-      0,
-      0,
-      1,
-      1
     ],
-    "at_time": 0.5,
-    "position": [
-      -1,
+    "velocity": [
       0,
-      0
+      5.0832036923152595,
+      3.6931636609809133
     ]
   },
   {
-    "name": "90deg inclanation and 90deg ascending node",
-    "paramaters": [
-      1,
-      1,
-      1.5707963267948966,
-      1.5707963267948966,
-      0,
-      0,
-      1,
-      1
-    ],
-    "at_time": 0,
-    "position": [
-      0,
-      1,
-      0
-    ]
-  },
-  {
-    "name": "90deg inclanation and 90deg periapsis",
-    "paramaters": [
-      1,
-      1,
-      1.5707963267948966,
-      0,
-      1.5707963267948966,
-      0,
-      1,
-      1
-    ],
-    "at_time": 0,
-    "position": [
-      0,
-      0,
-      1
-    ]
-  },
-  {
-    "name": "ascending node has no effect when inclination and periapsis are 90deg",
-    "paramaters": [
-      1,
-      1,
-      1.5707963267948966,
-      0.6283185307179586,
-      1.5707963267948966,
-      0,
-      1,
-      1
-    ],
-    "at_time": 0,
-    "position": [
-      0,
-      0,
-      1
-    ]
-  },
-  {
-    "name": "quarter past 90deg inclanation",
-    "paramaters": [
-      1,
-      1,
-      1.5707963267948966,
-      0,
-      0,
-      0,
-      1,
-      1
-    ],
-    "at_time": 0.25,
-    "position": [
-      0,
-      0,
-      1
-    ]
-  },
-  {
-    "name": "quarter past 36deg inclanation",
+    "name": "quarter past inclined orbit",
     "paramaters": [
       1,
       1,
@@ -206,63 +136,35 @@
       0,
       0.8090169943749475,
       0.5877852522924731
+    ],
+    "velocity": [
+      -6.283185307179586,
+      0,
+      0
     ]
   },
   {
-    "name": "ascending node has no effect in quarter past 90deg inclanation",
+    "name": "half past inclined orbit",
     "paramaters": [
       1,
       1,
-      1.5707963267948966,
       0.6283185307179586,
       0,
       0,
-      1,
-      1
-    ],
-    "at_time": 0.25,
-    "position": [
-      0,
-      0,
-      1
-    ]
-  },
-  {
-    "name": "why tf does this work?",
-    "paramaters": [
-      1,
-      1,
-      0,
-      1.8849555921538759,
-      1.2566370614359172,
       0,
       1,
       1
     ],
-    "at_time": 0,
+    "at_time": 0.5,
     "position": [
       -1,
       0,
       0
-    ]
-  },
-  {
-    "name": "default elliptical",
-    "paramaters": [
-      5,
-      3,
-      0,
-      0,
-      0,
-      0,
-      1,
-      1
     ],
-    "at_time": 0,
-    "position": [
-      1,
+    "velocity": [
       0,
-      0
+      -5.0832036923152595,
+      -3.6931636609809133
     ]
   }
 ]

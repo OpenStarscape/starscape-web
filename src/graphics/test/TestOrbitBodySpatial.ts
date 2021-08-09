@@ -8,7 +8,9 @@ const orbitTestData = require('./orbit-test-data.json')
 // import * as orbitTestData from './orbit-test-data.json'
 
 const mockParent = {};
-const parentPos = new THREE.Vector3(1, 2, 3);
+// TODO: test parent position
+const parentPos = new THREE.Vector3();
+const parentVel = new THREE.Vector3();
 
 function mockBodyManager(time?: number) {
   const manager = {
@@ -17,7 +19,10 @@ function mockBodyManager(time?: number) {
       return {
         copyPositionInto: (vec: THREE.Vector3) => {
           vec.copy(parentPos);
-        }
+        },
+        copyVelocityInto: (vec: THREE.Vector3) => {
+          vec.copy(parentVel);
+        },
       };
     },
     game: {
@@ -69,19 +74,28 @@ test('OrbitBodySpatial test data available', () => {
 
 for (let i = 0; i < orbitTestData.length; i++) {
   const testData = orbitTestData[i];
-  test('orbit params: ' + testData.name, () => {
-    const obj = mockObj();
-    const spatial = new OrbitBodySpatial(mockBodyManager(testData.at_time), obj);
-    // Cut off one element at the end (the parent ID, always 1) and replace it with the mock parent object
-    const params = (testData.paramaters.slice(0, -1) as any[]).concat([mockParent])
-    assertIsType(params, [Number, Number, Number, Number, Number, Number, Number, Object]);
-    obj.orbit.set(params);
+  const obj = mockObj();
+  const spatial = new OrbitBodySpatial(mockBodyManager(testData.at_time), obj);
+  // Cut off one element at the end (the parent ID, always 1) and replace it with the mock parent object
+  const params = (testData.paramaters.slice(0, -1) as any[]).concat([mockParent])
+  assertIsType(params, [Number, Number, Number, Number, Number, Number, Number, Object]);
+  obj.orbit.set(params);
+  test('position at ' + testData.name, () => {
     const result = new THREE.Vector3();
     spatial.copyPositionInto(result);
     expect(result).toBeCloseToVec(new THREE.Vector3(
       testData.position[0],
       testData.position[1],
       testData.position[2],
+    ));
+  });
+  test('velocity at ' + testData.name, () => {
+    const result = new THREE.Vector3();
+    spatial.copyVelocityInto(result);
+    expect(result).toBeCloseToVec(new THREE.Vector3(
+      testData.velocity[0],
+      testData.velocity[1],
+      testData.velocity[2],
     ));
   });
 }
