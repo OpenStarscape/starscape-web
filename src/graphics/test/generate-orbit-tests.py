@@ -5,16 +5,16 @@ Generates a JSON array of orbit-related test data. Can be used both to test that
 generating correct paramaters and that clients are correctly interpreting them. The 'paramaters'
 property contains the same data as the 'orbit' property on Starscape bodies.
 
-Applicable to server tests only: all parameter-defined orbits can be used to
-calculate a the location/velocity of a body, but some body states can be represented by multiple
-orbits. Specifically circular orbits (semi-major == semi-minor) can have any periapsis value and
+Applicable to server tests only: all parameter-defined orbits can be used to calculate a the
+location/velocity of a body, but some body states can be represented by multiple orbits.
+Specifically circular orbits (semi-major == semi-minor) can have any periapsis value and
 orbits on the X/Y plane (inclination == 0) can have any ascending_node value (but the chosen
-ascending_node effects periapsis, which may be meaningful. The tests here always use 0 in such
+ascending_node affects periapsis, which may be meaningful. The tests here always use 0 in such
 ambiguous cases.
 '''
 
 import json
-import math
+from math import tau, sin, cos
 import os
 
 # Variables used as dictionary keys (slightly prettier code)
@@ -28,6 +28,7 @@ start_time = 'start_time'
 period_time = 'period_time'
 at_time = 'at_time'
 position = 'position'
+velocity = 'velocity'
 unambiguous = 'unambiguous'
 
 # Default values if none specified
@@ -42,6 +43,7 @@ default = {
     period_time: 1,
     at_time: 0,
     position: [1, 0, 0],
+    velocity: [0, tau, 0],
 }
 
 # TODO: test non-90 degree angles
@@ -52,56 +54,69 @@ default = {
 # Test data
 tests = [
     {
-        name: 'default orbit',
+        name: 'start of default orbit',
     }, {
         name: 'quarter past default orbit',
         at_time: 0.25,
         position: [0, 1, 0],
+        velocity: [-tau, 0, 0],
     }, {
         name: 'half past default orbit',
         at_time: 0.5,
         position: [-1, 0, 0],
+        velocity: [0, -tau, 0],
     }, {
         name: 'full rotation default orbit',
         at_time: 1,
     }, {
-        name: 'inclanation does not effect position at start',
-        inclination: 0.1 * math.tau,
+        name: 'start of inclined orbit',
+        inclination: 0.1 * tau,
+        # position is default
+        velocity: [0, tau * cos(0.1 * tau), tau * sin(0.1 * tau)],
     }, {
-        name: 'inclanation deos not effect position at half past',
-        inclination: 0.1 * math.tau,
+        name: 'quarter past inclined orbit',
+        inclination: 0.1 * tau,
+        at_time: 0.25,
+        position: [0, cos(0.1 * tau), sin(0.1 * tau)],
+        velocity: [-tau, 0, 0],
+    }, {
+        name: 'half past inclined orbit',
+        inclination: 0.1 * tau,
         at_time: 0.5,
         position: [-1, 0, 0],
-    }, {
-        name: '90deg inclanation and 90deg ascending node',
-        inclination: 0.25 * math.tau,
-        ascending_node: 0.25 * math.tau,
+        velocity: [0, -tau * cos(0.1 * tau), -tau * sin(0.1 * tau)],
+    }]
+''''
+    , {
+        name: '90deg inclination and 90deg ascending node',
+        inclination: 0.25 * tau,
+        ascending_node: 0.25 * tau,
         position: [0, 1, 0],
     }, {
-        name: '90deg inclanation and 90deg periapsis',
-        inclination: 0.25 * math.tau,
-        periapsis: 0.25 * math.tau,
+        name: '90deg inclination and 90deg periapsis',
+        inclination: 0.25 * tau,
+        periapsis: 0.25 * tau,
         position: [0, 0, 1],
     }, {
         name: 'ascending node has no effect when inclination and periapsis are 90deg',
-        inclination: 0.25 * math.tau,
-        ascending_node: 0.1 * math.tau,
-        periapsis: 0.25 * math.tau,
+        inclination: 0.25 * tau,
+        ascending_node: 0.1 * tau,
+        periapsis: 0.25 * tau,
         position: [0, 0, 1],
     }, {
-        name: 'quarter past 90deg inclanation',
-        inclination: 0.25 * math.tau,
+        name: 'quarter past 90deg inclination',
+        inclination: 0.25 * tau,
         at_time: 0.25,
         position: [0, 0, 1],
     }, {
-        name: 'quarter past 36deg inclanation',
-        inclination: 0.1 * math.tau,
+        name: 'quarter past 36deg inclination',
+        inclination: 0.1 * tau,
         at_time: 0.25,
-        position: [0, math.cos(0.1 * math.tau), math.sin(0.1 * math.tau)],
+        position: [0, math.cos(0.1 * tau), math.sin(0.1 * tau)],
     }, {
-        name: 'ascending node has no effect in quarter past 90deg inclanation',
-        inclination: 0.25 * math.tau,
-        ascending_node: 0.1 * math.tau,
+        name: 'ascending node has no effect in quarter past 90deg inclination',
+        inclination: 0.25 * tau,
+        ascending_node: 0.1 * tau,
         at_time: 0.25,
         position: [0, 0, 1],
     },
@@ -119,40 +134,41 @@ tests = [
         position: [-2 - focus_offset, 0, 0],
     }, {
         semi_major: 2,
-        periapsis: 0.25 * math.tau,
+        periapsis: 0.25 * tau,
         position: [0, 2 - focus_offset, 0],
     }, {
         semi_major: 2,
-        ascending_node: 0.25 * math.tau,
-        periapsis: 0.25 * math.tau,
+        ascending_node: 0.25 * tau,
+        periapsis: 0.25 * tau,
         position: [-2 + focus_offset, 0, 0],
     }, {
         semi_major: 2,
-        inclination: 0.1 * math.tau,
-        ascending_node: 0.25 * math.tau,
-        periapsis: 0.5 * math.tau,
+        inclination: 0.1 * tau,
+        ascending_node: 0.25 * tau,
+        periapsis: 0.5 * tau,
         position: [0, -2 + focus_offset, 0],
     }, {
         semi_major: 2,
-        inclination: 0.1 * math.tau,
-        ascending_node: 0.25 * math.tau,
-        periapsis: 0.5 * math.tau,
+        inclination: 0.1 * tau,
+        ascending_node: 0.25 * tau,
+        periapsis: 0.5 * tau,
         position: [0, -2 + focus_offset, 0],
     }, {
         semi_major: 2,
-        inclination: 0.25 * math.tau,
-        ascending_node: 0.25 * math.tau,
-        periapsis: 0.25 * math.tau,
+        inclination: 0.25 * tau,
+        ascending_node: 0.25 * tau,
+        periapsis: 0.25 * tau,
         position: [0, 0, 2 - focus_offset],
     }, {
         semi_major: 2,
-        inclination: 0.25 * math.tau,
-        ascending_node: 0.25 * math.tau,
-        periapsis: 0.25 * math.tau,
+        inclination: 0.25 * tau,
+        ascending_node: 0.25 * tau,
+        periapsis: 0.25 * tau,
         at_time: 0.5,
         position: [0, 0, -2 - focus_offset],
     },
 ]
+'''
 
 # Find output path
 output_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'orbit-test-data.json')
@@ -221,6 +237,7 @@ for test in tests:
         ],
         at_time: test[at_time],
         position: test[position],
+        velocity: test[velocity],
     })
 
 # Write output files
