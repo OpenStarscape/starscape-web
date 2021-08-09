@@ -7,6 +7,8 @@ import type { Body, BodySpatial } from './Body'
 
 const TAU = 2 * Math.PI;
 const matTemp = new THREE.Matrix4();
+const vecTempA = new THREE.Vector3();
+const vecTempB = new THREE.Vector3();
 
 /// Subscribes to the body's orbit and determines position from that
 /// A lot of the math was figured out using https://space.stackexchange.com/a/8915
@@ -16,8 +18,12 @@ export class OrbitBodySpatial extends Lifetime implements BodySpatial {
   private mass: number | undefined;
   private baseTime = 0;
   private periodTime = 0;
-  private readonly transform = new THREE.Matrix4();
+  private semiMajor = 0; // Needed for velocity calculation
   private eccentricity = 1;
+  private readonly transform = new THREE.Matrix4();
+  private cachedTime: number | null = null; // The game time (if any) for which the cache is valid
+  private readonly cachedPosition = new THREE.Vector3();
+  private readonly cachedVelocity = new THREE.Vector3();
 
   constructor(
     readonly manager: BodyManager,
@@ -49,6 +55,7 @@ export class OrbitBodySpatial extends Lifetime implements BodySpatial {
     periodTime: number,
     parent: SsObject | null
   ) {
+    // Orbital parameters only work if we're orbiting something. If there is no parent, use the fallback
     this.parent = this.manager.get(parent) ?? null;
     if (this.parent === null) {
       this.useFallback();
@@ -62,12 +69,17 @@ export class OrbitBodySpatial extends Lifetime implements BodySpatial {
     this.baseTime = baseTime;
     this.periodTime = periodTime;
 
+    // Vectors get automatically scaled, but numbers have to be scaled manually
     semiMajor *= Vec3.threeScale;
     semiMinor *= Vec3.threeScale;
 
+    // Distance from the center of the orbit to either focus
     const centerToFoci = Math.sqrt(semiMajor * semiMajor - semiMinor * semiMinor);
+    this.semiMajor = semiMajor;
     this.eccentricity = centerToFoci / semiMajor;
 
+    // Create the transformation matrix that will turn a point on a flat, unit circular orbit to a point on the real
+    // orbit relative to the parent
     this.transform.makeScale(semiMajor, semiMinor, 1);
     this.transform.setPosition(-centerToFoci, 0, 0);
     matTemp.makeRotationZ(periapsis);
@@ -92,8 +104,13 @@ export class OrbitBodySpatial extends Lifetime implements BodySpatial {
     );
   }
 
-  copyPositionInto(vec: THREE.Vector3): void {
+  ensureCache() {
+    // Do nothing if the cache is already up to date
     const time = this.manager.game.frameTime();
+    if (this.cachedTime === time) {
+      return;
+    }
+    this.cachedTime = time;
     const orbitsSinceStart = (time - this.baseTime) / this.periodTime;
     const meanAnomaly = (orbitsSinceStart % 1) * TAU;
     let eccentricAnomaly = meanAnomaly;
@@ -109,19 +126,59 @@ export class OrbitBodySpatial extends Lifetime implements BodySpatial {
     // eccentricAnomaly is the angle if the body's orbit was circular, so we use that to get an XY
     // position on the unit circle and then use the transform matrix to turn that into a position
     // in space
-    vec.x = Math.cos(eccentricAnomaly);
-    vec.y = Math.sin(eccentricAnomaly);
-    vec.z = 0;
-    if (isNaN(vec.x) || isNaN(vec.y)) {
-      vec.x = 0;
-      vec.y = 0;
+    this.cachedPosition.x = Math.cos(eccentricAnomaly);
+    this.cachedPosition.y = Math.sin(eccentricAnomaly);
+    this.cachedPosition.z = 0;
+    if (isNaN(this.cachedPosition.x) || isNaN(this.cachedPosition.y)) {
+      this.cachedPosition.x = 0;
+      this.cachedPosition.y = 0;
     }
-    vec.applyMatrix4(this.transform);
+
+    // To calculate the velocity vector, we'll also need a point in the direction that we're moving
+    this.cachedVelocity.copy(this.cachedPosition);
+    this.cachedVelocity.x -= Math.sin(eccentricAnomaly);
+    this.cachedVelocity.y += Math.cos(eccentricAnomaly);
+
+    // Apply the matrix, which changes positions on the flat unit circle to positions on an elliptical orbit relative
+    // to the parent
+    this.cachedPosition.applyMatrix4(this.transform);
+    this.cachedVelocity.applyMatrix4(this.transform);
+
+    // Calculate the gravity parameter needed for the vis-viva equation in the next step.
+    // It should generally always be the same, but no need to assume that when it's calculatable from the parameters.
+    // https://en.wikipedia.org/wiki/Elliptic_orbit#Orbital_period
+    const grav_param = (this.semiMajor ** 3) / ((this.periodTime / TAU) ** 2);
+
+    // Distance between us and the parent
+    const r = this.cachedPosition.length();
+
+    // Our current speed
+    // https://en.wikipedia.org/wiki/Elliptic_orbit#Velocity
+    const speed = Math.sqrt(grav_param * ((2 / r) - (1 / this.semiMajor)));
+
+    // Set our velocity
+    this.cachedVelocity.sub(this.cachedPosition);
+    this.cachedVelocity.setLength(speed);
+
+    // Apply parent's position and velocity
+    vecTempA.set(0, 0, 0);
+    vecTempB.set(0, 0, 0);
+    if (this.parent) {
+      this.parent.copyPositionInto(vecTempA);
+      this.parent.copyVelocityInto(vecTempB);
+    }
+    this.cachedPosition.add(vecTempA);
+    this.cachedVelocity.add(vecTempB);
+  }
+
+  copyPositionInto(vec: THREE.Vector3): void {
+    this.ensureCache();
+    vec.copy(this.cachedPosition);
   }
 
   copyVelocityInto(vec: THREE.Vector3): void {
-    // TODO
-    vec.set(0, 0, 0);
+    this.ensureCache();
+    vec.copy(this.cachedVelocity);
   }
 
   getMass(): number {
@@ -134,5 +191,11 @@ export class OrbitBodySpatial extends Lifetime implements BodySpatial {
 
   copyOrbitMatrixInto(mat: THREE.Matrix4): void {
     mat.copy(this.transform);
+    // Apply parent's position
+    if (this.parent) {
+      this.parent.copyPositionInto(vecTempA);
+      matTemp.makeTranslation(vecTempA.x, vecTempA.y, vecTempA.z);
+      mat.premultiply(matTemp);
+    }
   }
 }
