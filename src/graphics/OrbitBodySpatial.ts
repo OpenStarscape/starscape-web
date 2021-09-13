@@ -112,7 +112,9 @@ export class OrbitBodySpatial extends Lifetime implements BodySpatial {
     }
     this.cachedTime = time;
     const orbitsSinceStart = (time - this.baseTime) / this.periodTime;
+    // mean anomaly ime within the orbit cycle represented as an angle, does not have geometric meaning
     const meanAnomaly = (orbitsSinceStart % 1) * TAU;
+    // eccentric anomaly is angle the body would be at if the space was stretched to make the orbit circular
     let eccentricAnomaly = meanAnomaly;
     // TODO: is this magic number optimal?
     // TODO: can we stick these in a lookup table?
