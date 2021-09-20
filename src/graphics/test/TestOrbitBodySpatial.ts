@@ -76,8 +76,8 @@ for (let i = 0; i < orbitTestData.length; i++) {
   const testData = orbitTestData[i];
   const obj = mockObj();
   const spatial = new OrbitBodySpatial(mockBodyManager(testData.at_time), obj);
-  // Cut off one element at the end (the parent ID, always 1) and replace it with the mock parent object
-  const params = (testData.paramaters.slice(0, -1) as any[]).concat([mockParent])
+  // Add the mock parent at the end
+  const params = (testData.orbit as any[]).concat([mockParent])
   assertIsType(params, [Number, Number, Number, Number, Number, Number, Number, Object]);
   obj.orbit.set(params);
   test('position at ' + testData.name, () => {
