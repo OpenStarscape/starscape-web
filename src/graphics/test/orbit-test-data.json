@@ -1,15 +1,15 @@
 [
   {
+    "comment": "see https://github.com/OpenStarscape/starscape-protocol/tree/master/orbit-tests for documentation",
     "name": "start of default orbit",
-    "paramaters": [
+    "orbit": [
       1,
       1,
       0,
       0,
       0,
       0,
-      6.283185307179586,
-      1
+      6.283185307179586
     ],
     "grav_param": 1,
     "at_time": 0.0,
@@ -26,15 +26,14 @@
   },
   {
     "name": "quarter past default orbit",
-    "paramaters": [
+    "orbit": [
       1,
       1,
       0,
       0,
       0,
       0,
-      6.283185307179586,
-      1
+      6.283185307179586
     ],
     "grav_param": 1,
     "at_time": 1.5707963267948966,
@@ -51,15 +50,14 @@
   },
   {
     "name": "half past default orbit",
-    "paramaters": [
+    "orbit": [
       1,
       1,
       0,
       0,
       0,
       0,
-      6.283185307179586,
-      1
+      6.283185307179586
     ],
     "grav_param": 1,
     "at_time": 3.141592653589793,
@@ -75,16 +73,39 @@
     ]
   },
   {
+    "name": "three quarters past default orbit",
+    "orbit": [
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      6.283185307179586
+    ],
+    "grav_param": 1,
+    "at_time": 4.71238898038469,
+    "position": [
+      0,
+      -1,
+      0
+    ],
+    "velocity": [
+      1.0,
+      0.0,
+      0.0
+    ]
+  },
+  {
     "name": "full rotation default orbit",
-    "paramaters": [
+    "orbit": [
       1,
       1,
       0,
       0,
       0,
       0,
-      6.283185307179586,
-      1
+      6.283185307179586
     ],
     "grav_param": 1,
     "at_time": 6.283185307179586,
@@ -101,15 +122,14 @@
   },
   {
     "name": "half past orbit with grav param",
-    "paramaters": [
+    "orbit": [
       1,
       1,
       0,
       0,
       0,
       0,
-      3.358503816725428,
-      1
+      3.358503816725428
     ],
     "grav_param": 3.5,
     "at_time": 1.679251908362714,
@@ -126,15 +146,14 @@
   },
   {
     "name": "start of inclined orbit",
-    "paramaters": [
+    "orbit": [
       1,
       1,
       0.6283185307179586,
       0,
       0,
       0,
-      6.283185307179586,
-      1
+      6.283185307179586
     ],
     "grav_param": 1,
     "at_time": 0.0,
@@ -151,15 +170,14 @@
   },
   {
     "name": "quarter past inclined orbit",
-    "paramaters": [
+    "orbit": [
       1,
       1,
       0.6283185307179586,
       0,
       0,
       0,
-      6.283185307179586,
-      1
+      6.283185307179586
     ],
     "grav_param": 1,
     "at_time": 1.5707963267948966,
@@ -176,15 +194,14 @@
   },
   {
     "name": "half past inclined orbit",
-    "paramaters": [
+    "orbit": [
       1,
       1,
       0.6283185307179586,
       0,
       0,
       0,
-      6.283185307179586,
-      1
+      6.283185307179586
     ],
     "grav_param": 1,
     "at_time": 3.141592653589793,
@@ -201,15 +218,14 @@
   },
   {
     "name": "start of 90deg ascending node",
-    "paramaters": [
+    "orbit": [
       1,
       1,
       0.6283185307179586,
       1.5707963267948966,
       0,
       0,
-      6.283185307179586,
-      1
+      6.283185307179586
     ],
     "grav_param": 1,
     "at_time": 0.0,
@@ -226,15 +242,14 @@
   },
   {
     "name": "quarter past 90deg ascending node",
-    "paramaters": [
+    "orbit": [
       1,
       1,
       0.6283185307179586,
       1.5707963267948966,
       0,
       0,
-      6.283185307179586,
-      1
+      6.283185307179586
     ],
     "grav_param": 1,
     "at_time": 1.5707963267948966,
@@ -251,15 +266,14 @@
   },
   {
     "name": "half past 90deg ascending node",
-    "paramaters": [
+    "orbit": [
       1,
       1,
       0.6283185307179586,
       1.5707963267948966,
       0,
       0,
-      6.283185307179586,
-      1
+      6.283185307179586
     ],
     "grav_param": 1,
     "at_time": 3.141592653589793,
@@ -276,15 +290,14 @@
   },
   {
     "name": "start of flat eliptical",
-    "paramaters": [
+    "orbit": [
       5,
       3,
       0,
       0,
       0,
       0,
-      70.24814731040726,
-      1
+      70.24814731040726
     ],
     "grav_param": 1,
     "at_time": 0.0,
@@ -301,15 +314,14 @@
   },
   {
     "name": "start of flat eliptical with start time",
-    "paramaters": [
+    "orbit": [
       5,
       3,
       0,
       0,
       0,
       1,
-      70.24814731040726,
-      1
+      70.24814731040726
     ],
     "grav_param": 1,
     "at_time": 1.0,
@@ -326,15 +338,14 @@
   },
   {
     "name": "half past flat eliptical",
-    "paramaters": [
+    "orbit": [
       5,
       3,
       0,
       0,
       0,
       0,
-      70.24814731040726,
-      1
+      70.24814731040726
     ],
     "grav_param": 1,
     "at_time": 35.12407365520363,
@@ -350,16 +361,63 @@
     ]
   },
   {
+    "name": "half past flat eliptical with negative base time",
+    "orbit": [
+      5,
+      3,
+      0,
+      0,
+      0,
+      -1000,
+      70.24814731040726
+    ],
+    "grav_param": 1,
+    "at_time": 88.84628331131256,
+    "position": [
+      -9,
+      0,
+      0
+    ],
+    "velocity": [
+      0.0,
+      -0.1490711984999859,
+      0.0
+    ]
+  },
+  {
+    "name": "half past flat eliptical with base time after current time",
+    "orbit": [
+      5,
+      3,
+      0,
+      0,
+      0,
+      1000,
+      70.24814731040726
+    ],
+    "grav_param": 1,
+    "at_time": 51.65001130950196,
+    "position": [
+      -9,
+      0,
+      0
+    ],
+    "velocity": [
+      0.0,
+      -0.1490711984999859,
+      0.0
+    ]
+  },
+  {
     "name": "start of inclined eliptical",
-    "paramaters": [
+    "orbit": [
       5,
       3,
       0.6283185307179586,
       0,
       0,
       0,
-      70.24814731040726,
-      1
+      70.24814731040726
     ],
     "grav_param": 1,
     "at_time": 0.0,
@@ -376,15 +434,14 @@
   },
   {
     "name": "start of eliptical with 90deg ascending node",
-    "paramaters": [
+    "orbit": [
       5,
       3,
       0.6283185307179586,
       1.5707963267948966,
       0,
       0,
-      70.24814731040726,
-      1
+      70.24814731040726
     ],
     "grav_param": 1,
     "at_time": 0.0,
@@ -401,15 +458,14 @@
   },
   {
     "name": "start of eliptical with 90deg periapsis",
-    "paramaters": [
+    "orbit": [
       5,
       3,
       0.6283185307179586,
       0,
       1.5707963267948966,
       0,
-      70.24814731040726,
-      1
+      70.24814731040726
     ],
     "grav_param": 1,
     "at_time": 0.0,
@@ -426,15 +482,14 @@
   },
   {
     "name": "half past eliptical with 90deg periapsis",
-    "paramaters": [
+    "orbit": [
       5,
       3,
       0.6283185307179586,
       0,
       1.5707963267948966,
       0,
-      70.24814731040726,
-      1
+      70.24814731040726
     ],
     "grav_param": 1,
     "at_time": 35.12407365520363,
@@ -451,15 +506,14 @@
   },
   {
     "name": "start of eliptical with 90deg periapsis and 90deg ascending node",
-    "paramaters": [
+    "orbit": [
       5,
       3,
       0.6283185307179586,
       1.5707963267948966,
       1.5707963267948966,
       0,
-      70.24814731040726,
-      1
+      70.24814731040726
     ],
     "grav_param": 1,
     "at_time": 0.0,
@@ -476,15 +530,14 @@
   },
   {
     "name": "half past eliptical with 90deg periapsis and 90deg ascending node",
-    "paramaters": [
+    "orbit": [
       5,
       3,
       0.6283185307179586,
       1.5707963267948966,
       1.5707963267948966,
       0,
-      70.24814731040726,
-      1
+      70.24814731040726
     ],
     "grav_param": 1,
     "at_time": 35.12407365520363,
@@ -501,15 +554,14 @@
   },
   {
     "name": "half past eliptical with 90deg periapsis and grav param",
-    "paramaters": [
+    "orbit": [
       5,
       3,
       0.6283185307179586,
       0,
       1.5707963267948966,
       0,
-      26.179938779914945,
-      1
+      26.179938779914945
     ],
     "grav_param": 7.2,
     "at_time": 13.089969389957473,
@@ -526,15 +578,14 @@
   },
   {
     "name": "quarter past flat eliptical",
-    "paramaters": [
+    "orbit": [
       5,
       3,
       0,
       0,
       0,
       0,
-      70.24814731040726,
-      1
+      70.24814731040726
     ],
     "grav_param": 1,
     "at_time": 17.562036827601816,
@@ -551,15 +602,14 @@
   },
   {
     "name": "quarter past eliptical with 90deg periapsis and 90deg ascending node",
-    "paramaters": [
+    "orbit": [
       5,
       3,
       0.6283185307179586,
       1.5707963267948966,
       1.5707963267948966,
       0,
-      70.24814731040726,
-      1
+      70.24814731040726
     ],
     "grav_param": 1,
     "at_time": 17.562036827601816,
@@ -576,15 +626,14 @@
   },
   {
     "name": "quarter past eliptical with 90deg periapsis and grav param",
-    "paramaters": [
+    "orbit": [
       5,
       3,
       0.6283185307179586,
       0,
       1.5707963267948966,
       0,
-      26.179938779914945,
-      1
+      26.179938779914945
     ],
     "grav_param": 7.2,
     "at_time": 6.544984694978736,
@@ -597,6 +646,54 @@
       0.29126830728580105,
       -0.5262369119099977,
       -0.3823334963088241
+    ]
+  },
+  {
+    "name": "quarter past flat eliptical with negative base time",
+    "orbit": [
+      5,
+      3,
+      0,
+      0,
+      0,
+      -1000,
+      70.24814731040726
+    ],
+    "grav_param": 1,
+    "at_time": 71.28424648371075,
+    "position": [
+      -6.990524302126245,
+      2.404253560550809,
+      0
+    ],
+    "velocity": [
+      -0.24241384204161084,
+      -0.10854928913039147,
+      0.0
+    ]
+  },
+  {
+    "name": "quarter past flat eliptical with base time after current time",
+    "orbit": [
+      5,
+      3,
+      0,
+      0,
+      0,
+      1000,
+      70.24814731040726
+    ],
+    "grav_param": 1,
+    "at_time": 34.08797448190015,
+    "position": [
+      -6.990524302126245,
+      2.404253560550809,
+      0
+    ],
+    "velocity": [
+      -0.24241384204161084,
+      -0.10854928913039147,
+      0.0
     ]
   }
 ]
