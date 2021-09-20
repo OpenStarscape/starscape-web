@@ -112,18 +112,17 @@ export class OrbitBodySpatial extends Lifetime implements BodySpatial {
     }
     this.cachedTime = time;
     const orbitsSinceStart = (time - this.baseTime) / this.periodTime;
-    // mean anomaly ime within the orbit cycle represented as an angle, does not have geometric meaning
-    const meanAnomaly = (orbitsSinceStart % 1) * TAU;
+    // mean anomaly is time within the orbit cycle represented as an angle, does not have geometric meaning
+    // we use x - floor(x) instead of x % 1 because javascript % will produce negative results for negative numbers
+    const meanAnomaly = (orbitsSinceStart - Math.floor(orbitsSinceStart)) * TAU;
     // eccentric anomaly is angle the body would be at if the space was stretched to make the orbit circular
     let eccentricAnomaly = meanAnomaly;
-    // TODO: is this magic number optimal?
     // TODO: can we stick these in a lookup table?
-    for (let i = 0; i < 12; i++) {
-      const delta = (
+    for (let i = 0; i < 5; i++) {
+      eccentricAnomaly -= (
         (eccentricAnomaly - this.eccentricity * Math.sin(eccentricAnomaly) - meanAnomaly) /
         (1 - this.eccentricity * Math.cos(eccentricAnomaly))
       );
-      eccentricAnomaly = eccentricAnomaly - delta;
     }
     // eccentricAnomaly is the angle if the body's orbit was circular, so we use that to get an XY
     // position on the unit circle and then use the transform matrix to turn that into a position
