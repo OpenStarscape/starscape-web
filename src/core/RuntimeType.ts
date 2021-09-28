@@ -204,7 +204,8 @@ export function runtimeTypeEquals(a: RuntimeType, b: RuntimeType): boolean {
   }
 }
 
-/// Returns the name of a runtime type. Similar to typeName() except it returns 'number[]' instead of 'array'
+/// Returns the name of a runtime type. Sort of like typeName() for runtime types, except it returns
+/// 'number[]' instead of 'array'
 export function runtimeTypeName(t: RuntimeType): string {
   switch (t as any) {
     case null:
@@ -245,11 +246,11 @@ function typeErrorMessage<T extends RuntimeType>(value: unknown, t: T): string {
   if (Array.isArray(t) && Array.isArray(value)) {
     for (let i = 0; i < value.length; i++) {
       if (!isType(value[i], t[0])) {
-        return 'inside array: ' + typeErrorMessage(value[i], t[0]);
+        return 'at array index ' + i + ': ' + typeErrorMessage(value[i], t[0]);
       }
     }
   }
-  return 'expected ' + runtimeTypeName(t) + ', got ' + typeName(value);
+  return 'expected ' + runtimeTypeName(t) + ', got ' + typeName(value) + ' (' + String(value) + ')';
 }
 
 export function isType<T extends RuntimeType>(value: unknown, t: T): boolean {

@@ -77,7 +77,7 @@ export default class SpaceScene extends Lifetime {
     this.domParent.appendChild(this.overlayRenderer.domElement);
 
     this.starfield = new Starfield(this, this.scene);
-    this.bodies = new BodyManager(this, this.scene, this.game.god);
+    this.bodies = new BodyManager(this, this.game, this.scene);
     this.cameraManager = new CameraManager(
       this,
       this.scene,

@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { Lifetime, Vec3 } from "../core";
 import { SsObject } from "../protocol";
 import type { BodyManager } from './BodyManager'
-import type { Body } from './Body'
+import type { Body, BodySpatial } from './Body'
 
 /// These all *should* be locals to copyOrbitMatrixInto() but js is fucking stupid and allocating
 /// objects is expensive and I prematurely optimize so we make them global
@@ -15,7 +15,7 @@ const orbitUp = new THREE.Vector3();
 const orbitQuat = new THREE.Quaternion();
 const zVec = new THREE.Vector3(0, 0, 1);
 
-export class CartesianBodySpatial extends Lifetime {
+export class CartesianBodySpatial extends Lifetime implements BodySpatial {
   private position: Vec3 | undefined;
   private velocity: Vec3 | undefined;
   private mass: number | undefined;
