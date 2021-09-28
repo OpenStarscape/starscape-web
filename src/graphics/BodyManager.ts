@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { SsObject, SsSet } from "../protocol";
 import { Lifetime } from "../core";
+import { Game } from "../game";
 import { Body } from "../graphics/Body";
 
 /// Keeps track of creating and destroying bodies in the 3D scene.
@@ -10,13 +11,13 @@ export class BodyManager {
 
   constructor(
     readonly lt: Lifetime,
+    readonly game: Game,
     readonly scene: THREE.Scene,
-    readonly god: SsObject,
   ) {
     // Will attach itself to the lifetime, no need to hold a reference
-    const bodyListProp = this.god.property('bodies', {arrayOf: SsObject});
+    const bodyListProp = this.game.god.property('bodies', {arrayOf: SsObject});
     new SsSet(bodyListProp, this.lt, (itemLt, obj) => {
-      const body = new Body(this, scene, obj);
+      const body = new Body(this, obj);
       this.bodyMap.set(obj, body);
       obj.property('name', {nullable: String}).subscribe(itemLt, (name: any) => {
         this.setBodyName(body, name);

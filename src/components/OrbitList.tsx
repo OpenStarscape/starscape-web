@@ -107,7 +107,7 @@ export default class OrbitList extends LifetimeComponent<ListProps, ListState> {
         this.orbit(obj);
       };
       const button = (
-        <OrbitButton obj={obj} handleSelected={handleSelected} />
+        <OrbitButton key={obj.id} obj={obj} handleSelected={handleSelected} />
       );
       this.addButton(button);
       // When body is destroyed, remove its button
