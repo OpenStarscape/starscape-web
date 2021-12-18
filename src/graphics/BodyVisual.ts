@@ -4,9 +4,21 @@ import { Lifetime, Vec3 } from "../core";
 import { SsObject } from "../protocol";
 import type { BodySpatial } from './Body'
 
+function makeRingGeom(verts: number): THREE.BufferGeometry {
+  const circleGeom = new THREE.CircleGeometry(1, verts);
+  const attrib = circleGeom.getAttribute('position');
+  const array = Array.from(attrib.array);
+  const itemSize = attrib.itemSize;
+  for (let i = 0; i < itemSize; i++) {
+    array.shift(); // Shift off the center vertex
+  }
+  const result = new THREE.BufferGeometry();
+  result.setAttribute('position', new THREE.BufferAttribute(new Float32Array(array as any), itemSize));
+  return result;
+}
+
 const emptyGeom = new THREE.BufferGeometry();
-const circleGeom = new THREE.CircleGeometry(1, 120);
-circleGeom.vertices.shift(); // Remove center vertex
+let circleGeom = makeRingGeom(120);
 const yVec = new THREE.Vector3(0, 1, 0);
 
 /// The parent class for all 3D body types.
@@ -134,6 +146,7 @@ export class ShipVisual extends BodyVisual {
     }
     if (this.direction.lengthSq() < 0.0005 && this.spatial.isReady()) {
       this.spatial.copyVelocityInto(this.direction);
+      console.log('copied velocity: ', this.direction);
     }
     this.direction.normalize();
     this.mesh.quaternion.setFromUnitVectors(yVec, this.direction);

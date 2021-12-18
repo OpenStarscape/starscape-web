@@ -5,7 +5,7 @@ import { Lifetime } from '../core';
 export default class Starfield {
   private closest = 600;
   private farthest = 800;
-  private geom = new THREE.Geometry();
+  private geom = new THREE.BufferGeometry();
   private smallMat = new THREE.PointsMaterial({ color: 0xffffff, size: 1.5 });
   private bigMat = new THREE.PointsMaterial({ color: 0xffffff, size: 2.0 });
   private stars: THREE.Points[] = [];
@@ -14,7 +14,7 @@ export default class Starfield {
     readonly lt: Lifetime,
     readonly scene: THREE.Scene
   ) {
-    this.geom.vertices.push(new THREE.Vector3());
+    this.geom.setAttribute('position', new THREE.BufferAttribute(new Float32Array([0.0, 0.0, 0.0]), 3));
     this.lt.add(this.geom);
     this.lt.add(this.smallMat);
     this.lt.add(this.bigMat);
