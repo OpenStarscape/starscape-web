@@ -1,4 +1,12 @@
-import { Lifetime, Conduit, RealTypeOf, runtimeTypeEquals, runtimeTypeName, indirectRuntimeType} from '../core';
+import {
+  Lifetime,
+  Conduit,
+  RealTypeOf,
+  runtimeTypeEquals,
+  runtimeTypeName,
+  indirectRuntimeType,
+  messageFromError,
+} from '../core';
 import { SsConnection } from './SsConnection';
 import { SsProperty } from './SsProperty'
 import { SsAction } from './SsAction'
@@ -117,7 +125,7 @@ export class SsObject extends Lifetime {
     try {
       this.member(name, SsProperty)?.handleUpdate(value);
     } catch (e) {
-      throw new Error(this.id + '.' + name + ' property: ' + e.message);
+      throw new Error(this.id + '.' + name + ' property: ' + messageFromError(e));
     }
   }
 
@@ -126,7 +134,7 @@ export class SsObject extends Lifetime {
     try {
       this.member<any>(name, SsProperty)?.handleGetReply(value);
     } catch (e) {
-      throw new Error(this.id + '.' + name + ' property: ' + e.message);
+      throw new Error(this.id + '.' + name + ' property: ' + messageFromError(e));
     }
   }
 
@@ -135,7 +143,7 @@ export class SsObject extends Lifetime {
     try {
       this.member<any>(name, SsSignal)?.handleSignal(value);
     } catch (e) {
-      throw new Error(this.id + '.' + name + ' signal: ' + e.message);
+      throw new Error(this.id + '.' + name + ' signal: ' + messageFromError(e));
     }
   }
 

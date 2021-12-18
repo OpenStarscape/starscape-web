@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
-import { Lifetime, Vec3 } from '../core';
+import { Lifetime, Vec3, messageFromError } from '../core';
 import { Game, FramerateTracker } from '../game';
 import { SsObject } from '../protocol';
 import Starfield from '../graphics/Starfield';
@@ -36,7 +36,7 @@ export default class SpaceScene extends Lifetime {
       this.renderer = new THREE.WebGLRenderer({antialias: true});
     } catch (e) {
       // TODO: some standard mechanism for alerts that looks good?
-      window.alert('Failed to initialize WebGL: ' + e.message);
+      window.alert('Failed to initialize WebGL: ' + messageFromError(e));
       throw (e);
     }
     // TODO: move this to Body
