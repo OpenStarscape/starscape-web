@@ -24,7 +24,7 @@ export class SsRTCSession extends SsSession {
     this.channel.onopen = () => { this.onOpen(); };
     this.channel.onmessage = evt => { this.onPacket(evt.data); };
     this.channel.onclose = () => { this.onClose(); };
-    this.channel.onerror = evt => { this.onError(evt.error.toString()); };
+    this.channel.onerror = evt => { this.onError((evt as any).error.toString()); };
 
     this.rtc.createOffer().then((offer) => {
       return this.rtc.setLocalDescription(offer);
