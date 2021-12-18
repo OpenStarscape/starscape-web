@@ -160,6 +160,9 @@ export class OrbitBodySpatial extends Lifetime implements BodySpatial {
     // Set our velocity
     this.cachedVelocity.sub(this.cachedPosition);
     this.cachedVelocity.setLength(speed);
+    if (isNaN(this.cachedVelocity.x) || isNaN(this.cachedVelocity.y) || isNaN(this.cachedVelocity.z)) {
+      this.cachedVelocity.set(0, 0, 0);
+    }
 
     // Apply parent's position and velocity
     vecTempA.set(0, 0, 0);
