@@ -40,7 +40,6 @@ export class Vec3 {
     return new THREE.Vector3(this.x, this.y, this.z);
   }
 
-
   copyInto(vec: THREE.Vector3) {
     vec.set(this.x, this.y, this.z);
   }

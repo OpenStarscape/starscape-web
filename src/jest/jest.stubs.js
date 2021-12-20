@@ -1,5 +1,8 @@
 // Included by jest.config.json
 // from https://github.com/piotrwitek/react-redux-typescript-guide#jest
+import React from 'react';
+
+global.React = React;
 
 // Global/Window object Stubs for Jest
 window.matchMedia = window.matchMedia || function () {
