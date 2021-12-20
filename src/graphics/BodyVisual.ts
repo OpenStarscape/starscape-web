@@ -118,7 +118,7 @@ export class CelestialVisual extends BodyVisual {
     super(scene, obj, name, '0x000000', spatial);
     this.obj.property('color', String).subscribe(this, color => this.setColor(color));
     this.obj.property('size', Number).getThen(this, km => {
-      this.size = km * Vec3.threeScale;
+      this.size = km;
       this.mesh.geometry = new THREE.SphereBufferGeometry(this.size, 16, 16);
       this.add(this.mesh.geometry);
     });
