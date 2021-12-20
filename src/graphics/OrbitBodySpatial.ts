@@ -69,10 +69,6 @@ export class OrbitBodySpatial extends Lifetime implements BodySpatial {
     this.baseTime = baseTime;
     this.periodTime = periodTime;
 
-    // Vectors get automatically scaled, but numbers have to be scaled manually
-    semiMajor *= Vec3.threeScale;
-    semiMinor *= Vec3.threeScale;
-
     // Distance from the center of the orbit to either focus
     const centerToFoci = Math.sqrt(semiMajor * semiMajor - semiMinor * semiMinor);
     this.semiMajor = semiMajor;

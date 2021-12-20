@@ -27,7 +27,6 @@ export default class SpaceScene extends Lifetime {
   ) {
     super();
 
-    Vec3.threeScale = 1;
     THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
     this.game.fps.addTracker(this, this.fps);
@@ -60,7 +59,7 @@ export default class SpaceScene extends Lifetime {
           const vec = accel.newThreeVector3();
           vec.normalize();
           this.thrustMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), vec);
-          let len = accel.length() * Vec3.threeScale;
+          let len = accel.length();
           this.thrustMesh.scale.set(len, len, len);
         });
       }
