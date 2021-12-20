@@ -25,7 +25,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "GENERATE_SOURCEMAP=false react-scripts build",
-    "test": "./node_modules/.bin/jest --config ./src/jest/jest.config.json",
+    "test": "./node_modules/.bin/tsc --strict && ./node_modules/.bin/jest --config ./src/jest/jest.config.json",
     "jest-clear-cache": "jest --clearCache",
     "eject": "react-scripts eject"
   },
