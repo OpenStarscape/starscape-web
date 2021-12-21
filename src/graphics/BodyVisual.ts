@@ -9,6 +9,7 @@ function makeRingGeom(verts: number): THREE.BufferGeometry {
   const attrib = circleGeom.getAttribute('position');
   const array = Array.from(attrib.array);
   const itemSize = attrib.itemSize;
+  circleGeom.dispose();
   for (let i = 0; i < itemSize; i++) {
     array.shift(); // Shift off the center vertex
   }
@@ -17,8 +18,9 @@ function makeRingGeom(verts: number): THREE.BufferGeometry {
   return result;
 }
 
+// NOTE: these would need to be disposed of/added to a lifetime if they were not global
 const emptyGeom = new THREE.BufferGeometry();
-let circleGeom = makeRingGeom(120);
+const circleGeom = makeRingGeom(120);
 const yVec = new THREE.Vector3(0, 1, 0);
 
 /// The parent class for all 3D body types.
