@@ -1,6 +1,7 @@
 {
   "verbose": true,
   "rootDir": "../../",
+  "testEnvironment": "jsdom",
   "transform": {
     "^.+\\.(js|jsx|mjs|cjs|ts|tsx)$": "@swc/jest"
   },
