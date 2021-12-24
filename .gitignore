@@ -1,5 +1,8 @@
 node_modules
 
+# Typescript
+tsconfig.tsbuildinfo
+
 # Built by SWC
 public/web.js
 public/web.js.map
