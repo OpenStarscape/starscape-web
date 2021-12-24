@@ -1,4 +1,3 @@
-import './index.css';
 import { GameImpl } from './game'
 import { Lifetime } from './core';
 import { errorMessage, gameContainer } from './ui';

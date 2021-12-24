@@ -17,7 +17,6 @@
   },
   "setupFiles": ["<rootDir>/src/jest/jest.stubs.js"],
   "setupFilesAfterEnv": [
-    "<rootDir>/src/jest/jestDom.ts",
     "<rootDir>/src/jest/toBeCloseToVec.ts"
   ],
   "testURL": "http://localhost/"
