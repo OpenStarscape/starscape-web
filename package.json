@@ -19,7 +19,7 @@
     "typescript": "^4.1.5"
   },
   "scripts": {
-    "build": "spack && ./node_modules/.bin/tsc --strict && echo 'Typecheck passed!'",
-    "test": "./node_modules/.bin/tsc --strict && ./node_modules/.bin/jest --config ./src/jest/jest.config.json"
+    "build": "spack && echo 'Typechecking…' && tsc --strict --noEmit && echo 'Typecheck passed!'",
+    "test": "tsc --strict --noEmit && jest --config ./src/jest/jest.config.json"
   }
 }
