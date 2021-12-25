@@ -10,7 +10,7 @@ class CallbackDisposable {
   }
 
   dispose() {
-    if (this.callback) {
+    if (this.callback !== null) {
       this.callback();
     }
     this.callback = null;
