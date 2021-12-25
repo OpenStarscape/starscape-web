@@ -1,6 +1,18 @@
 module.exports = {
   mode: 'production',
-  entry: { web: __dirname + '/src/index.ts', },
+  entry: { code: __dirname + '/src/index.ts', },
   output: { path: __dirname + '/public', },
-  module: {}
+  module: {},
+  options: {
+    minify: true,
+    jsc: {
+      minify: {
+        compress: true,
+        mangle: {
+          properties: {},
+          topLevel: false,
+        }
+      },
+    },
+  }
 };

@@ -4,5 +4,5 @@ node_modules
 tsconfig.tsbuildinfo
 
 # Built by SWC
-public/web.js
-public/web.js.map
+public/code.js
+public/code.js.map
