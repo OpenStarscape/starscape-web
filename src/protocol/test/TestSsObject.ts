@@ -48,13 +48,13 @@ test('SsObject getting different member type with same name error', () => {
   obj.action('act', Number);
   expect(() => {
     obj.signal('prop', Number);
-  }).toThrow('12.prop can not be created as a SsSignal because it was already created as a SsProperty')
+  }).toThrow('12.prop can not be created as a signal because it was already created as a property')
   expect(() => {
     obj.action('sig', Number);
-  }).toThrow('12.sig can not be created as a SsAction because it was already created as a SsSignal')
+  }).toThrow('12.sig can not be created as a action because it was already created as a signal')
   expect(() => {
     obj.property('act', Number);
-  }).toThrow('12.act can not be created as a SsProperty because it was already created as a SsAction')
+  }).toThrow('12.act can not be created as a property because it was already created as a action')
 });
 
 test('SsObject getting same member with different value type errors', () => {

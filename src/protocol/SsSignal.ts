@@ -15,6 +15,10 @@ export class SsSignal<T extends SsValue> extends Conduit<T> {
     super();
   }
 
+  type(): string {
+    return 'signal';
+  }
+
   /// Overrides parent method, generally not called externally.
   addSubscriber(subscriber: Subscriber<T>) {
     super.addSubscriber(subscriber);

@@ -64,6 +64,10 @@ export class SsRTCSession extends SsSession {
     this.channel.send(data);
   }
 
+  sessionTypeName(): string {
+    return "WebRTC session";
+  }
+
   /// Shut down this session
   dispose() {
     this.channel.close();

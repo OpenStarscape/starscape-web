@@ -28,6 +28,10 @@ export class SsWebSocketSession extends SsSession {
     this.socket.send(data);
   }
 
+  sessionTypeName(): string {
+    return "WebSocket session";
+  }
+
   /// Shut down this session
   dispose() {
     this.socket.close();

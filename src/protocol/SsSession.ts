@@ -11,7 +11,7 @@ export abstract class SsSession {
   ) {}
 
   onOpen() {
-    console.log(this.constructor.name + ' opened');
+    console.log(this.sessionTypeName() + ' opened');
     this.isOpen = true
     // console.log('Queued packets:', this.queuedPackets);
     for (let i = 0; i < this.queuedPackets.length; i++) {
@@ -27,11 +27,11 @@ export abstract class SsSession {
   }
 
   onClose() {
-    console.log(this.constructor.name + ' closed');
+    console.log(this.sessionTypeName() + ' closed');
   }
 
   onError(message: string) {
-    this.connection.handleError(this.constructor.name + ' error: ' + message);
+    this.connection.handleError(this.sessionTypeName() + ' error: ' + message);
   }
 
   maxPacketLen() {
@@ -39,6 +39,7 @@ export abstract class SsSession {
   }
 
   abstract sendPacketInternal(_data: Uint8Array): void;
+  abstract sessionTypeName(): string;
 
   /// Send a packet containing the given string to the server
   sendPacket(packet: string) {
