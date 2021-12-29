@@ -14,6 +14,10 @@ export class SsAction<T extends SsValue> extends Conduit<T> {
     super();
   }
 
+  type(): string {
+    return 'action';
+  }
+
   /// Fire the action, which results in a server request and local subscribers being notified.
   fire(value: T) {
     if (!this.isAlive()) {

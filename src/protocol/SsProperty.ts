@@ -33,6 +33,10 @@ export class SsProperty<T extends SsValue> extends Conduit<T> {
     return this.obj;
   }
 
+  type(): string {
+    return 'property';
+  }
+
   /// Sends a set request to the server. The value is only updates and subscribers are only notified
   /// if and when the server responds to the request.
   set(value: T) {

@@ -14,8 +14,20 @@ import { SsSignal } from './SsSignal'
 import { SsRequest } from './SsRequest'
 import { SsValue, SsValueRuntimeType } from './SsValue'
 
-type Member = (SsProperty<any> | SsAction<any> | SsSignal<any>) & Conduit<any>;
+type Member = (SsProperty<any> | SsAction<any> | SsSignal<any>) & { type: () => string } & Conduit<any>;
 type MemberConstructor<T extends Member> = new (...args: any[]) => T
+
+function name_of_member_type<T extends Member>(mc: MemberConstructor<T>): string {
+  if (mc == SsProperty) {
+    return 'property';
+  } else if (mc == SsSignal) {
+    return 'signal';
+  } else if (mc == SsAction) {
+    return 'action';
+  } else {
+    throw new Error('invalid member constructor: ' + mc.name);
+  }
+}
 
 /// A handle to an object on the server. Is automatically created by the connection.
 export class SsObject extends Lifetime {
@@ -108,8 +120,8 @@ export class SsObject extends Lifetime {
     )) {
       throw new Error(
         this.id + '.' + name +
-        ' can not be created as a ' + memberClass.name +
-        ' because it was already created as a ' + member.constructor.name
+        ' can not be created as a ' + name_of_member_type(memberClass) +
+        ' because it was already created as a ' + member.type()
       );
     }
     return member;
