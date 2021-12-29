@@ -68,12 +68,23 @@ export default class SpaceScene extends Lifetime {
     this.renderer.setClearColor('black');
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.domElement.style.width = '100%'
+    this.renderer.domElement.style.height = '100%'
     this.domParent.appendChild(this.renderer.domElement);
 
     this.overlayRenderer.setSize(window.innerWidth, window.innerHeight);
     this.overlayRenderer.domElement.style.position = 'absolute';
     this.overlayRenderer.domElement.style.top = '0px';
+    this.overlayRenderer.domElement.style.width = '100%'
+    this.overlayRenderer.domElement.style.height = '100%'
     this.domParent.appendChild(this.overlayRenderer.domElement);
+
+    this.domParent.style.writingMode = 'horizontal-tb';
+
+    new ResizeObserver(entries => {
+      const box = entries[0].contentBoxSize[0];
+      this.resize(box.inlineSize, box.blockSize);
+    }).observe(this.domParent);
 
     this.starfield = new Starfield(this, this.scene);
     this.bodies = new BodyManager(this, this.game, this.scene);
@@ -96,13 +107,14 @@ export default class SpaceScene extends Lifetime {
       new Vec3(0, 30, 0),
     ]);
 
-    document.addEventListener("resize", () => {
-      this.renderer.setSize(window.innerWidth, window.innerHeight);
-      this.overlayRenderer.setSize(window.innerWidth, window.innerHeight);
-      this.cameraManager.setAspect(window.innerWidth / window.innerHeight);
-    });
-
+    this.resize(this.domParent.clientWidth, this.domParent.clientHeight);
     this.render();
+  }
+
+  resize(width: number, height: number) {
+    this.renderer.setSize(width, height);
+    this.overlayRenderer.setSize(width, height);
+    this.cameraManager.setAspect(width / height);
   }
 
   render() {
