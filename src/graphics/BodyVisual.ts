@@ -148,7 +148,6 @@ export class ShipVisual extends BodyVisual {
     }
     if (this.direction.lengthSq() < 0.0005 && this.spatial.isReady()) {
       this.spatial.copyVelocityInto(this.direction);
-      console.log('copied velocity: ', this.direction);
     }
     this.direction.normalize();
     this.mesh.quaternion.setFromUnitVectors(yVec, this.direction);
