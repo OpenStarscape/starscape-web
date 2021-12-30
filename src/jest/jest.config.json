@@ -3,7 +3,12 @@
   "rootDir": "../../",
   "testEnvironment": "jsdom",
   "transform": {
-    "^.+\\.(js|jsx|mjs|cjs|ts|tsx)$": "esbuild-jest"
+    "^.+\\.(js|jsx|mjs|cjs|ts|tsx)$": [
+      "esbuild-jest",
+      {
+        "sourcemap": true
+      }
+    ]
   },
   "transformIgnorePatterns": [
     "<rootDir>/node_modules/(?!(three|any-other-modules-that-should-be-transformed)/)"
