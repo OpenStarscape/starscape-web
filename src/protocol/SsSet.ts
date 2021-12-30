@@ -20,7 +20,7 @@ export class SsSet<T extends SsValue> {
     this.lt.add(this);
     property.subscribe(this.lt, list => {
       if (!Array.isArray(list)) {
-        console.error('StarscapeSet given value ' + list + ' which is not array');
+        console.error('SsSet given value ' + list + ' which is not array');
         return;
       }
       const oldItems = this.items;
@@ -32,7 +32,7 @@ export class SsSet<T extends SsValue> {
           // If this item was not previously in the set
           if (this.items.has(item)) {
             console.error(
-              'StarscapeSet has duplicate item ' +
+              'SsSet has duplicate item ' +
               item +
               '. All items should be unique');
               continue;
