@@ -16,7 +16,7 @@ export class BodyManager {
   ) {
     // Will attach itself to the lifetime, no need to hold a reference
     const bodyListProp = this.game.god.property('bodies', {arrayOf: SsObject});
-    new SsSet(bodyListProp, this.lt, (itemLt, obj) => {
+    new SsSet(bodyListProp).subscribe(this.lt, ([itemLt, obj]) => {
       const body = new Body(this, obj);
       this.bodyMap.set(obj, body);
       obj.property('name', {nullable: String}).subscribe(itemLt, (name: any) => {
