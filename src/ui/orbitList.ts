@@ -1,6 +1,6 @@
 import { Lifetime, Vec3 } from '../core';
 import { Game } from '../game';
-import { SsObject, SsSet } from '../protocol';
+import { SsObject } from '../protocol';
 
 function setOrbit(game: Game, targetObj: SsObject | null) {
   const ship = game.currentShip.get();
@@ -59,8 +59,7 @@ export function orbitList(lt: Lifetime, game: Game): HTMLElement {
     unselectSelected = unselect;
   };
 
-  const bodyListProp = game.god.property('bodies', {arrayOf: SsObject});
-  new SsSet(bodyListProp).subscribe(lt, ([itemLt, obj]) => {
+  game.bodies.subscribe(lt, ([itemLt, obj]) => {
     const button = orbitButton(itemLt, game, obj, becomeSelected);
     div.appendChild(button);
     // When body is destroyed, remove its button
