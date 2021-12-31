@@ -10,6 +10,9 @@ const mockConn = {
 
 function setupWithObj(obj: SsObject): [SsSet<any>, (_: any) => void, (_: any) => void] {
   const prop = obj.property('foo', {arrayOf: undefined} as any);
+  // Having an active subscriber means the property will cache the values we give it,
+  // which is required for some of the tests
+  prop.subscribe(new Lifetime(), (_) => {});
   let values: any[] = [];
   const add = (value: any) => {
     expect(values.includes(value)).toBe(false);
@@ -160,4 +163,21 @@ test('SsSet subscriber lifetime not killed when object destroyed', () => {
   })
   add(7);
   obj.dispose();
+});
+
+test('SsSet items added when first subscribed', () => {
+  const [sss, add, _remove] = setup();
+  add(7);
+  add(3);
+  const [_lt, log] = subscribeLogger(sss);
+  expect(log).toEqual([{added: 7}, {added: 3}]);
+});
+
+test('SsSet items that have been removed not added when first subscribed', () => {
+  const [sss, add, remove] = setup();
+  add(7);
+  add(3);
+  remove(7);
+  const [_lt, log] = subscribeLogger(sss);
+  expect(log).toEqual([{added: 3}]);
 });
