@@ -75,13 +75,11 @@ export class SsProperty<T extends SsValue> extends SsConduit<T> {
   }
 
   /// Returns the current cached value, or undefined if there is none. Will always return undefined
-  /// when there are no subscribers. WHen the first subscriber is added returns undefined until
+  /// when there are no subscribers. When the first subscriber is added returns undefined until
   /// the initial request completes. Using a getter function returned by .getter() is recommended
   /// over calling this directly since that ensures we are subscribed.
   cachedValue(): T | undefined {
-    if (!this.isAlive()) {
-      throw new Error('cachedValue() called after object destroyed');
-    }
+    this.verifyObjAlive('cachedValue');
     return this.value;
   }
 

@@ -12,6 +12,12 @@ export abstract class SsConduit<T extends SsValue> extends Conduit<T> {
     super();
   }
 
+  verifyObjAlive(fn: string) {
+    if (!this.obj.alive()) {
+      throw new Error(fn + '() called after object destroyed');
+    }
+  }
+
   /// The type of the conduit (property, signal or action)
   abstract typeName(): string;
 }
