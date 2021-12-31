@@ -19,9 +19,9 @@ class CallbackDisposable {
 
 /// A group of objects which are all disposed of at once. Any object which has a .dispose() method
 /// may be added to a lifetime. This includes three.js types which need to be disposed of, as well
-/// as element subscribers (these are created automatically when elements are subscribed to).
+/// as subscribers (these are created automatically when conduits are subscribed to).
 export class Lifetime {
-  private disposables = new Set<Disposable>();
+  private disposables: Set<Disposable> | null = new Set();
 
   /// So it can be used as a mixin
   initLifetime() {
@@ -29,6 +29,10 @@ export class Lifetime {
       throw Error('initLifetime() called after disposables set');
     }
     this.disposables = new Set();
+  }
+
+  alive(): boolean {
+    return this.disposables !== null;
   }
 
   /// Create a new lifetime that will be disposed of with this one, but can also be disposed of
@@ -58,21 +62,26 @@ export class Lifetime {
   /// Adds an object with a .dispose() method. .dispose() will be called when this lifetime is
   /// disposed of unless the object is deleted from it before then.
   add(disposable: Disposable) {
+    if (this.disposables === null) {
+      throw new Error('can not add to dead lifetime');
+    }
     this.disposables.add(disposable);
   }
 
   /// Delete a previously added object without disposing of it. Does nothing if the given object is
   /// not known.
   delete(disposable: Disposable) {
-    this.disposables.delete(disposable);
+    if (this.disposables !== null) {
+      this.disposables.delete(disposable);
+    }
   }
 
-  /// Calls .dispose() on all added objects. This marks the lifetime as dead and it should not be
-  /// used afterwards, except to dispose again (which does nothing but is allowed)
+  /// Calls .dispose() on all added objects. This marks the lifetime as dead and adding anything new
+  /// to it will result in an error. Killing it again or deleting things from it will do nothing.
   dispose() {
-    if (this.disposables.size !== 0) {
+    if (this.disposables !== null) {
       const disposables = this.disposables;
-      this.disposables = new Set();
+      this.disposables = null;
       for (const disposable of disposables) {
         disposable.dispose();
       }
