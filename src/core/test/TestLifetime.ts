@@ -40,12 +40,7 @@ test('Lifetime child can be added to multiple parents', () => {
   lt.add(a);
   parent2.dispose();
   expect(a.disposed).toBe(true);
-  // added after 1st parent disposed, so 2nd parent disposed shouldn't effect it
-  // TODO: add back in when things can be added to lifetimes after dispose
-  // const b = new MockDisposable();
-  // lt.add(b);
   parent1.dispose();
-  // expect(b.disposed).toBe(false);
 });
 
 test('Lifetime can have disposable deleted', () => {
@@ -57,17 +52,44 @@ test('Lifetime can have disposable deleted', () => {
   expect(a.disposed).toBe(false);
 });
 
-test('Lifetime can be used multiple times', () => {
+test('Lifetime can not be added to after dispose', () => {
   const lt = new Lifetime();
   const a = new MockDisposable();
   const b = new MockDisposable();
-  const c = new MockDisposable();
   lt.add(a);
   lt.dispose();
-  lt.add(b);
+  expect(() =>{
+    lt.add(b);
+  }).toThrow();
+});
+
+test('Lifetime can be deleted from after dispose', () => {
+  const lt = new Lifetime();
+  const a = new MockDisposable();
+  const b = new MockDisposable();
+  lt.add(a);
   lt.dispose();
-  lt.add(c);
-  expect(a.disposed).toBe(true);
-  expect(b.disposed).toBe(true);
-  expect(c.disposed).toBe(false);
+  lt.delete(a);
+  lt.delete(b);
+});
+
+test('Lifetime can be disposed multiple times', () => {
+  const lt = new Lifetime();
+  const a = new MockDisposable();
+  lt.add(a);
+  lt.dispose();
+  lt.dispose();
+  lt.dispose();
+});
+
+test('Lifetime reports dead after dispose', () => {
+  const lt = new Lifetime();
+  expect(lt.alive()).toBe(true);
+  const a = new MockDisposable();
+  lt.add(a);
+  expect(lt.alive()).toBe(true);
+  lt.dispose();
+  expect(lt.alive()).toBe(false);
+  lt.dispose();
+  expect(lt.alive()).toBe(false);
 });

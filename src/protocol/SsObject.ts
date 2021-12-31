@@ -31,7 +31,6 @@ function ssConduitConstructorTypeName(mc: SsConduitConstructor<any>): string {
 /// A handle to an object on the server. Is automatically created by the connection.
 export class SsObject extends Lifetime {
   private members = new Map<string, SsConduit<any>>();
-  private alive = true;
 
   constructor(
     readonly connection: SsConnection,
@@ -107,7 +106,7 @@ export class SsObject extends Lifetime {
 
   /// Used internally, Get or create a property, action or event
   private member<T extends SsConduit<any>>(name: string, memberClass: SsConduitConstructor<T>): T | undefined {
-    if (!this.alive) {
+    if (!this.alive()) {
       throw new Error(
         this.id + '.' + name +
         ' can not be created since the object has been destroyed'
@@ -159,7 +158,6 @@ export class SsObject extends Lifetime {
   }
 
   dispose() {
-    this.alive = false;
     // eslint-disable-next-line
     for (let [_, value] of this.members) {
       value.dispose();
