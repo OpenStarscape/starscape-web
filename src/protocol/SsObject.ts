@@ -158,10 +158,6 @@ export class SsObject extends Lifetime {
   }
 
   dispose() {
-    // eslint-disable-next-line
-    for (let [_, value] of this.members) {
-      value.dispose();
-    }
     this.members.clear();
     super.dispose();
   }

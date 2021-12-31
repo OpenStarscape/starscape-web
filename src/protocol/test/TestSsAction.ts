@@ -17,6 +17,7 @@ function newAction(requests: SsRequest[]): SsAction<number> {
     alive: () => {
       return true;
     },
+    addChild: (_: any) => {},
   }
   return new SsAction<number>(
     obj as unknown as SsObject,
