@@ -15,7 +15,6 @@ export class BodyManager {
     readonly scene: THREE.Scene,
   ) {
     // Will attach itself to the lifetime, no need to hold a reference
-    const bodyListProp = this.game.god.property('bodies', {arrayOf: SsObject});
     game.bodies.subscribe(this.lt, ([itemLt, obj]) => {
       const body = new Body(this, obj);
       this.bodyMap.set(obj, body);

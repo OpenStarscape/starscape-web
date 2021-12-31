@@ -1,6 +1,5 @@
 import {
   Lifetime,
-  Conduit,
   RealTypeOf,
   runtimeTypeEquals,
   runtimeTypeName,
@@ -8,16 +7,16 @@ import {
   messageFromError,
 } from '../core';
 import { SsConnection } from './SsConnection';
+import { SsConduit } from './SsConduit'
 import { SsProperty } from './SsProperty'
 import { SsAction } from './SsAction'
 import { SsSignal } from './SsSignal'
 import { SsRequest } from './SsRequest'
 import { SsValue, SsValueRuntimeType } from './SsValue'
 
-type Member = (SsProperty<any> | SsAction<any> | SsSignal<any>) & { type: () => string } & Conduit<any>;
-type MemberConstructor<T extends Member> = new (...args: any[]) => T
+type SsConduitConstructor<T extends SsConduit<any>> = new (...args: any[]) => T
 
-function name_of_member_type<T extends Member>(mc: MemberConstructor<T>): string {
+function ssConduitConstructorTypeName(mc: SsConduitConstructor<any>): string {
   if (mc == SsProperty) {
     return 'property';
   } else if (mc == SsSignal) {
@@ -31,7 +30,7 @@ function name_of_member_type<T extends Member>(mc: MemberConstructor<T>): string
 
 /// A handle to an object on the server. Is automatically created by the connection.
 export class SsObject extends Lifetime {
-  private members = new Map<string, Member>();
+  private members = new Map<string, SsConduit<any>>();
   private alive = true;
 
   constructor(
@@ -107,7 +106,7 @@ export class SsObject extends Lifetime {
   }
 
   /// Used internally, Get or create a property, action or event
-  private member<T extends Member>(name: string, memberClass: MemberConstructor<T>): T | undefined {
+  private member<T extends SsConduit<any>>(name: string, memberClass: SsConduitConstructor<T>): T | undefined {
     if (!this.alive) {
       throw new Error(
         this.id + '.' + name +
@@ -120,8 +119,8 @@ export class SsObject extends Lifetime {
     )) {
       throw new Error(
         this.id + '.' + name +
-        ' can not be created as a ' + name_of_member_type(memberClass) +
-        ' because it was already created as a ' + member.type()
+        ' can not be created as a ' + ssConduitConstructorTypeName(memberClass) +
+        ' because it was already created as a ' + member.typeName()
       );
     }
     return member;

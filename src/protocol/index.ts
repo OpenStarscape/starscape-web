@@ -1,3 +1,4 @@
+export * from './SsConduit'
 export * from './SsProperty'
 export * from './SsSet'
 export * from './SsSignal'

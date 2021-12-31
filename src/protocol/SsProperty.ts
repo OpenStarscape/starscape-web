@@ -1,5 +1,5 @@
-import { Subscriber, Conduit, valuesEqual, assertIsType, RuntimeTypeOf, Lifetime } from '../core'
-import { SsObject } from './SsObject'
+import { Subscriber, valuesEqual, assertIsType, Lifetime } from '../core'
+import { SsConduit } from './SsConduit'
 import { SsRequestType } from './SsRequest'
 import { SsValue } from './SsValue'
 
@@ -17,24 +17,16 @@ class GetSubscriber<T> extends Subscriber<T> {
 }
 
 /// A named piece of data on an object. Created and returned by SsObject.property()
-export class SsProperty<T extends SsValue> extends Conduit<T> {
+export class SsProperty<T extends SsValue> extends SsConduit<T> {
   private isSubscribed = false;
   private hasPendingGet = false;
 
-  constructor(
-    private readonly obj: SsObject,
-    private readonly name: string,
-    readonly rtType: RuntimeTypeOf<T>,
-  ) {
-    super();
+  typeName(): string {
+    return 'property';
   }
 
   lifetime(): Lifetime {
     return this.obj;
-  }
-
-  type(): string {
-    return 'property';
   }
 
   /// Sends a set request to the server. The value is only updates and subscribers are only notified
