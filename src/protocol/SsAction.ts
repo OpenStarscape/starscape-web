@@ -18,6 +18,6 @@ export class SsAction<T extends SsValue> extends SsConduit<T> {
       member: this.name,
       value: value,
     });
-    this.sendUpdates(value);
+    this.sendToAllSubscribers(value);
   }
 }

@@ -89,6 +89,6 @@ export class SsSet<T extends SsValue> extends Conduit<[Lifetime, T]> {
   private sendNewItem(itemLt: Lifetime, subscriber: Subscriber<[Lifetime, T]>, item: T) {
     const itemSubscriberLt = itemLt.newChild();
     subscriber.lifetime.addChild(itemSubscriberLt);
-    subscriber.elementUpdate([itemSubscriberLt, item]);
+    subscriber.sendValue([itemSubscriberLt, item]);
   }
 }
