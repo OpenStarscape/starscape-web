@@ -9,7 +9,6 @@ import { SsValue } from './SsValue';
 /// whenever and item is added. Subscribers are given a tuple of two arguments: a lifetime that will
 /// die when the item leaves the set, and the item.
 export class SsSet<T extends SsValue> extends Conduit<[Lifetime, T]> {
-  private subscribedLt: Lifetime | null = null;
   private items = new Map<T, Lifetime>();
 
   constructor(
@@ -19,12 +18,12 @@ export class SsSet<T extends SsValue> extends Conduit<[Lifetime, T]> {
   }
 
   private newItem(item: T) {
-    if (this.subscribedLt === null) {
-      console.error('SsSet.newItem() called with null subscribedLt, should not be possible');
+    if (this.hasSubscribersLt === null) {
+      console.error('SsSet.newItem() called with null hasSubscribersLt');
       return;
     }
-    const itemLt = this.subscribedLt.newChild();
-    // if it's an object, should die with object (though the server should remove it for us)
+    const itemLt = this.hasSubscribersLt.newChild();
+    // if it's an object, should die with the object (though the server should remove it for us)
     if (item instanceof SsObject) {
       item.addChild(itemLt);
     }
@@ -34,55 +33,49 @@ export class SsSet<T extends SsValue> extends Conduit<[Lifetime, T]> {
     }
   }
 
-  private setup() {
-    this.subscribedLt = this.property.lifetime().newChild();
-    this.property.subscribe(this.subscribedLt, list => {
-      if (!Array.isArray(list)) {
-        console.error('SsSet given value ' + list + ' which is not array');
+  private handleArray(items: T[]) {
+    const oldItems = this.items;
+    this.items = new Map();
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      const oldItemLifetime = oldItems.get(item);
+      if (oldItemLifetime === undefined) {
+        // If this item was not previously in the set
+        if (this.items.has(item)) {
+          console.error(
+            'SsSet has duplicate item ' +
+            item +
+            '. All items should be unique');
+            continue;
+        }
+        this.newItem(item);
+      } else {
+        oldItems.delete(item);
+        this.items.set(item, oldItemLifetime);
+      }
+    }
+    for (const oldItemLt of oldItems.values()) {
+      oldItemLt.dispose();
+    }
+  }
+
+  initialSubscriberAdded(hasSubscribersLt: Lifetime): void {
+    hasSubscribersLt.addCallback(() => {
+      this.items.clear();
+    });
+    this.property.lifetime().addChild(hasSubscribersLt);
+    this.property.subscribe(hasSubscribersLt, items => {
+      if (!Array.isArray(items)) {
+        console.error('SsSet given value ' + items + ' which is not array');
         return;
       }
-      const oldItems = this.items;
-      this.items = new Map();
-      for (let i = 0; i < list.length; i++) {
-        const item = list[i];
-        const oldItemLifetime = oldItems.get(item);
-        if (oldItemLifetime === undefined) {
-          // If this item was not previously in the set
-          if (this.items.has(item)) {
-            console.error(
-              'SsSet has duplicate item ' +
-              item +
-              '. All items should be unique');
-              continue;
-          }
-          this.newItem(item);
-        } else {
-          oldItems.delete(item);
-          this.items.set(item, oldItemLifetime);
-        }
-      }
-      for (const oldItemLt of oldItems.values()) {
-        oldItemLt.dispose();
-      }
+      this.handleArray(items);
     });
   }
 
-  addSubscriber(subscriber: Subscriber<[Lifetime, T]>) {
-    super.addSubscriber(subscriber);
+  subscriberAdded(subscriber: Subscriber<[Lifetime, T]>): void {
     for (const [item, itemLt] of this.items.entries()) {
       this.sendNewItem(itemLt, subscriber, item);
-    }
-    if (this.subscribedLt === null) {
-      this.setup();
-    }
-  }
-
-  deleteSubscriber(subscriber: Subscriber<[Lifetime, T]>) {
-    super.deleteSubscriber(subscriber);
-    if (this.subscribers.size === 0 && this.subscribedLt !== null) {
-      this.subscribedLt.dispose();
-      this.subscribedLt = null;
-      this.items.clear();
     }
   }
 

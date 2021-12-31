@@ -1,3 +1,4 @@
+import { Lifetime, Subscriber } from '../core'
 import { SsConduit } from './SsConduit'
 import { SsRequestType } from './SsRequest'
 import { SsValue } from './SsValue'
@@ -8,6 +9,12 @@ export class SsAction<T extends SsValue> extends SsConduit<T> {
   typeName(): string {
     return 'action';
   }
+
+  initialSubscriberAdded(hasSubscribersLt: Lifetime): void {
+    this.obj.addChild(hasSubscribersLt);
+  }
+
+  subscriberAdded(_subscriber: Subscriber<T>): void {}
 
   /// Fire the action, which results in a server request and local subscribers being notified.
   fire(value: T) {

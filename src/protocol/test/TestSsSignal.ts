@@ -12,7 +12,8 @@ function newSignal(requests: SsRequest[]): SsSignal<number> {
     id: 88,
     makeRequest: (rq: SsRequest) => {
       requests.push(rq);
-    }
+    },
+    addChild: (_: any) => {},
   }
   return new SsSignal<number>(
     obj as any,
