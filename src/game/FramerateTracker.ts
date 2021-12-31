@@ -25,7 +25,7 @@ export class FramerateTracker extends Conduit<number> {
     }
     if (this.value !== newFps) {
       this.value = newFps;
-      this.sendUpdates(newFps);
+      this.sendToAllSubscribers(newFps);
     }
   }
 
@@ -55,7 +55,7 @@ export class FramerateReporter extends Conduit<number | null> {
       }
       if (newValue !== this.value) {
         this.value = newValue;
-        this.sendUpdates(newValue!);
+        this.sendToAllSubscribers(newValue!);
       }
     });
     lt.addCallback(() => {
@@ -63,7 +63,7 @@ export class FramerateReporter extends Conduit<number | null> {
         this.currentTracker = null;
         if (this.value !== null) {
           this.value = null;
-          this.sendUpdates(null);
+          this.sendToAllSubscribers(null);
         }
       }
     });

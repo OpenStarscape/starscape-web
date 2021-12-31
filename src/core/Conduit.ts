@@ -13,7 +13,7 @@ export class Subscriber<T> {
 
   /// Called by the element when it gets an update (this may be an updated property value or an
   /// action/event).
-  elementUpdate(value: T) {
+  sendValue(value: T) {
     if (this.callback !== null) {
       this.callback(value);
     }
@@ -65,7 +65,7 @@ export class Conduit<T> {
       })
     }
     if (this.value !== undefined) {
-      subscriber.elementUpdate(this.value);
+      subscriber.sendValue(this.value);
     }
   }
 
@@ -89,9 +89,9 @@ export class Conduit<T> {
   }
 
   /// Sends updates to all subscribers.
-  protected sendUpdates(value: T) {
+  protected sendToAllSubscribers(value: T) {
     for (const subscriber of this.subscribers) {
-      subscriber.elementUpdate(value);
+      subscriber.sendValue(value);
     }
   }
 }

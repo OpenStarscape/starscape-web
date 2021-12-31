@@ -4,6 +4,6 @@ import { Conduit } from './Conduit'
 export class LocalAction<T> extends Conduit<T> {
   /// Subscribers will be notified for every action fired.
   fire(value: T) {
-    this.sendUpdates(value);
+    this.sendToAllSubscribers(value);
   }
 }

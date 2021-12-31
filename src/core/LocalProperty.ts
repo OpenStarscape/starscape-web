@@ -19,7 +19,7 @@ export class LocalProperty<T> extends Conduit<T> {
   set(value: T) {
     if (!valuesEqual(value, this.value)) {
       this.value = value;
-      this.sendUpdates(value);
+      this.sendToAllSubscribers(value);
     }
   }
 }

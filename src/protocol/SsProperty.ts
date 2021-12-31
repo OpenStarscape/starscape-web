@@ -7,7 +7,7 @@ import { SsValue } from './SsValue'
 /// it's only supposed to be notified once and so removes itself from the element and lifetime.
 class GetSubscriber<T> extends Subscriber<T> {
   elementUpdate(value: T) {
-    super.elementUpdate(value);
+    super.sendValue(value);
     this.dispose();
   }
 
@@ -117,7 +117,7 @@ export class SsProperty<T extends SsValue> extends SsConduit<T> {
       this.value = value;
     }
     // get request subscribers need to be notified even when not subscribed
-    this.sendUpdates(value);
+    this.sendToAllSubscribers(value);
   }
 
   /// Called by this property's object when a get request is responded to.

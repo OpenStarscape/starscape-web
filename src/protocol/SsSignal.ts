@@ -40,7 +40,7 @@ export class SsSignal<T extends SsValue> extends SsConduit<T> {
   /// Called by the event's object when the server sends an event.
   handleSignal(value: SsValue) {
     assertIsType<T>(value, this.rtType);
-    this.sendUpdates(value);
+    this.sendToAllSubscribers(value);
   }
 
   /// Called by this property's object when the object is destroyed.
