@@ -1,4 +1,4 @@
-import { Lifetime } from '../core';
+import { Lifetime, Conduit, Subscriber } from '../core';
 import { SsObject } from './SsObject';
 import { SsProperty } from './SsProperty';
 import { SsValue } from './SsValue';
@@ -6,19 +6,35 @@ import { SsValue } from './SsValue';
 /// Keeps track of a starscape property that is a set (a list of items that are guaranteed to be
 /// unique and are in an arbitrary order). The callback is given two arguments whenever a new item
 /// is added to the set: the lifetime for which the item is in the set and the item.
-export class SsSet<T extends SsValue> {
-  private readonly lt: Lifetime;
-  private items = new Map<any, Lifetime>();
+export class SsSet<T extends SsValue> extends Conduit<[Lifetime, T]> {
+  private subscribedLt: Lifetime | null = null;
+  private items = new Map<T, Lifetime>();
 
   constructor(
-    property: SsProperty<T[]>,
-    lifetime: Lifetime,
-    callback: (itemLt: Lifetime, item: T) => void
+    private readonly property: SsProperty<T[]>,
   ) {
-    this.lt = lifetime.newChild()
-    property.lifetime().addChild(this.lt);
-    this.lt.add(this);
-    property.subscribe(this.lt, list => {
+    super();
+  }
+
+  private newItem(item: T) {
+    if (this.subscribedLt === null) {
+      console.error('SsSet.newItem() called with null subscribedLt, should not be possible');
+      return;
+    }
+    const itemLt = this.subscribedLt.newChild();
+    // if it's an object, should die with object (though the server should remove it for us)
+    if (item instanceof SsObject) {
+      item.addChild(itemLt);
+    }
+    this.items.set(item, itemLt);
+    for (const subscriber of this.subscribers) {
+      this.sendNewItem(itemLt, subscriber, item);
+    }
+  }
+
+  private setup() {
+    this.subscribedLt = this.property.lifetime().newChild();
+    this.property.subscribe(this.subscribedLt, list => {
       if (!Array.isArray(list)) {
         console.error('SsSet given value ' + list + ' which is not array');
         return;
@@ -37,26 +53,40 @@ export class SsSet<T extends SsValue> {
               '. All items should be unique');
               continue;
           }
-          const itemLifetime = this.lt.newChild();
-          // if it's an object, should die with object (though the server should remove it for us)
-          if (item instanceof SsObject) {
-            item.addChild(itemLifetime);
-          }
-          this.items.set(item, itemLifetime);
-          callback(itemLifetime, item);
+          this.newItem(item);
         } else {
           oldItems.delete(item);
           this.items.set(item, oldItemLifetime);
         }
       }
-      for (const [/*item*/, oldItemLifetime] of oldItems) {
-        oldItemLifetime.dispose()
+      for (const oldItemLt of oldItems.values()) {
+        oldItemLt.dispose();
       }
     });
   }
 
-  dispose() {
-    this.items.clear();
-    this.lt.dispose(); // probs not needed because this is what disposes of us but can't hurt
+  addSubscriber(subscriber: Subscriber<[Lifetime, T]>) {
+    super.addSubscriber(subscriber);
+    for (const [item, itemLt] of this.items.entries()) {
+      this.sendNewItem(itemLt, subscriber, item);
+    }
+    if (this.subscribedLt === null) {
+      this.setup();
+    }
+  }
+
+  deleteSubscriber(subscriber: Subscriber<[Lifetime, T]>) {
+    super.deleteSubscriber(subscriber);
+    if (this.subscribers.size === 0 && this.subscribedLt !== null) {
+      this.subscribedLt.dispose();
+      this.subscribedLt = null;
+      this.items.clear();
+    }
+  }
+
+  private sendNewItem(itemLt: Lifetime, subscriber: Subscriber<[Lifetime, T]>, item: T) {
+    const itemSubscriberLt = itemLt.newChild();
+    subscriber.lifetime.addChild(itemSubscriberLt);
+    subscriber.elementUpdate([itemSubscriberLt, item]);
   }
 }

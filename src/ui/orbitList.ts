@@ -60,7 +60,7 @@ export function orbitList(lt: Lifetime, game: Game): HTMLElement {
   };
 
   const bodyListProp = game.god.property('bodies', {arrayOf: SsObject});
-  new SsSet(bodyListProp, lt, (itemLt, obj) => {
+  new SsSet(bodyListProp).subscribe(lt, ([itemLt, obj]) => {
     const button = orbitButton(itemLt, game, obj, becomeSelected);
     div.appendChild(button);
     // When body is destroyed, remove its button

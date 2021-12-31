@@ -38,7 +38,8 @@ export class Conduit<T> {
 
   /// The callback will be called with values as they become available. These values could be
   /// updates to a property or the values associated with actions, depending on the element type.
-  /// The callback stops fireing as soon as the lifetime dies.
+  /// The callback stops fireing as soon as the lifetime dies. It does NOT kill the lifetime
+  /// when the property or it's owning object dies.
   subscribe(lt: Lifetime, callback: (value: T) => void) {
     this.addSubscriber(new Subscriber(this, lt, callback));
   }
