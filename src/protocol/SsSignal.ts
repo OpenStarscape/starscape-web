@@ -1,21 +1,13 @@
-import { Subscriber, Conduit, RuntimeTypeOf, assertIsType } from '../core';
-import { SsObject } from './SsObject'
+import { Subscriber, assertIsType } from '../core';
+import { SsConduit } from './SsConduit'
 import { SsRequestType } from './SsRequest'
 import { SsValue } from './SsValue'
 
 /// A signal sent to the client from the server. Created and returned by SsObject.signal().
-export class SsSignal<T extends SsValue> extends Conduit<T> {
+export class SsSignal<T extends SsValue> extends SsConduit<T> {
   private isSubscribed = false;
 
-  constructor(
-    private readonly obj: SsObject,
-    private readonly name: string,
-    readonly rtType: RuntimeTypeOf<T>,
-  ) {
-    super();
-  }
-
-  type(): string {
+  typeName(): string {
     return 'signal';
   }
 

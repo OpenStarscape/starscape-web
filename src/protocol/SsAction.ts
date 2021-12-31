@@ -1,20 +1,11 @@
-import { Conduit, RuntimeTypeOf } from '../core';
-import { SsObject } from './SsObject'
+import { SsConduit } from './SsConduit'
 import { SsRequestType } from './SsRequest'
 import { SsValue } from './SsValue'
 
 /// An action the client can perform on a server object. We can also subscribe to it locally. Created and returned by
 /// SsObject.action().
-export class SsAction<T extends SsValue> extends Conduit<T> {
-  constructor(
-    private readonly obj: SsObject,
-    private readonly name: string,
-    readonly rtType: RuntimeTypeOf<T>,
-  ) {
-    super();
-  }
-
-  type(): string {
+export class SsAction<T extends SsValue> extends SsConduit<T> {
+  typeName(): string {
     return 'action';
   }
 
