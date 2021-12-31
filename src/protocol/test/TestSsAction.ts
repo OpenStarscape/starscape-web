@@ -13,7 +13,10 @@ function newAction(requests: SsRequest[]): SsAction<number> {
     id: 88,
     makeRequest: (rq: SsRequest) => {
       requests.push(rq);
-    }
+    },
+    alive: () => {
+      return true;
+    },
   }
   return new SsAction<number>(
     obj as unknown as SsObject,

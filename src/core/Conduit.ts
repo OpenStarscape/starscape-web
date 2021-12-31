@@ -7,7 +7,9 @@ export class Subscriber<T> {
     readonly element: Conduit<T>,
     readonly lifetime: Lifetime,
     public callback: ((value: T) => void) | null
-  ) {}
+  ) {
+    this.lifetime.add(this);
+  }
 
   /// Called by the element when it gets an update (this may be an updated property value or an
   /// action/event).
@@ -34,7 +36,9 @@ export class Conduit<T> {
   /// which case new subscribers will be sent it as they are added. Note that .value is NOT
   /// automatically updated (subclasses are expected to do that).
   protected value: T | undefined = undefined;
-  private alive = true;
+  /// Created each time we go from 0 to 1 subscribers, and removed and nulled out every time we
+  /// go from 1 to 0.
+  private hasSubscribersLt: Lifetime | null = null;
 
   /// The callback will be called with values as they become available. These values could be
   /// updates to a property or the values associated with actions, depending on the element type.
@@ -44,19 +48,22 @@ export class Conduit<T> {
     this.addSubscriber(new Subscriber(this, lt, callback));
   }
 
-  /// Returns true if this element hasn't been destroyed.
-  isAlive() {
-    return this.alive;
-  }
-
   /// Adds a Subscriber, both to this class and to the subscriber's lifetime. Sends an initial
   /// update of .value if it's set.
   addSubscriber(subscriber: Subscriber<T>) {
-    if (!this.isAlive()) {
-      throw new Error('addSubscriber() called after object destroyed');
-    }
     this.subscribers.add(subscriber);
-    subscriber.lifetime.add(subscriber);
+    if (this.hasSubscribersLt === null) {
+      this.hasSubscribersLt = new Lifetime();
+      this.hasSubscribersLt.addCallback(() => {
+        this.hasSubscribersLt = null;
+        this.value = undefined;
+        const subscribers = this.subscribers;
+        this.subscribers = new Set();
+        for (const subscriber of subscribers) {
+          subscriber.dispose();
+        }
+      })
+    }
     if (this.value !== undefined) {
       subscriber.elementUpdate(this.value);
     }
@@ -65,15 +72,19 @@ export class Conduit<T> {
   /// Deletes a subscriber from the internal list. Does NOT remove it from the lifetime.
   deleteSubscriber(subscriber: Subscriber<T>) {
     this.subscribers.delete(subscriber);
+    if (this.subscribers.size === 0 && this.hasSubscribersLt !== null) {
+      this.hasSubscribersLt.dispose();
+    }
   }
 
+  hasSubscribers(): boolean {
+    return this.hasSubscribersLt !== null;
+  }
+
+  /// Unsubscribes all current subscriptions, does not need to be called
   dispose() {
-    this.alive = false;
-    this.value = undefined;
-    const subscribers = this.subscribers;
-    this.subscribers = new Set();
-    for (const subscriber of subscribers) {
-      subscriber.dispose();
+    if (this.hasSubscribersLt !== null) {
+      this.hasSubscribersLt.dispose();
     }
   }
 

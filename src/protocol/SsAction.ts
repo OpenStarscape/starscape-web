@@ -11,9 +11,7 @@ export class SsAction<T extends SsValue> extends SsConduit<T> {
 
   /// Fire the action, which results in a server request and local subscribers being notified.
   fire(value: T) {
-    if (!this.isAlive()) {
-      throw new Error('fire() called after object destroyed');
-    }
+    this.verifyObjAlive('fire');
     this.obj.makeRequest({
       method: SsRequestType.Fire,
       objId: this.obj.id,

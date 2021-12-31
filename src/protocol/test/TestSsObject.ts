@@ -2,6 +2,7 @@ import { SsObject } from '../SsObject';
 import { SsProperty } from '../SsProperty';
 import { SsSignal } from '../SsSignal';
 import { SsAction } from '../SsAction';
+import { Lifetime } from '../../core';
 
 const mockConn = {
   add: (_: any) => {},
@@ -73,18 +74,25 @@ test('SsObject getting same member with different value type errors', () => {
   }).toThrow('12.act can not be created with type boolean[][] because it was already created with type boolean[]');
 });
 
-test('SsObject kills conduits on dispose', () => {
+test('SsObject unsubscribes conduits on dispose', () => {
   const obj = newObject();
   const prop = obj.property('prop', Number);
   const sig = obj.signal('sig', Number);
   const act = obj.action('act', Number);
-  expect(prop.isAlive()).toEqual(true);
-  expect(sig.isAlive()).toEqual(true);
-  expect(act.isAlive()).toEqual(true);
+  const lt = new Lifetime();
+  expect(prop.hasSubscribers()).toEqual(false);
+  expect(sig.hasSubscribers()).toEqual(false);
+  expect(act.hasSubscribers()).toEqual(false);
+  prop.subscribe(lt, (_) => {});
+  act.subscribe(lt, (_) => {});
+  sig.subscribe(lt, (_) => {});
+  expect(prop.hasSubscribers()).toEqual(true);
+  expect(sig.hasSubscribers()).toEqual(true);
+  expect(act.hasSubscribers()).toEqual(true);
   obj.dispose();
-  expect(prop.isAlive()).toEqual(false);
-  expect(sig.isAlive()).toEqual(false);
-  expect(act.isAlive()).toEqual(false);
+  expect(prop.hasSubscribers()).toEqual(false);
+  expect(sig.hasSubscribers()).toEqual(false);
+  expect(act.hasSubscribers()).toEqual(false);
 });
 
 test('SsObject signal validates input type', () => {
