@@ -1,10 +1,11 @@
 import { LocalProperty, Lifetime } from '../core';
 import { FramerateReporter } from './FramerateTracker';
-import { SsConnection, SsSessionType, SsObject } from '../protocol';
+import { SsConnection, SsSessionType, SsObject, SsSet } from '../protocol';
 
 export interface Game {
   readonly connection: SsConnection;
   readonly god: SsObject;
+  readonly bodies: SsSet<SsObject>;
   readonly currentShip: LocalProperty<SsObject | null>;
   readonly fps: FramerateReporter;
   /// Time in in-game seconds of the current frame. The last starscape timestamp, plus the time
@@ -15,6 +16,7 @@ export interface Game {
 export class GameImpl extends Lifetime {
   readonly connection: SsConnection;
   readonly god: SsObject;
+  readonly bodies: SsSet<SsObject>;
   /// The Starscape object of the currently controlled ship
   readonly currentShip = new LocalProperty<SsObject | null>(null);
   readonly fps = new FramerateReporter();
@@ -29,6 +31,7 @@ export class GameImpl extends Lifetime {
       this.lastGameTime = time;
       this.timeBase = performance.now();
     });
+    this.bodies = new SsSet(this.god.property('bodies', {arrayOf: SsObject}));
   }
 
   frameTime() {

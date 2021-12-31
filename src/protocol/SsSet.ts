@@ -4,8 +4,10 @@ import { SsProperty } from './SsProperty';
 import { SsValue } from './SsValue';
 
 /// Keeps track of a starscape property that is a set (a list of items that are guaranteed to be
-/// unique and are in an arbitrary order). The callback is given two arguments whenever a new item
-/// is added to the set: the lifetime for which the item is in the set and the item.
+/// unique and are in an arbitrary order). A SsSet can have any number of subscribers. A subscriber
+/// is called once for each item currently in the set when it's subscribed, and subsequently
+/// whenever and item is added. Subscribers are given a tuple of two arguments: a lifetime that will
+/// die when the item leaves the set, and the item.
 export class SsSet<T extends SsValue> extends Conduit<[Lifetime, T]> {
   private subscribedLt: Lifetime | null = null;
   private items = new Map<T, Lifetime>();
