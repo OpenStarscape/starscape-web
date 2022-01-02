@@ -1,9 +1,14 @@
 import { Conduit, Lifetime, Subscriber } from '../core';
 
-/// Tracks the framerate of a single scene
-export class FramerateTracker extends Conduit<number> {
+export type FramerateInfo = {
+  average: number,
+  min: number,
+}
+
+/// Tracks the framerate of a single scene, reports min and average FPS of the sample size respectively
+export class FramerateTracker extends Conduit<FramerateInfo> {
   private frames: number[] = [];
-  private value: number | null = null;
+  private info: FramerateInfo | null = null;
 
   constructor(
     readonly samples: number = 20,
@@ -15,14 +20,31 @@ export class FramerateTracker extends Conduit<number> {
   initialSubscriberAdded(hasSubscribersLt: Lifetime): void {
     hasSubscribersLt.addCallback(() => {
       this.frames = [];
-      this.value = null;
+      this.info = null;
     });
   }
 
-  subscriberAdded(subscriber: Subscriber<number>): void {
-    if (this.value !== null) {
-      subscriber.sendValue(this.value);
+  subscriberAdded(subscriber: Subscriber<FramerateInfo>): void {
+    if (this.info !== null) {
+      subscriber.sendValue(this.info);
     }
+  }
+
+  private averageFps(): number {
+    const elapsedMs = this.frames[this.frames.length - 1] - this.frames[0];
+    const averageMs = elapsedMs / (this.frames.length - 1);
+    return 1000 / averageMs;
+  }
+
+  private minFps(): number {
+    let maxMs = 0;
+    for (let i = 0; i < this.frames.length - 1; i++) {
+      const ms = this.frames[i + 1] - this.frames[i];
+      if (ms > maxMs) {
+        maxMs = ms;
+      }
+    }
+    return 1000 / maxMs;
   }
 
   recordFrame() {
@@ -30,23 +52,31 @@ export class FramerateTracker extends Conduit<number> {
       return;
     }
     this.frames.push(this.getCurrentMs());
-    let newFps = null;
+    let send = false;
     if (this.frames.length >= 2) {
-      const elapsedMs = this.frames[this.frames.length - 1] - this.frames[0];
-      const averageMs = elapsedMs / (this.frames.length - 1);
-      newFps = 1000 / averageMs;
+      const averageFps = this.averageFps();
+      const minFps = this.minFps();
+      if (this.info === null ||
+          averageFps !== this.info.average ||
+          minFps !== this.info.min
+      ) {
+        send = true;
+      }
+      this.info = {
+        average: averageFps,
+        min: minFps,
+      }
     }
     while (this.frames.length > this.samples) {
       this.frames.shift();
     }
-    if (newFps !== null && this.value !== newFps) {
-      this.value = newFps;
-      this.sendToAllSubscribers(newFps);
+    if (send) {
+      this.sendToAllSubscribers(this.info!);
     }
   }
 
-  get(): number | null {
-    return this.value;
+  get(): FramerateInfo | null {
+    return this.info;
   }
 }
 
@@ -62,7 +92,7 @@ export class FramerateReporter extends Conduit<number | null> {
     }
     const lt = trackerLt.newDependent();
     this.hasSubscribersLt.addDependent(lt);
-    tracker.subscribe(lt, fps => {
+    tracker.subscribe(lt, ([min, avg]) => {
       let newValue = this.value;
       if (this.currentTracker === tracker) {
         newValue = fps;
@@ -110,7 +140,11 @@ export class FramerateReporter extends Conduit<number | null> {
     }
   }
 
-  get(): number | null {
-    return this.value;
+  averageFps(): number | null {
+    return this.avgFps;
+  }
+
+  minRecentFps(): number | null {
+    return this.minFps;
   }
 }
