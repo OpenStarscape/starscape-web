@@ -70,6 +70,20 @@ export abstract class Conduit<T> {
     this.subscriberAdded(subscriber);
   }
 
+  /// Similar to .subscribe, except each new value comes with a Lifetime and that lifetime
+  /// dies before the next value is sent. You can use this value lifetime to make subscriptions
+  /// that should be cancelled when the value changes.
+  subscribeWithValueLifetime(lt: Lifetime, callback: (valueLt: Lifetime, value: T) => void) {
+    let valueLt: Lifetime | null = null;
+    this.subscribe(lt, (value) => {
+      if (valueLt !== null) {
+        valueLt.dispose();
+      }
+      valueLt = lt.newChild();
+      callback(valueLt, value);
+    });
+  }
+
   hasSubscribers(): boolean {
     return this.hasSubscribersLt !== null;
   }
