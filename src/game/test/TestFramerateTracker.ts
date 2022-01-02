@@ -2,7 +2,7 @@ import { FramerateTracker } from '../FramerateTracker';
 import { Lifetime } from '../../core';
 
 const mockLt = {
-  add: () => {},
+  own: (d: any) => { return d; },
 } as any;
 
 test('FramerateTracker initially null', () => {

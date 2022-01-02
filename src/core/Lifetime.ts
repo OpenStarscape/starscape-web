@@ -48,32 +48,34 @@ export class Lifetime {
   /// lifetimes. When it's disposed it removes itself from this, so many can be created and disposed
   /// without gunking up the works.
   addChild(lifetime: Lifetime) {
-    this.add(lifetime);
-    lifetime.addCallback(() => {
-      this.delete(lifetime);
+    this.own(lifetime).addCallback(() => {
+      this.disown(lifetime);
     });
   }
 
-  /// Add a callback to be called when disposed of.
-  addCallback(callback: () => void) {
-    this.add(new CallbackDisposable(callback));
+  /// Add a callback to be called when the lifetime dies
+  addCallback(callback: () => void): void {
+    this.own(new CallbackDisposable(callback));
   }
 
   /// Adds an object with a .dispose() method. .dispose() will be called when this lifetime is
-  /// disposed of unless the object is deleted from it before then.
-  add(disposable: Disposable) {
+  /// disposed of unless the object is deleted from it before then. The given object is returned
+  /// so this call can be placed inside an expression.
+  own<T extends Disposable>(disposable: T): T {
     if (this.disposables === null) {
-      throw new Error('can not add to dead lifetime');
+      throw new Error('disposable can not be added to dead lifetime');
     }
     this.disposables.add(disposable);
+    return disposable;
   }
 
-  /// Delete a previously added object without disposing of it. Does nothing if the given object is
-  /// not known.
-  delete(disposable: Disposable) {
+  /// Delete a previously owned object without disposing of it. Does nothing if the given object is
+  /// not known. The given object is returned so this call can be placed inside an expression.
+  disown<T extends Disposable>(disposable: T): T {
     if (this.disposables !== null) {
       this.disposables.delete(disposable);
     }
+    return disposable;
   }
 
   /// Calls .dispose() on all added objects. This marks the lifetime as dead and adding anything new

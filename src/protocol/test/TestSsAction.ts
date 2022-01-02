@@ -4,8 +4,8 @@ import { SsRequest, SsRequestType } from '../SsRequest';
 import { Lifetime } from '../../core';
 
 // Lifetime mock
-const ltMock = {
-  add: (_disp: any) => {},
+const mockLt = {
+  own: (d: any) => { return d; },
 } as unknown as Lifetime;
 
 function newAction(requests: SsRequest[]): SsAction<number> {
@@ -43,7 +43,7 @@ test('SsAction fires request', () => {
 test('SsAction fires to local subscribers', () => {
   const act = newAction([]);
   const values: any[] = [];
-  act.subscribe(ltMock, value => {
+  act.subscribe(mockLt, value => {
     values.push(value);
   });
   act.fire(7);

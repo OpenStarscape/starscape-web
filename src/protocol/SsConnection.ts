@@ -37,8 +37,7 @@ export class SsConnection extends Lifetime {
     }
     let obj = this.objects.get(id);
     if (obj === undefined) {
-      obj = new SsObject(this, id);
-      this.add(obj);
+      obj = this.own(new SsObject(this, id));
       this.objects.set(id, obj);
     } else if (obj === null) {
       throw new Error('object ' + id + ' has already been destroyed');

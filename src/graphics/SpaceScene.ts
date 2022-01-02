@@ -39,13 +39,11 @@ export default class SpaceScene extends Lifetime {
       throw (e);
     }
     // TODO: move this to Body
-    const mat = new THREE.MeshBasicMaterial({color: 0x20ff40, wireframe: true});
-    const geom = new THREE.ConeGeometry(0.5, 3, 3);
+    const mat = this.own(new THREE.MeshBasicMaterial({color: 0x20ff40, wireframe: true}));
+    const geom = this.own(new THREE.ConeGeometry(0.5, 3, 3));
     geom.translate(0, 4, 0);
     this.thrustMesh = new THREE.Mesh(geom, mat);
     this.scene.add(this.thrustMesh);
-    this.add(mat);
-    this.add(geom);
 
     this.game.currentShip.subscribe(this, obj => {
       if (this.thrustLt) {
