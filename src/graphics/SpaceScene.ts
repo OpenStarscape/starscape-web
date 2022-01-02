@@ -19,7 +19,6 @@ export default class SpaceScene extends Lifetime {
 
   // TODO: move this to Body
   private readonly thrustMesh: THREE.Mesh;
-  private thrustLt: Lifetime | null = null;
 
   constructor(
     readonly game: Game,
@@ -45,15 +44,10 @@ export default class SpaceScene extends Lifetime {
     this.thrustMesh = new THREE.Mesh(geom, mat);
     this.scene.add(this.thrustMesh);
 
-    this.game.currentShip.subscribe(this, obj => {
-      if (this.thrustLt) {
-        this.thrustLt.dispose();
-        this.thrustLt = null;
-      }
+    this.game.currentShip.subscribeWithValueLifetime(this, (currentShipLt, obj) => {
       if (obj) {
         console.log('Switching to ship ', obj.id);
-        this.thrustLt = this.newChild();
-        obj.property('accel', Vec3).subscribe(this.thrustLt, accel => {
+        obj.property('accel', Vec3).subscribe(currentShipLt, accel => {
           const vec = accel.newThreeVector3();
           vec.normalize();
           this.thrustMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), vec);
