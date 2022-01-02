@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { Lifetime, Vec3 } from "../core";
+import { DependentLifetime, Vec3 } from "../core";
 import { SsObject } from "../protocol";
 import type { BodyManager } from './BodyManager'
 import type { Body, BodySpatial } from './Body'
@@ -15,7 +15,7 @@ const orbitUp = new THREE.Vector3();
 const orbitQuat = new THREE.Quaternion();
 const zVec = new THREE.Vector3(0, 0, 1);
 
-export class CartesianBodySpatial extends Lifetime implements BodySpatial {
+export class CartesianBodySpatial extends DependentLifetime implements BodySpatial {
   private position: Vec3 | undefined;
   private velocity: Vec3 | undefined;
   private mass: number | undefined;

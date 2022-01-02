@@ -1,4 +1,4 @@
-import { Lifetime } from './Lifetime';
+import { Lifetime, DependentLifetime } from './Lifetime';
 
 /// Manages a subscribed callback. Is added to both a lifetime and an element, and removes itself
 /// from the other when either is destroyed.
@@ -34,11 +34,11 @@ export abstract class Conduit<T> {
   protected subscribers = new Set<Subscriber<T>>();
   /// Created each time we go from 0 to 1 subscribers, and removed and nulled out every time we
   /// go from 1 to 0.
-  protected hasSubscribersLt: Lifetime | null = null;
+  protected hasSubscribersLt: DependentLifetime | null = null;
 
   /// The subscriber count has gone from 0 to 1. When subscribers drops to 0 again
   /// hasSubscribersLt dies. If it later gains subscribers this may be called again.
-  protected abstract initialSubscriberAdded(hasSubscribersLt: Lifetime): void;
+  protected abstract initialSubscriberAdded(hasSubscribersLt: DependentLifetime): void;
 
   /// A new subscriber has been added and is in the subscribers list.
   protected abstract subscriberAdded(subscriber: Subscriber<T>): void;
@@ -51,11 +51,11 @@ export abstract class Conduit<T> {
     const subscriber = new Subscriber(lt, callback, (subscriber) => {
       this.subscribers.delete(subscriber);
       if (this.subscribers.size === 0 && this.hasSubscribersLt !== null) {
-        this.hasSubscribersLt.dispose();
+        this.hasSubscribersLt.kill();
       }
     });
     if (this.hasSubscribersLt === null) {
-      this.hasSubscribersLt = new Lifetime();
+      this.hasSubscribersLt = new DependentLifetime();
       this.hasSubscribersLt.addCallback(() => {
         this.hasSubscribersLt = null;
         const subscribers = this.subscribers;
@@ -74,12 +74,12 @@ export abstract class Conduit<T> {
   /// dies before the next value is sent. You can use this value lifetime to make subscriptions
   /// that should be cancelled when the value changes.
   subscribeWithValueLifetime(lt: Lifetime, callback: (valueLt: Lifetime, value: T) => void) {
-    let valueLt: Lifetime | null = null;
+    let valueLt: DependentLifetime | null = null;
     this.subscribe(lt, (value) => {
       if (valueLt !== null) {
-        valueLt.dispose();
+        valueLt.kill();
       }
-      valueLt = lt.newChild();
+      valueLt = lt.newDependent();
       callback(valueLt, value);
     });
   }

@@ -1,6 +1,6 @@
 import { SsSignal } from '../SsSignal';
 import { SsRequest, SsRequestType } from '../SsRequest';
-import { Lifetime } from '../../core';
+import { Lifetime, DependentLifetime } from '../../core';
 
 // Lifetime mock
 const mockLt = {
@@ -13,7 +13,7 @@ function newSignal(requests: SsRequest[]): SsSignal<number> {
     makeRequest: (rq: SsRequest) => {
       requests.push(rq);
     },
-    addChild: (_: any) => {},
+    addDependent: (_: any) => {},
   }
   return new SsSignal<number>(
     obj as any,
@@ -45,9 +45,9 @@ test('SsSignal subscribes on first local subscribe', () => {
 test('SsSignal unsubscribes on subscriber lifetime dispose', () => {
   const requests: SsRequest[] = [];
   const sig = newSignal(requests);
-  const lt = new Lifetime();
+  const lt = new DependentLifetime();
   sig.subscribe(lt, _value => {});
-  lt.dispose();
+  lt.kill();
   expect(requests).toEqual([
     {
       method: SsRequestType.Subscribe,
@@ -65,11 +65,11 @@ test('SsSignal unsubscribes on subscriber lifetime dispose', () => {
 test('SsSignal does not unsub when still has subscribers', () => {
   const requests: SsRequest[] = [];
   const sig = newSignal(requests);
-  const lt1 = new Lifetime();
-  const lt2 = new Lifetime();
+  const lt1 = new DependentLifetime();
+  const lt2 = new DependentLifetime();
   sig.subscribe(lt1, _value => {});
   sig.subscribe(lt2, _value => {});
-  lt1.dispose();
+  lt1.kill();
   expect(requests).toEqual([
     {
       method: SsRequestType.Subscribe,
@@ -82,9 +82,9 @@ test('SsSignal does not unsub when still has subscribers', () => {
 test('SsSignal can resubscribe', () => {
   const requests: SsRequest[] = [];
   const sig = newSignal(requests);
-  const lt = new Lifetime();
+  const lt = new DependentLifetime();
   sig.subscribe(lt, _value => {});
-  lt.dispose();
+  lt.kill();
   sig.subscribe(mockLt, _value => {});
   expect(requests).toEqual([
     {

@@ -37,7 +37,7 @@ export class SsConnection extends Lifetime {
     }
     let obj = this.objects.get(id);
     if (obj === undefined) {
-      obj = this.own(new SsObject(this, id));
+      obj = this.addDependent(new SsObject(this, id));
       this.objects.set(id, obj);
     } else if (obj === null) {
       throw new Error('object ' + id + ' has already been destroyed');
@@ -54,7 +54,7 @@ export class SsConnection extends Lifetime {
   destroyObj(id: number) {
     const obj = this.objects.get(id);
     if (obj !== undefined && obj !== null) {
-      obj.dispose();
+      obj.kill();
     }
     /// Set to null instead of removing so a new object can't be made with the same ID
     this.objects.set(id, null);

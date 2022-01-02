@@ -1,13 +1,12 @@
 import * as THREE from "three";
-import { Lifetime } from "../core";
+import { DependentLifetime } from "../core";
 import { SsObject } from "../protocol";
 import { OrbitBodySpatial } from './OrbitBodySpatial'
-import { CartesianBodySpatial } from './CartesianBodySpatial'
 import { BodyVisual, CelestialVisual, ShipVisual } from './BodyVisual'
 import type { BodyManager } from './BodyManager'
 
 /// Just the spacial aspects of a body (not things like name or color)
-export interface BodySpatial {
+export interface BodySpatial extends DependentLifetime {
   /// Returns if returned values will be meaningful
   isReady(): boolean;
   /// Get the position, may leave input unchanged if position is not available
@@ -23,11 +22,11 @@ export interface BodySpatial {
 }
 
 /// The parent class for all 3D body types.
-export class Body extends Lifetime implements BodySpatial {
+export class Body extends DependentLifetime implements BodySpatial {
   /// The body manager subscribes and uses the setters for name and parent
   private name: string | null = null;
   private visual: BodyVisual | null = null;
-  readonly spatial: BodySpatial & Lifetime;
+  readonly spatial: BodySpatial;
   private bodyClass = '';
 
   constructor(
@@ -37,7 +36,7 @@ export class Body extends Lifetime implements BodySpatial {
     super();
 
     this.spatial = new OrbitBodySpatial(manager, obj);
-    this.addChild(this.spatial);
+    this.addDependent(this.spatial);
 
     obj.property('class', String).getThen(this, cls => {
       this.bodyClass = cls;

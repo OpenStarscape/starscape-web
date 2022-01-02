@@ -2,11 +2,11 @@ import { SsObject } from '../SsObject';
 import { SsProperty } from '../SsProperty';
 import { SsSignal } from '../SsSignal';
 import { SsAction } from '../SsAction';
-import { Lifetime } from '../../core';
+import { DependentLifetime } from '../../core';
 
 const mockConn = {
   add: (_: any) => {},
-  addChild: (_: any) => {},
+  addDependent: (_: any) => {},
   makeRequest: () => {},
 } as any;
 
@@ -79,7 +79,7 @@ test('SsObject unsubscribes conduits on dispose', () => {
   const prop = obj.property('prop', Number);
   const sig = obj.signal('sig', Number);
   const act = obj.action('act', Number);
-  const lt = new Lifetime();
+  const lt = new DependentLifetime();
   expect(prop.hasSubscribers()).toEqual(false);
   expect(sig.hasSubscribers()).toEqual(false);
   expect(act.hasSubscribers()).toEqual(false);
@@ -89,7 +89,7 @@ test('SsObject unsubscribes conduits on dispose', () => {
   expect(prop.hasSubscribers()).toEqual(true);
   expect(sig.hasSubscribers()).toEqual(true);
   expect(act.hasSubscribers()).toEqual(true);
-  obj.dispose();
+  obj.kill();
   expect(prop.hasSubscribers()).toEqual(false);
   expect(sig.hasSubscribers()).toEqual(false);
   expect(act.hasSubscribers()).toEqual(false);

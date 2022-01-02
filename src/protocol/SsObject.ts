@@ -1,5 +1,5 @@
 import {
-  Lifetime,
+  DependentLifetime,
   RealTypeOf,
   runtimeTypeEquals,
   runtimeTypeName,
@@ -29,7 +29,7 @@ function ssConduitConstructorTypeName(mc: SsConduitConstructor<any>): string {
 }
 
 /// A handle to an object on the server. Is automatically created by the connection.
-export class SsObject extends Lifetime {
+export class SsObject extends DependentLifetime {
   private members = new Map<string, SsConduit<any>>();
 
   constructor(
@@ -37,7 +37,7 @@ export class SsObject extends Lifetime {
     readonly id: number
   ) {
     super();
-    connection.addChild(this);
+    connection.addDependent(this);
   }
 
   /// Object must have a property with the given name. This is not automatically checked.
@@ -157,9 +157,9 @@ export class SsObject extends Lifetime {
     }
   }
 
-  dispose() {
+  kill() {
     this.members.clear();
-    super.dispose();
+    super.kill();
   }
 }
 

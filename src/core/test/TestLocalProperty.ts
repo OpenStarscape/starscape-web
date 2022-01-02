@@ -1,7 +1,7 @@
 import { LocalProperty } from '../LocalProperty';
-import { Lifetime } from '../Lifetime'; // TODO: mock lifetime?
+import { DependentLifetime } from '../Lifetime'; // TODO: mock lifetime?
 
-const lt = new Lifetime();
+const lt = new DependentLifetime();
 
 test('LocalProperty subscribe and set', () => {
   const events: any[] = [];

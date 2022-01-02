@@ -1,6 +1,6 @@
 import { Lifetime } from '../core';
 import { Game } from '../game';
-import SpaceScene from '../graphics/SpaceScene';
+import { spaceScene } from '../graphics/SpaceScene';
 import { shipNameField, gameStats, orbitList } from '.';
 
 export function overlay(lt: Lifetime, game: Game): HTMLElement {
@@ -16,11 +16,7 @@ export function gameContainer(lt: Lifetime, game: Game): HTMLElement {
   stack.style.width = '100%'
   stack.style.height = '100%'
 
-  const scene = document.createElement('div');
-  scene.style.width = '100%'
-  scene.style.height = '100%'
-  lt.own(new SpaceScene(game, scene));
-  stack.appendChild(scene);
+  stack.appendChild(spaceScene(lt, game));
 
   stack.appendChild(overlay(lt, game));
 

@@ -19,9 +19,12 @@ class CallbackDisposable {
 
 /// A group of objects which are all disposed of at once. Any object which has a .dispose() method
 /// may be added to a lifetime. This includes three.js types which need to be disposed of, as well
-/// as subscribers (these are created automatically when conduits are subscribed to).
-export class Lifetime {
+/// as subscribers (these are created automatically when conduits are subscribed to). accessing
+/// a Lifetime does not give permission to kill it, for that you need a derived class such as
+/// DependentLifetime
+export abstract class Lifetime {
   private disposables: Set<Disposable> | null = new Set();
+  private dependents: Set<DependentLifetime> | null = new Set();
 
   /// So it can be used as a mixin
   initLifetime() {
@@ -37,20 +40,26 @@ export class Lifetime {
 
   /// Create a new lifetime that will be disposed of with this one, but can also be disposed of
   /// sooner
-  newChild() {
-    const child = new Lifetime();
-    this.addChild(child);
-    return child;
+  newDependent(): DependentLifetime {
+    const dependent = new DependentLifetime();
+    this.addDependent(dependent);
+    return dependent;
   }
 
-  /// Add another lifetime to be a child of this one. That means it is disposed when this is
-  /// disposed, but it can be disposed sooner. A lifetime can be a child of multiple other
-  /// lifetimes. When it's disposed it removes itself from this, so many can be created and disposed
-  /// without gunking up the works.
-  addChild(lifetime: Lifetime) {
-    this.own(lifetime).addCallback(() => {
-      this.disown(lifetime);
+  /// Make a DependentLifetime depend on this lifetime, so if this lifetime dies it will also kill
+  /// the dependent. A DependentLifetime can depend on multiple other lifetimes, and will die as
+  /// soon as any of them do.
+  addDependent<T extends DependentLifetime>(dependent: T): T {
+    if (this.dependents === null) {
+      throw new Error('disposable can not be added to dead lifetime');
+    }
+    this.dependents.add(dependent);
+    dependent.addCallback(() => {
+      if (this.dependents !== null) {
+        this.dependents.delete(dependent)
+      }
     });
+    return dependent;
   }
 
   /// Add a callback to be called when the lifetime dies
@@ -63,7 +72,7 @@ export class Lifetime {
   /// so this call can be placed inside an expression.
   own<T extends Disposable>(disposable: T): T {
     if (this.disposables === null) {
-      throw new Error('disposable can not be added to dead lifetime');
+      throw new Error('dead lifetime can not own new things');
     }
     this.disposables.add(disposable);
     return disposable;
@@ -80,7 +89,7 @@ export class Lifetime {
 
   /// Calls .dispose() on all added objects. This marks the lifetime as dead and adding anything new
   /// to it will result in an error. Killing it again or deleting things from it will do nothing.
-  dispose() {
+  protected killLifetime(): void {
     if (this.disposables !== null) {
       const disposables = this.disposables;
       this.disposables = null;
@@ -88,5 +97,19 @@ export class Lifetime {
         disposable.dispose();
       }
     }
+    if (this.dependents !== null) {
+      const dependents = this.dependents;
+      this.dependents = null;
+      for (const dependent of dependents) {
+        dependent.kill();
+      }
+    }
+  }
+}
+
+export class DependentLifetime extends Lifetime {
+  /// Explicitly kills this lifetime, calls .dispose on all owned disposables and kills any dependents
+  kill() {
+    this.killLifetime();
   }
 }

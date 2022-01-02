@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Lifetime, Vec3 } from '../core';
+import { DependentLifetime } from '../core';
 import { CartesianBodySpatial } from './CartesianBodySpatial';
 import { SsObject } from '../protocol';
 import type { BodyManager } from './BodyManager'
@@ -12,9 +12,9 @@ const vecTempB = new THREE.Vector3();
 
 /// Subscribes to the body's orbit and determines position from that
 /// A lot of the math was figured out using https://space.stackexchange.com/a/8915
-export class OrbitBodySpatial extends Lifetime implements BodySpatial {
+export class OrbitBodySpatial extends DependentLifetime implements BodySpatial {
   private parent: Body | null | undefined;
-  private fallback: (BodySpatial & Lifetime) | null = null;
+  private fallback: BodySpatial | null = null;
   private mass: number | undefined;
   private baseTime = 0;
   private periodTime = 0;
@@ -62,7 +62,7 @@ export class OrbitBodySpatial extends Lifetime implements BodySpatial {
       return;
     }
     if (this.fallback !== null) {
-      this.fallback.dispose();
+      this.fallback.kill();
       this.fallback = null;
     }
 
@@ -88,8 +88,7 @@ export class OrbitBodySpatial extends Lifetime implements BodySpatial {
 
   useFallback(): void {
     if (this.fallback === null) {
-      this.fallback = new CartesianBodySpatial(this.manager, this.obj);
-      this.addChild(this.fallback);
+      this.fallback = this.addDependent(new CartesianBodySpatial(this.manager, this.obj));
     }
   }
 

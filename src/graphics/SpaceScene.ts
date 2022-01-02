@@ -8,10 +8,11 @@ import { BodyManager } from '../graphics/BodyManager';
 import CameraManager from '../graphics/CameraManager';
 
 /// Manages everything required to render a 3D space view with three.js.
-export default class SpaceScene extends Lifetime {
+class SpaceScene {
   readonly scene = new THREE.Scene();
   readonly renderer: THREE.WebGLRenderer;
   readonly overlayRenderer = new CSS2DRenderer();
+  readonly domParent: HTMLDivElement;
   readonly starfield: Starfield;
   readonly bodies: BodyManager;
   readonly cameraManager: CameraManager;
@@ -21,14 +22,12 @@ export default class SpaceScene extends Lifetime {
   private readonly thrustMesh: THREE.Mesh;
 
   constructor(
+    readonly lt: Lifetime,
     readonly game: Game,
-    readonly domParent: HTMLDivElement
   ) {
-    super();
-
     THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
-    this.game.fps.addTracker(this, this.fps);
+    this.game.fps.addTracker(this.lt, this.fps);
 
     try {
       this.renderer = new THREE.WebGLRenderer({antialias: true});
@@ -38,13 +37,13 @@ export default class SpaceScene extends Lifetime {
       throw (e);
     }
     // TODO: move this to Body
-    const mat = this.own(new THREE.MeshBasicMaterial({color: 0x20ff40, wireframe: true}));
-    const geom = this.own(new THREE.ConeGeometry(0.5, 3, 3));
+    const mat = this.lt.own(new THREE.MeshBasicMaterial({color: 0x20ff40, wireframe: true}));
+    const geom = this.lt.own(new THREE.ConeGeometry(0.5, 3, 3));
     geom.translate(0, 4, 0);
     this.thrustMesh = new THREE.Mesh(geom, mat);
     this.scene.add(this.thrustMesh);
 
-    this.game.currentShip.subscribeWithValueLifetime(this, (currentShipLt, obj) => {
+    this.game.currentShip.subscribeWithValueLifetime(this.lt, (currentShipLt, obj) => {
       if (obj) {
         console.log('Switching to ship ', obj.id);
         obj.property('accel', Vec3).subscribe(currentShipLt, accel => {
@@ -56,6 +55,10 @@ export default class SpaceScene extends Lifetime {
         });
       }
     });
+
+    this.domParent = document.createElement('div');
+    this.domParent.style.width = '100%'
+    this.domParent.style.height = '100%'
 
     this.renderer.setClearColor('black');
     this.renderer.setPixelRatio(window.devicePixelRatio);
@@ -78,20 +81,20 @@ export default class SpaceScene extends Lifetime {
       this.resize(box.inlineSize, box.blockSize);
     }).observe(this.domParent);
 
-    this.starfield = new Starfield(this, this.scene);
-    this.bodies = new BodyManager(this, this.game, this.scene);
+    this.starfield = new Starfield(this.lt, this.scene);
+    this.bodies = new BodyManager(this.lt, this.game, this.scene);
     this.cameraManager = new CameraManager(
-      this,
+      this.lt,
       this.scene,
       this.overlayRenderer.domElement,
       this.bodies,
       this.game);
     this.cameraManager.setAspect(window.innerWidth / window.innerHeight);
 
-    const shipCreatedLt = this.newChild();
+    const shipCreatedLt = this.lt.newDependent();
     this.game.god.signal('ship_created', SsObject).subscribe(shipCreatedLt, obj => {
       this.game.currentShip.set(obj);
-      shipCreatedLt.dispose(); // only handle this callback once
+      shipCreatedLt.kill(); // only handle this callback once
     });
 
     this.game.god.action('create_ship', {arrayOf: Vec3}).fire([
@@ -123,4 +126,13 @@ export default class SpaceScene extends Lifetime {
     this.overlayRenderer.render(this.scene, this.cameraManager.camera);
     requestAnimationFrame(() => this.render());
   }
+
+  domElement() {
+    return this.domParent;
+  }
+}
+
+export function spaceScene(lt: Lifetime, game: Game): HTMLElement {
+  const scene = new SpaceScene(lt, game);
+  return scene.domElement();
 }

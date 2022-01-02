@@ -4,7 +4,7 @@ import { SsObject } from '../../protocol';
 
 const mockConn = {
   add: (_d: any) => {},
-  addChild: (_d: any) => {},
+  addDependent: (_d: any) => {},
 } as any;
 
 function obj() {

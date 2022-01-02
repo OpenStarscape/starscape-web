@@ -1,11 +1,11 @@
 import { LocalAction } from '../LocalAction';
-import { Lifetime } from '../Lifetime'; // TODO: mock lifetime?
+import { DependentLifetime } from '../Lifetime'; // TODO: mock lifetime?
 
 test('LocalAction subscribe and fire', () => {
   const a = {a: 1, b: 2};
   const events: any[] = [];
   const action = new LocalAction();
-  const lt = new Lifetime();
+  const lt = new DependentLifetime();
   action.subscribe(lt, value => {
     events.push(value);
   });
@@ -19,7 +19,7 @@ test('LocalAction multi subscribers', () => {
   const events_a: any[] = [];
   const events_b: any[] = [];
   const action = new LocalAction();
-  const lt = new Lifetime();
+  const lt = new DependentLifetime();
   action.subscribe(lt, value => {
     events_a.push(value);
   });

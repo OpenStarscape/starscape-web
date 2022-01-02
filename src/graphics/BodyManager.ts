@@ -22,7 +22,7 @@ export class BodyManager {
         this.setBodyName(body, name);
       });
       itemLt.addCallback(() => {
-        body.dispose();
+        body.kill();
         this.setBodyName(body, null);
         this.bodyMap.delete(obj);
       });

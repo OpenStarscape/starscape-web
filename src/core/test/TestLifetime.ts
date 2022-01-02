@@ -1,4 +1,4 @@
-import { Lifetime } from '../Lifetime';
+import { DependentLifetime } from '../Lifetime';
 
 class MockDisposable {
   disposed = false;
@@ -12,73 +12,73 @@ class MockDisposable {
 }
 
 test('Lifetime disposes owned disposables', () => {
-  const lt = new Lifetime();
+  const lt = new DependentLifetime();
   const a = lt.own(new MockDisposable());
   const b = lt.own(new MockDisposable());
-  lt.dispose();
+  lt.kill();
   expect(a.disposed).toBe(true);
   expect(b.disposed).toBe(true);
 });
 
-test('Lifetime child disposed with parent', () => {
-  const parent = new Lifetime();
-  const lt = parent.newChild();
+test('DependentLifetime killed with parent', () => {
+  const parent = new DependentLifetime();
+  const lt = parent.newDependent();
   const a = lt.own(new MockDisposable());
-  parent.dispose();
+  parent.kill();
   expect(a.disposed).toBe(true);
 });
 
-test('Lifetime child can be owned by multiple parents', () => {
-  const parent1 = new Lifetime();
-  const parent2 = new Lifetime();
-  const lt = parent1.newChild();
-  parent2.addChild(lt);
+test('DependentLifetime can depend on multiple parents', () => {
+  const parent1 = new DependentLifetime();
+  const parent2 = new DependentLifetime();
+  const lt = parent1.newDependent();
+  parent2.addDependent(lt);
   const a = lt.own(new MockDisposable());
-  parent2.dispose();
+  parent2.kill();
   expect(a.disposed).toBe(true);
-  parent1.dispose();
+  parent1.kill();
 });
 
 test('Lifetime can have disposable disowned', () => {
-  const lt = new Lifetime();
+  const lt = new DependentLifetime();
   const a = lt.own(new MockDisposable());
   lt.disown(a);
-  lt.dispose();
+  lt.kill();
   expect(a.disposed).toBe(false);
 });
 
-test('Lifetime can not be added to after dispose', () => {
-  const lt = new Lifetime();
+test('Lifetime can not own new stuff after killed', () => {
+  const lt = new DependentLifetime();
   lt.own(new MockDisposable());
-  lt.dispose();
+  lt.kill();
   expect(() =>{
     lt.own(new MockDisposable());
   }).toThrow();
 });
 
-test('Lifetime can be deleted from after dispose', () => {
-  const lt = new Lifetime();
+test('Lifetime can disown things after killed', () => {
+  const lt = new DependentLifetime();
   const a = lt.own(new MockDisposable());
-  lt.dispose();
+  lt.kill();
   lt.disown(a);
   lt.disown(new MockDisposable());
 });
 
-test('Lifetime can be disposed multiple times', () => {
-  const lt = new Lifetime();
+test('Lifetime can be killed multiple times', () => {
+  const lt = new DependentLifetime();
   lt.own(new MockDisposable());
-  lt.dispose();
-  lt.dispose();
-  lt.dispose();
+  lt.kill();
+  lt.kill();
+  lt.kill();
 });
 
-test('Lifetime reports dead after dispose', () => {
-  const lt = new Lifetime();
+test('Lifetime reports dead after killed', () => {
+  const lt = new DependentLifetime();
   expect(lt.alive()).toBe(true);
   lt.own(new MockDisposable());
   expect(lt.alive()).toBe(true);
-  lt.dispose();
+  lt.kill();
   expect(lt.alive()).toBe(false);
-  lt.dispose();
+  lt.kill();
   expect(lt.alive()).toBe(false);
 });

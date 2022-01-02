@@ -1,10 +1,10 @@
 import { SsObject } from '../SsObject';
 import { SsConnection } from '../SsConnection';
-import { Lifetime } from '../../core';
+import { DependentLifetime } from '../../core';
 import { SsSet } from '..';
 
 const mockConn = {
-  addChild: (_a: any) => {},
+  addDependent: (_a: any) => {},
   makeRequest: (_a: any) => {},
 } as unknown as SsConnection;
 
@@ -12,7 +12,7 @@ function setupWithObj(obj: SsObject): [SsSet<any>, (_: any) => void, (_: any) =>
   const prop = obj.property('foo', {arrayOf: undefined} as any);
   // Having an active subscriber means the property will cache the values we give it,
   // which is required for some of the tests
-  prop.subscribe(new Lifetime(), (_) => {});
+  prop.subscribe(new DependentLifetime(), (_) => {});
   let values: any[] = [];
   const add = (value: any) => {
     expect(values.includes(value)).toBe(false);
@@ -36,8 +36,8 @@ function setup(): [SsSet<any>, (_: any) => void, (_: any) => void] {
 
 type Log = {added: any} | {removed: any};
 
-function subscribeLogger(sss: SsSet<any>): [Lifetime, Log[]] {
-  const lt = new Lifetime();
+function subscribeLogger(sss: SsSet<any>): [DependentLifetime, Log[]] {
+  const lt = new DependentLifetime();
   const log: Log[] = [];
   sss.subscribe(lt, ([itemLt, item]) => {
     log.push({added: item});
@@ -119,7 +119,7 @@ test('SsSet subscriber can be removed', () => {
   const [_lt1, log1] = subscribeLogger(sss);
   add(7);
   remove(7);
-  lt0.dispose();
+  lt0.kill();
   add(3);
   expect(log0).toEqual([{added: 7}, {removed: 7}]);
   expect(log1).toEqual([{added: 7}, {removed: 7}, {added: 3}]);
@@ -129,7 +129,7 @@ test('SsSet item removed when subscriber removed', () => {
   const [sss, add, _remove] = setup();
   const [lt, log] = subscribeLogger(sss);
   add(7);
-  lt.dispose();
+  lt.kill();
   expect(log).toEqual([{added: 7}, {removed: 7}]);
 });
 
@@ -138,7 +138,7 @@ test('SsSet item not removed for all when one subscriber removed', () => {
   const [lt0, log0] = subscribeLogger(sss);
   const [_lt1, log1] = subscribeLogger(sss);
   add(7);
-  lt0.dispose();
+  lt0.kill();
   add(3);
   expect(log0).toEqual([{added: 7}, {removed: 7}]);
   expect(log1).toEqual([{added: 7}, {added: 3}]);
@@ -150,7 +150,7 @@ test('SsSet items removed when object destroyed', () => {
   const [_lt, log] = subscribeLogger(sss);
   add(7);
   add(3);
-  obj.dispose();
+  obj.kill();
   expect(log).toEqual([{added: 7}, {added: 3}, {removed: 7}, {removed: 3}]);
 });
 
@@ -162,7 +162,7 @@ test('SsSet subscriber lifetime not killed when object destroyed', () => {
     fail();
   })
   add(7);
-  obj.dispose();
+  obj.kill();
 });
 
 test('SsSet items added when first subscribed', () => {

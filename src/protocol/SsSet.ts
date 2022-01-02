@@ -1,4 +1,4 @@
-import { Lifetime, Conduit, Subscriber } from '../core';
+import { Lifetime, DependentLifetime, Conduit, Subscriber } from '../core';
 import { SsObject } from './SsObject';
 import { SsProperty } from './SsProperty';
 import { SsValue } from './SsValue';
@@ -9,7 +9,7 @@ import { SsValue } from './SsValue';
 /// whenever and item is added. Subscribers are given a tuple of two arguments: a lifetime that will
 /// die when the item leaves the set, and the item.
 export class SsSet<T extends SsValue> extends Conduit<[Lifetime, T]> {
-  private items = new Map<T, Lifetime>();
+  private items = new Map<T, DependentLifetime>();
 
   constructor(
     private readonly property: SsProperty<T[]>,
@@ -22,10 +22,10 @@ export class SsSet<T extends SsValue> extends Conduit<[Lifetime, T]> {
       console.error('SsSet.newItem() called with null hasSubscribersLt');
       return;
     }
-    const itemLt = this.hasSubscribersLt.newChild();
+    const itemLt = this.hasSubscribersLt.newDependent();
     // if it's an object, should die with the object (though the server should remove it for us)
     if (item instanceof SsObject) {
-      item.addChild(itemLt);
+      item.addDependent(itemLt);
     }
     this.items.set(item, itemLt);
     for (const subscriber of this.subscribers) {
@@ -55,15 +55,15 @@ export class SsSet<T extends SsValue> extends Conduit<[Lifetime, T]> {
       }
     }
     for (const oldItemLt of oldItems.values()) {
-      oldItemLt.dispose();
+      oldItemLt.kill();
     }
   }
 
-  initialSubscriberAdded(hasSubscribersLt: Lifetime): void {
+  initialSubscriberAdded(hasSubscribersLt: DependentLifetime): void {
     hasSubscribersLt.addCallback(() => {
       this.items.clear();
     });
-    this.property.lifetime().addChild(hasSubscribersLt);
+    this.property.lifetime().addDependent(hasSubscribersLt);
     this.property.subscribe(hasSubscribersLt, items => {
       if (!Array.isArray(items)) {
         console.error('SsSet given value ' + items + ' which is not array');
@@ -80,8 +80,8 @@ export class SsSet<T extends SsValue> extends Conduit<[Lifetime, T]> {
   }
 
   private sendNewItem(itemLt: Lifetime, subscriber: Subscriber<[Lifetime, T]>, item: T) {
-    const itemSubscriberLt = itemLt.newChild();
-    subscriber.lifetime.addChild(itemSubscriberLt);
+    const itemSubscriberLt = itemLt.newDependent();
+    subscriber.lifetime.addDependent(itemSubscriberLt);
     subscriber.sendValue([itemSubscriberLt, item]);
   }
 }
