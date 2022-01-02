@@ -29,10 +29,9 @@ export class BodyVisual extends Lifetime {
   private readonly labelDiv: HTMLDivElement;
   private readonly label: CSS2DObject;
 
-  // These need to be added to the lifetime
-  private readonly solidMat = new THREE.MeshBasicMaterial({color: 'white'});
-  private readonly wireMat = new THREE.MeshBasicMaterial({color: 'white', wireframe: true});
-  private readonly lineMat = new THREE.LineBasicMaterial({color: 'white'});
+  private readonly solidMat;
+  private readonly wireMat;
+  private readonly lineMat;
 
   protected size = 1;
   protected readonly mesh;
@@ -46,9 +45,9 @@ export class BodyVisual extends Lifetime {
   ) {
     super();
 
-    this.add(this.solidMat);
-    this.add(this.wireMat);
-    this.add(this.lineMat);
+    this.solidMat = this.own(new THREE.MeshBasicMaterial({color: 'white'}));
+    this.wireMat = this.own(new THREE.MeshBasicMaterial({color: 'white', wireframe: true}));
+    this.lineMat = this.own(new THREE.LineBasicMaterial({color: 'white'}));
 
     // This is probs a better way: https://stackoverflow.com/a/21742175
     this.orbitLine = new THREE.LineLoop(circleGeom, this.lineMat);
@@ -121,8 +120,7 @@ export class CelestialVisual extends BodyVisual {
     this.obj.property('color', String).subscribe(this, color => this.setColor(color));
     this.obj.property('size', Number).getThen(this, km => {
       this.size = km;
-      this.mesh.geometry = new THREE.SphereBufferGeometry(this.size, 16, 16);
-      this.add(this.mesh.geometry);
+      this.mesh.geometry = this.own(new THREE.SphereBufferGeometry(this.size, 16, 16));
     });
   }
 }
@@ -134,8 +132,7 @@ export class ShipVisual extends BodyVisual {
   constructor(scene: THREE.Scene, obj: SsObject, name: string | null, spatial: BodySpatial) {
     super(scene, obj, name, '0xFFFFFF', spatial);
     this.size = 0.01;
-    this.mesh.geometry = new THREE.ConeBufferGeometry(0.01, 0.03, 16);
-    this.add(this.mesh.geometry);
+    this.mesh.geometry = this.own(new THREE.ConeBufferGeometry(0.01, 0.03, 16));
     this.obj.property('accel', Vec3).subscribe(this, accel => {
       this.accel = accel;
     });

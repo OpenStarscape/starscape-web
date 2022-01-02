@@ -8,7 +8,7 @@ export class Subscriber<T> {
     protected callback: ((value: T) => void) | null,
     private readonly onDispose: (self: Subscriber<T>) => void,
   ) {
-    this.lifetime.add(this);
+    this.lifetime.own(this);
   }
 
   /// Called by the element when it gets an update (this may be an updated property value or an
@@ -22,7 +22,7 @@ export class Subscriber<T> {
   /// Called by the lifetime when it dies or the element when it's object is destroyed.
   dispose() {
     this.callback = null;
-    this.lifetime.delete(this);
+    this.lifetime.disown(this);
     this.onDispose(this);
   }
 }

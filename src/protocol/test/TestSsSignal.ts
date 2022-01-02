@@ -3,9 +3,9 @@ import { SsRequest, SsRequestType } from '../SsRequest';
 import { Lifetime } from '../../core';
 
 // Lifetime mock
-const ltMock = {
-  add: (_: any) => {},
-} as any
+const mockLt = {
+  own: (d: any) => { return d; },
+} as unknown as Lifetime;
 
 function newSignal(requests: SsRequest[]): SsSignal<number> {
   const obj = {
@@ -32,7 +32,7 @@ test('SsSignal handles signal on no subscribers', () => {
 test('SsSignal subscribes on first local subscribe', () => {
   const requests: SsRequest[] = [];
   const sig = newSignal(requests);
-  sig.subscribe(ltMock, _value => {});
+  sig.subscribe(mockLt, _value => {});
   expect(requests).toEqual([
     {
       method: SsRequestType.Subscribe,
@@ -85,7 +85,7 @@ test('SsSignal can resubscribe', () => {
   const lt = new Lifetime();
   sig.subscribe(lt, _value => {});
   lt.dispose();
-  sig.subscribe(ltMock, _value => {});
+  sig.subscribe(mockLt, _value => {});
   expect(requests).toEqual([
     {
       method: SsRequestType.Subscribe,
@@ -108,7 +108,7 @@ test('SsSignal can resubscribe', () => {
 test('SsSignal notifies subscriber', () => {
   const sig = newSignal([]);
   const values: any[] = [];
-  sig.subscribe(ltMock, value => {
+  sig.subscribe(mockLt, value => {
     values.push(value);
   });
   sig.handleSignal(7);

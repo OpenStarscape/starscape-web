@@ -19,7 +19,7 @@ export function gameContainer(lt: Lifetime, game: Game): HTMLElement {
   const scene = document.createElement('div');
   scene.style.width = '100%'
   scene.style.height = '100%'
-  lt.add(new SpaceScene(game, scene));
+  lt.own(new SpaceScene(game, scene));
   stack.appendChild(scene);
 
   stack.appendChild(overlay(lt, game));
