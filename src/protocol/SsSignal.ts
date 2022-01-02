@@ -1,4 +1,4 @@
-import { Lifetime, Subscriber, assertIsType } from '../core';
+import { DependentLifetime, Subscriber, assertIsType } from '../core';
 import { SsConduit } from './SsConduit'
 import { SsRequestType } from './SsRequest'
 import { SsValue } from './SsValue'
@@ -9,8 +9,8 @@ export class SsSignal<T extends SsValue> extends SsConduit<T> {
     return 'signal';
   }
 
-  initialSubscriberAdded(hasSubscribersLt: Lifetime): void {
-    this.obj.addChild(hasSubscribersLt);
+  initialSubscriberAdded(hasSubscribersLt: DependentLifetime): void {
+    this.obj.addDependent(hasSubscribersLt);
     this.obj.makeRequest({
       method: SsRequestType.Subscribe,
       objId: this.obj.id,

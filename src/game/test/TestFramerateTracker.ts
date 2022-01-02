@@ -1,5 +1,5 @@
 import { FramerateTracker } from '../FramerateTracker';
-import { Lifetime } from '../../core';
+import { DependentLifetime } from '../../core';
 
 const mockLt = {
   own: (d: any) => { return d; },
@@ -7,7 +7,7 @@ const mockLt = {
 
 test('FramerateTracker initially null', () => {
   const fps = new FramerateTracker();
-  fps.subscribe(new Lifetime(), (_) => {});
+  fps.subscribe(new DependentLifetime(), (_) => {});
   expect(fps.get()).toBe(null);
   fps.recordFrame();
   expect(fps.get()).toBe(null);
@@ -15,7 +15,7 @@ test('FramerateTracker initially null', () => {
 
 test('FramerateTracker not null after two frames', () => {
   const fps = new FramerateTracker();
-  fps.subscribe(new Lifetime(), (_) => {});
+  fps.subscribe(new DependentLifetime(), (_) => {});
   fps.recordFrame();
   fps.recordFrame();
   expect(fps.get()).not.toBe(null);
@@ -24,7 +24,7 @@ test('FramerateTracker not null after two frames', () => {
 test('FramerateTracker detects correct FPS after two frames', () => {
   const timestamps = [1000, 1050];
   const fps = new FramerateTracker(10, () => timestamps.shift()!);
-  fps.subscribe(new Lifetime(), (_) => {});
+  fps.subscribe(new DependentLifetime(), (_) => {});
   fps.recordFrame();
   fps.recordFrame();
   expect(fps.get()).toBe(20);
@@ -33,7 +33,7 @@ test('FramerateTracker detects correct FPS after two frames', () => {
 test('FramerateTracker detects FPS based on average frame time', () => {
   const timestamps = [1000, 1050, 1200];
   const fps = new FramerateTracker(10, () => timestamps.shift()!);
-  fps.subscribe(new Lifetime(), (_) => {});
+  fps.subscribe(new DependentLifetime(), (_) => {});
   fps.recordFrame();
   fps.recordFrame();
   fps.recordFrame();
@@ -43,7 +43,7 @@ test('FramerateTracker detects FPS based on average frame time', () => {
 test('FramerateTracker only uses limited number of samples', () => {
   const timestamps = [1000, 1050, 1100, 1250];
   const fps = new FramerateTracker(2, () => timestamps.shift()!);
-  fps.subscribe(new Lifetime(), (_) => {});
+  fps.subscribe(new DependentLifetime(), (_) => {});
   fps.recordFrame();
   fps.recordFrame();
   fps.recordFrame();

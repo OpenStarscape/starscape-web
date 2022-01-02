@@ -60,8 +60,8 @@ export class FramerateReporter extends Conduit<number | null> {
     if (this.hasSubscribersLt === null) {
       return;
     }
-    const lt = trackerLt.newChild();
-    this.hasSubscribersLt.addChild(lt);
+    const lt = trackerLt.newDependent();
+    this.hasSubscribersLt.addDependent(lt);
     tracker.subscribe(lt, fps => {
       let newValue = this.value;
       if (this.currentTracker === tracker) {

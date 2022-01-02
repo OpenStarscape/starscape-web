@@ -1,4 +1,4 @@
-import { Subscriber, valuesEqual, assertIsType, Lifetime } from '../core'
+import { Subscriber, valuesEqual, assertIsType, Lifetime, DependentLifetime } from '../core'
 import { SsConduit } from './SsConduit'
 import { SsRequestType } from './SsRequest'
 import { SsValue } from './SsValue'
@@ -74,8 +74,8 @@ export class SsProperty<T extends SsValue> extends SsConduit<T> {
     return this.value;
   }
 
-  initialSubscriberAdded(hasSubscribersLt: Lifetime): void {
-    this.obj.addChild(hasSubscribersLt);
+  initialSubscriberAdded(hasSubscribersLt: DependentLifetime): void {
+    this.obj.addDependent(hasSubscribersLt);
     this.obj.makeRequest({
       method: SsRequestType.Subscribe,
       objId: this.obj.id,

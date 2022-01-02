@@ -1,4 +1,4 @@
-import { Lifetime, Subscriber } from '../core'
+import { DependentLifetime, Subscriber } from '../core'
 import { SsConduit } from './SsConduit'
 import { SsRequestType } from './SsRequest'
 import { SsValue } from './SsValue'
@@ -10,8 +10,8 @@ export class SsAction<T extends SsValue> extends SsConduit<T> {
     return 'action';
   }
 
-  initialSubscriberAdded(hasSubscribersLt: Lifetime): void {
-    this.obj.addChild(hasSubscribersLt);
+  initialSubscriberAdded(hasSubscribersLt: DependentLifetime): void {
+    this.obj.addDependent(hasSubscribersLt);
   }
 
   subscriberAdded(_subscriber: Subscriber<T>): void {}
