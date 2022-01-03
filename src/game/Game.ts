@@ -4,7 +4,7 @@ import { SsConnection, SsSessionType, SsObject, SsSet } from '../protocol';
 
 export interface Game {
   readonly connection: SsConnection;
-  readonly god: SsObject;
+  readonly root: SsObject;
   readonly bodies: SsSet<SsObject>;
   readonly currentShip: LocalProperty<SsObject | null>;
   readonly averageFps: FramerateReporter;
@@ -16,7 +16,7 @@ export interface Game {
 
 export class GameImpl extends Lifetime {
   readonly connection: SsConnection;
-  readonly god: SsObject;
+  readonly root: SsObject;
   readonly bodies: SsSet<SsObject>;
   /// The Starscape object of the currently controlled ship
   readonly currentShip = new LocalProperty<SsObject | null>(null);
@@ -28,12 +28,12 @@ export class GameImpl extends Lifetime {
   constructor() {
     super();
     this.connection = new SsConnection(SsSessionType.WebSocket);
-    this.god = this.connection.god;
-    this.god.property('time', Number).subscribe(this, time => {
+    this.root = this.connection.root;
+    this.root.property('time', Number).subscribe(this, time => {
       this.lastGameTime = time;
       this.timeBase = performance.now();
     });
-    this.bodies = new SsSet(this.god.property('bodies', {arrayOf: SsObject}));
+    this.bodies = new SsSet(this.root.property('bodies', {arrayOf: SsObject}));
   }
 
   frameTime() {

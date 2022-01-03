@@ -12,11 +12,11 @@ export enum SsSessionType {
 }
 
 /// The toplevel object of a connection to an OpenStarscape server. sessionType should be either
-/// 'webrtc' or 'websocket'. The .god object property is the entry point to accessing everything.
+/// 'webrtc' or 'websocket'. The .root object property is the entry point to accessing everything.
 export class SsConnection extends Lifetime {
   private readonly session: SsSession;
   private readonly objects: Map<number, SsObject | null> = new Map();
-  readonly god: SsObject;
+  readonly root: SsObject;
 
   constructor(sessionType: SsSessionType) {
     super();
@@ -27,7 +27,7 @@ export class SsConnection extends Lifetime {
     } else {
       throw new Error('unknown session type "' + sessionType + '"');
     }
-    this.god = this.getObj(1);
+    this.root = this.getObj(1);
   }
 
   /// Used internally to get or create an object with a given object ID.

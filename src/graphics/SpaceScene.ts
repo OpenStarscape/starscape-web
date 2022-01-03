@@ -93,12 +93,12 @@ class SpaceScene {
     this.cameraManager.setAspect(window.innerWidth / window.innerHeight);
 
     const shipCreatedLt = this.lt.newDependent();
-    this.game.god.signal('ship_created', SsObject).subscribe(shipCreatedLt, obj => {
+    this.game.root.signal('ship_created', SsObject).subscribe(shipCreatedLt, obj => {
       this.game.currentShip.set(obj);
       shipCreatedLt.kill(); // only handle this callback once
     });
 
-    this.game.god.action('create_ship', {arrayOf: Vec3}).fire([
+    this.game.root.action('create_ship', {arrayOf: Vec3}).fire([
       new Vec3(150, 0, 10),
       new Vec3(0, 30, 0),
     ]);
