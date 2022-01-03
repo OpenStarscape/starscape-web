@@ -29,8 +29,22 @@ function connCountMeter(lt: Lifetime, game: Game): HTMLElement {
 
 function fpsMeter(lt: Lifetime, game: Game): HTMLElement {
   const elem = document.createElement('p');
-  game.fps.subscribe(lt, fps => {
-    elem.textContent = 'FPS: ' + (fps ? fps.toFixed(2) : ' - ');
+  const update = () => {
+    const avg = game.averageFps.get();
+    const min = game.minFps.get();
+    elem.textContent = (
+      'Average FPS: ' +
+      (avg ? avg.toFixed(2) : ' - ') +
+      ', ' +
+      'Min FPS: ' +
+      (min ? min.toFixed(2) : ' - ')
+    );
+  }
+  game.averageFps.subscribe(lt, _fps => {
+    update();
+  });
+  game.minFps.subscribe(lt, _fps => {
+    update();
   });
   return elem;
 }

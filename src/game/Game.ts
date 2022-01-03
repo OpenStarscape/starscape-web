@@ -7,7 +7,8 @@ export interface Game {
   readonly god: SsObject;
   readonly bodies: SsSet<SsObject>;
   readonly currentShip: LocalProperty<SsObject | null>;
-  readonly fps: FramerateReporter;
+  readonly averageFps: FramerateReporter;
+  readonly minFps: FramerateReporter;
   /// Time in in-game seconds of the current frame. The last starscape timestamp, plus the time
   /// since it arived and then only updated each rendered frame
   frameTime(): number;
@@ -19,7 +20,8 @@ export class GameImpl extends Lifetime {
   readonly bodies: SsSet<SsObject>;
   /// The Starscape object of the currently controlled ship
   readonly currentShip = new LocalProperty<SsObject | null>(null);
-  readonly fps = new FramerateReporter();
+  readonly averageFps = new FramerateReporter(info => info.average);
+  readonly minFps = new FramerateReporter(info => info.min);
   private lastGameTime = 0;
   private timeBase = 0;
 
