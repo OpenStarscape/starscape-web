@@ -8,10 +8,12 @@ export type FramerateInfo = {
 /// Tracks the framerate of a single scene, reports min and average FPS of the sample size respectively
 export class FramerateTracker extends Conduit<FramerateInfo> {
   private frames: number[] = [];
+  private next = 0;
   private info: FramerateInfo | null = null;
+  private indexOfMin: number | null = null;
 
   constructor(
-    readonly samples: number = 20,
+    readonly samples: number = 300,
     readonly getCurrentMs: () => number = () => performance.now(),
   ) {
     super();
@@ -20,7 +22,9 @@ export class FramerateTracker extends Conduit<FramerateInfo> {
   initialSubscriberAdded(hasSubscribersLt: Lifetime): void {
     hasSubscribersLt.addCallback(() => {
       this.frames = [];
+      this.next = 0;
       this.info = null;
+      this.indexOfMin = null;
     });
   }
 
@@ -30,28 +34,65 @@ export class FramerateTracker extends Conduit<FramerateInfo> {
     }
   }
 
+  private startIndex() {
+    return this.next < this.frames.length ? this.next : 0;
+  }
+
+  private endIndex() {
+    return this.next === 0 ? this.frames.length - 1 : this.next - 1;
+  }
+
   private averageFps(): number {
-    const elapsedMs = this.frames[this.frames.length - 1] - this.frames[0];
-    const averageMs = elapsedMs / (this.frames.length - 1);
-    return 1000 / averageMs;
+    const elapsedMs = this.frames[this.endIndex()] - this.frames[this.startIndex()];
+    const elapsedFrames = this.frames.length - 1;
+    return 1000 * elapsedFrames / elapsedMs;
   }
 
   private minFps(): number {
-    let maxMs = 0;
-    for (let i = 0; i < this.frames.length - 1; i++) {
-      const ms = this.frames[i + 1] - this.frames[i];
-      if (ms > maxMs) {
-        maxMs = ms;
+    const start = this.startIndex();
+    const end = this.endIndex();
+    if (this.info !== null && this.indexOfMin !== null && this.indexOfMin !== end) {
+      const almostEndIndex = end === 0 ? this.frames.length - 1 : end - 1;
+      const mostRecentMs = this.frames[end] - this.frames[almostEndIndex];
+      const mostRecentFps = 1000 / mostRecentMs;
+      if (mostRecentFps < this.info.min) {
+        this.indexOfMin = almostEndIndex;
+        return mostRecentFps;
+      } else {
+        return this.info.min;
       }
+    } else {
+      let maxMs = 0;
+      for (let i = start; i != end; i = (i + 1) % this.frames.length) {
+        const nextIndex = (i + 1) % this.frames.length;
+        const ms = this.frames[nextIndex] - this.frames[i];
+        if (ms > maxMs) {
+          maxMs = ms;
+          this.indexOfMin = i;
+        }
+      }
+      return 1000 / maxMs;
     }
-    return 1000 / maxMs;
+  }
+
+  private addRecord(ms: number) {
+    if (this.next >= this.frames.length) {
+      this.frames.push(ms);
+    } else {
+      this.frames[this.next] = ms;
+    }
+    if (this.next < this.samples) {
+      this.next += 1;
+    } else {
+      this.next = 0;
+    }
   }
 
   recordFrame() {
     if (!this.hasSubscribers()) {
       return;
     }
-    this.frames.push(this.getCurrentMs());
+    this.addRecord(this.getCurrentMs());
     let send = false;
     if (this.frames.length >= 2) {
       const averageFps = this.averageFps();
@@ -66,9 +107,6 @@ export class FramerateTracker extends Conduit<FramerateInfo> {
         average: averageFps,
         min: minFps,
       }
-    }
-    while (this.frames.length > this.samples) {
-      this.frames.shift();
     }
     if (send) {
       this.sendToAllSubscribers(this.info!);
