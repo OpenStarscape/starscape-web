@@ -13,19 +13,21 @@ export class Game extends Lifetime {
   private lastGameTime = 0;
   private timeBase = 0;
 
+  public currentTime = 0;
+
   constructor() {
     super();
     this.connection = new SsConnection(SsSessionType.WebSocket);
     this.root = this.connection.root;
     this.root.property('time', Number).subscribe(this, time => {
       this.lastGameTime = time;
-      this.timeBase = performance.now();
+      this.timeBase = this.currentTime;
     });
     this.bodies = new SsSet(this.root.property('bodies', {arrayOf: SsObject}));
   }
 
   frameTime() {
     // TODO: keep this stable across a frame
-    return (performance.now() - this.timeBase) / 1000 + this.lastGameTime;
+    return (this.currentTime - this.timeBase) / 1000 + this.lastGameTime;
   }
 }
