@@ -2,8 +2,8 @@ import { Game } from '../game'
 import { Lifetime } from '../core'
 
 function connCountMeter(lt: Lifetime, game: Game): HTMLElement {
-  const conn_count = game.god.property('conn_count', Number);
-  const max_conn_count = game.god.property('max_conn_count', Number);
+  const conn_count = game.root.property('conn_count', Number);
+  const max_conn_count = game.root.property('max_conn_count', Number);
   const elem = document.createElement('p');
 
   const update_conn_count = () => {
