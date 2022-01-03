@@ -1,11 +1,11 @@
-import { GameImpl } from './game'
+import { Game } from './game'
 import { DependentLifetime } from './core';
 import { errorMessage, gameContainer } from './ui';
 
 function init() {
   const root = document.getElementById('root');
   try {
-    const game = new GameImpl();
+    const game = new Game();
     const lt = new DependentLifetime();
     const elem = gameContainer(lt, game);
     root!.appendChild(elem);
