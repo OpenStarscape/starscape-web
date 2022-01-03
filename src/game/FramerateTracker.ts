@@ -81,53 +81,59 @@ export class FramerateTracker extends Conduit<FramerateInfo> {
 }
 
 /// Connects to potentially multiple FramerateTrackers and reports the one with the lowest framerate
-export class FramerateReporter extends Conduit<number | null> {
-  private currentTracker: FramerateTracker | null = null;
+export class FramerateReporter extends Conduit<number> {
   private trackers = new Map<FramerateTracker, Lifetime>();
-  private value: number | null = null;
+  private value: number = 0;
 
-  private subscribeToTracker(trackerLt: Lifetime, tracker: FramerateTracker) {
-    if (this.hasSubscribersLt === null) {
-      return;
-    }
-    const lt = trackerLt.newDependent();
-    this.hasSubscribersLt.addDependent(lt);
-    tracker.subscribe(lt, ([min, avg]) => {
-      let newValue = this.value;
-      if (this.currentTracker === tracker) {
-        newValue = fps;
-      } else if (this.value === null || fps < this.value) {
-        this.currentTracker = tracker;
-        newValue = fps;
-      }
-      if (newValue !== this.value) {
-        this.value = newValue;
-        this.sendToAllSubscribers(newValue);
-      }
-    });
-    lt.addCallback(() => {
-      if (this.currentTracker === tracker) {
-        this.currentTracker = null;
-        if (this.value !== null) {
-          this.value = null;
-          this.sendToAllSubscribers(null);
+  constructor(
+    private readonly fpsFromInfo: (info: FramerateInfo) => number,
+  ) {
+    super();
+  }
+
+  private update() {
+    let min = null;
+    for (const [tracker, _lt] of this.trackers) {
+      const info = tracker.get();
+      if (info !== null) {
+        const fps = this.fpsFromInfo(info);
+        if (min === null || fps < min) {
+          min = fps
         }
       }
+    }
+    const nonNull = min === null ? 0 : min;
+    if (nonNull !== this.value) {
+      this.value = nonNull;
+      this.sendToAllSubscribers(nonNull);
+    }
+  }
+
+  private subscribeToTracker(trackerLt: Lifetime, tracker: FramerateTracker) {
+    const lt = trackerLt.newDependent();
+    this.hasSubscribersLt!.addDependent(lt);
+    tracker.subscribe(lt, _info => {
+      this.update();
     });
+    lt.addCallback(() => {
+      this.update();
+    });
+    this.update();
   }
 
   initialSubscriberAdded(hasSubscribersLt: Lifetime): void {
     hasSubscribersLt.addCallback(() => {
-      this.value = null;
-      this.currentTracker = null;
+      this.value = 0;
     });
     for (const [tracker, lt] of this.trackers) {
       this.subscribeToTracker(lt, tracker);
     }
   }
 
-  subscriberAdded(subscriber: Subscriber<number | null>): void {
-    subscriber.sendValue(this.value);
+  subscriberAdded(subscriber: Subscriber<number>): void {
+    if (this.value !== null) {
+      subscriber.sendValue(this.value);
+    }
   }
 
   addTracker(lt: Lifetime, tracker: FramerateTracker) {
@@ -140,11 +146,7 @@ export class FramerateReporter extends Conduit<number | null> {
     }
   }
 
-  averageFps(): number | null {
-    return this.avgFps;
-  }
-
-  minRecentFps(): number | null {
-    return this.minFps;
+  get(): number {
+    return this.value;
   }
 }

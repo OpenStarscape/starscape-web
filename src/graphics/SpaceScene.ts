@@ -27,7 +27,8 @@ class SpaceScene {
   ) {
     THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
-    this.game.fps.addTracker(this.lt, this.fps);
+    this.game.averageFps.addTracker(this.lt, this.fps);
+    this.game.minFps.addTracker(this.lt, this.fps);
 
     try {
       this.renderer = new THREE.WebGLRenderer({antialias: true});
