@@ -1,5 +1,5 @@
 import { LocalProperty, Lifetime } from '../core';
-import { FramerateReporter, FramerateTracker } from './FramerateTracker';
+import { FramerateTracker } from './FramerateTracker';
 import { AnimationTimer } from './AnimationTimer';
 import { SsConnection, SsSessionType, SsObject, SsSet } from '../protocol';
 
@@ -10,9 +10,7 @@ export class Game extends Lifetime {
   /// The Starscape object of the currently controlled ship
   readonly currentShip = new LocalProperty<SsObject | null>(null);
   readonly animation;
-  readonly averageFps = new FramerateReporter(info => info.average);
-  readonly minFps = new FramerateReporter(info => info.min);
-  readonly tracker;
+  readonly framerate;
 
   constructor() {
     super();
@@ -20,8 +18,6 @@ export class Game extends Lifetime {
     this.root = this.connection.root;
     this.bodies = new SsSet(this.root.property('bodies', {arrayOf: SsObject}));
     this.animation = new AnimationTimer(this.root);
-    this.tracker = new FramerateTracker(this.animation);
-    this.averageFps.addTracker(this, this.tracker);
-    this.minFps.addTracker(this, this.tracker);
+    this.framerate = new FramerateTracker(this.animation);
   }
 }
