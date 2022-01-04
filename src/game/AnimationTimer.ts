@@ -43,7 +43,5 @@ export class AnimationTimer extends Conduit<null> {
     });
   }
 
-  protected subscriberAdded(subscriber: Subscriber<null>): void {
-    subscriber.sendValue(null);
-  }
+  protected subscriberAdded(_subscriber: Subscriber<null>): void {}
 }

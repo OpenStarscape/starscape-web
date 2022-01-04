@@ -1,4 +1,5 @@
 import { Conduit, Lifetime, Subscriber } from '../core';
+import { AnimationTimer } from './AnimationTimer';
 
 export type FramerateInfo = {
   average: number,
@@ -13,13 +14,16 @@ export class FramerateTracker extends Conduit<FramerateInfo> {
   private indexOfMin: number | null = null;
 
   constructor(
+    private readonly timer: AnimationTimer,
     readonly samples: number = 300,
-    readonly getCurrentMs: () => number = () => performance.now(),
   ) {
     super();
   }
 
   initialSubscriberAdded(hasSubscribersLt: Lifetime): void {
+    this.timer.subscribe(hasSubscribersLt, () => {
+      this.recordFrame();
+    });
     hasSubscribersLt.addCallback(() => {
       this.frames = [];
       this.next = 0;
@@ -88,11 +92,11 @@ export class FramerateTracker extends Conduit<FramerateInfo> {
     }
   }
 
-  recordFrame() {
+  private recordFrame() {
     if (!this.hasSubscribers()) {
       return;
     }
-    this.addRecord(this.getCurrentMs());
+    this.addRecord(this.timer.browserTime());
     let send = false;
     if (this.frames.length >= 2) {
       const averageFps = this.averageFps();
