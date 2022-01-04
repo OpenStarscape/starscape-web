@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import { Lifetime, Vec3, messageFromError } from '../core';
-import { Game, FramerateTracker } from '../game';
+import { Game } from '../game';
 import { SsObject } from '../protocol';
 import Starfield from '../graphics/Starfield';
 import { BodyManager } from '../graphics/BodyManager';
@@ -16,7 +16,6 @@ class SpaceScene {
   readonly starfield: Starfield;
   readonly bodies: BodyManager;
   readonly cameraManager: CameraManager;
-  readonly fps = new FramerateTracker();
 
   // TODO: move this to Body
   private readonly thrustMesh: THREE.Mesh;
@@ -26,9 +25,6 @@ class SpaceScene {
     readonly game: Game,
   ) {
     THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
-
-    this.game.averageFps.addTracker(this.lt, this.fps);
-    this.game.minFps.addTracker(this.lt, this.fps);
 
     try {
       this.renderer = new THREE.WebGLRenderer({antialias: true});
@@ -114,7 +110,6 @@ class SpaceScene {
   }
 
   render() {
-    this.fps.recordFrame();
     this.cameraManager.update();
     this.bodies.update(this.cameraManager.camera.position);
 

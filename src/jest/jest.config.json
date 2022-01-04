@@ -13,7 +13,7 @@
   "transformIgnorePatterns": [
     "<rootDir>/node_modules/(?!(three|any-other-modules-that-should-be-transformed)/)"
   ],
-  "testRegex": "(/test/.*|\\.test)\\.(ts|tsx|js|jsx)$",
+  "testRegex": "/test/[Tt]est.*\\.(ts|tsx|js|jsx)$",
   "globals": {
     "ts-jest": {
       "tsconfig": "<rootDir>/tsconfig.json",

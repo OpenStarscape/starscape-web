@@ -1,43 +1,8 @@
-import { AnimationTimer } from '../AnimationTimer';
+import { setupTimer } from './setupTimer';
 import { DependentLifetime } from '../../core';
 
-function setup(): [
-  timer: AnimationTimer,
-  sendGameTime: (time: number) => void,
-  nextAnimFrame: (time: number) => void,
-] {
-  let sendGameTime = (_time: number) => {}
-  const mockRoot = {
-    property: (name: any, _rtType: any) => {
-      expect(name).toBe('time');
-      return {
-        subscribe: (_lt: any, callback: any) => {
-          sendGameTime = callback;
-        }
-      }
-    }
-  } as any;
-  let lastAnimFrameTime = 0;
-  let runNextAnimFrame = (_time: number) => {}
-  const timer = new AnimationTimer(
-    mockRoot, () => {
-      return lastAnimFrameTime;
-    }, (callback: (ms: number) => void) => {
-      runNextAnimFrame = (time: number) => {
-        lastAnimFrameTime = time;
-        callback(time * 1000);
-      };
-    },
-  );
-  return [
-    timer,
-    (time: number) => {
-      sendGameTime(time);
-    },
-    (time: number) => {
-      runNextAnimFrame(time);
-    },
-  ];
+function setup() {
+  return setupTimer();
 }
 
 test('AnimationTimer gameTime() initially null', () => {
@@ -51,7 +16,7 @@ test('AnimationTimer gameTime() stays null if not subscribed', () => {
   expect(timer.gameTime()).toBe(null);
 });
 
-test('AnimationTimer sends on initial subscribe', () => {
+test('AnimationTimer does not send on initial subscribe', () => {
   const [timer, _sendGameTime, _nextAnimFrame] = setup();
   const browserTimes: {game: number | null, browser: number}[] = [];
   timer.subscribe(new DependentLifetime(), () => {
@@ -60,9 +25,7 @@ test('AnimationTimer sends on initial subscribe', () => {
       browser: timer.browserTime(),
     });
   });
-  expect(browserTimes).toEqual([
-    {game: null, browser: 0},
-  ]);
+  expect(browserTimes).toEqual([]);
 });
 
 test('AnimationTimer game time stays null if no game given', () => {
@@ -76,7 +39,6 @@ test('AnimationTimer game time stays null if no game given', () => {
   });
   nextAnimFrame(5);
   expect(browserTimes).toEqual([
-    {game: null, browser: 0},
     {game: null, browser: 5},
   ]);
   expect(timer.gameTime()).toBe(null);
@@ -94,7 +56,6 @@ test('AnimationTimer is correct after 1 frame', () => {
   nextAnimFrame(5);
   sendGameTime(1);
   expect(browserTimes).toEqual([
-    {game: null, browser: 0},
     {game: null, browser: 5},
   ]);
   expect(timer.gameTime()).toBe(1);
@@ -113,7 +74,6 @@ test('AnimationTimer is correct after 2 frames', () => {
   sendGameTime(1);
   nextAnimFrame(7);
   expect(browserTimes).toEqual([
-    {game: null, browser: 0},
     {game: null, browser: 5},
     {game: 3, browser: 7},
   ]);
