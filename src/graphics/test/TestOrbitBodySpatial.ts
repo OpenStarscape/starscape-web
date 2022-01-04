@@ -26,8 +26,10 @@ function mockBodyManager(time?: number) {
       };
     },
     game: {
-      frameTime: () => {
-        return time ?? 0;
+      animation: {
+        gameTime: () => {
+          return time ?? 0;
+        },
       },
     },
   };

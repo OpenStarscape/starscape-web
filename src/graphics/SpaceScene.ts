@@ -104,7 +104,7 @@ class SpaceScene {
     ]);
 
     this.resize(this.domParent.clientWidth, this.domParent.clientHeight);
-    this.render(performance.now());
+    this.game.animation.subscribe(this.lt, () => this.render());
   }
 
   resize(width: number, height: number) {
@@ -113,8 +113,7 @@ class SpaceScene {
     this.cameraManager.setAspect(width / height);
   }
 
-  render(timestamp: number) {
-    this.game.currentTime = timestamp;
+  render() {
     this.fps.recordFrame();
     this.cameraManager.update();
     this.bodies.update(this.cameraManager.camera.position);
@@ -126,7 +125,6 @@ class SpaceScene {
 
     this.renderer.render(this.scene, this.cameraManager.camera);
     this.overlayRenderer.render(this.scene, this.cameraManager.camera);
-    requestAnimationFrame(ms => this.render(ms));
   }
 
   domElement() {
