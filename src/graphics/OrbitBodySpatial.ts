@@ -101,7 +101,7 @@ export class OrbitBodySpatial extends DependentLifetime implements BodySpatial {
 
   ensureCache() {
     // Do nothing if the cache is already up to date
-    const time = this.manager.game.frameTime();
+    const time = this.manager.game.animation.gameTime() ?? 0;
     if (this.cachedTime === time) {
       return;
     }
