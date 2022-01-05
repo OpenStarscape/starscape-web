@@ -27,15 +27,14 @@ function connCountMeter(lt: Lifetime, game: Game): HTMLElement {
   return elem;
 }
 
-function fpsMeter(lt: Lifetime, game: Game): HTMLElement {
-  const elem = document.createElement('p');
+function fpsMeter(lt: Lifetime, game: Game): HTMLElement[] {
+  const worst = document.createElement('p');
+  const average = document.createElement('p');
   game.framerate.subscribe(lt, info => {
-    elem.textContent = (
-      'Average FPS: ' + info.average + ', ' +
-      'Minimum FPS: ' + info.min
-    );
+    worst.textContent = 'Worst FPS: ' + (1 / info.worst).toFixed(2);
+    average.textContent = 'Average FPS: ' + (1 / info.average).toFixed(2);
   });
-  return elem;
+  return [worst, average];
 }
 
 export function gameStats(lt: Lifetime, game: Game): HTMLElement {
@@ -43,7 +42,9 @@ export function gameStats(lt: Lifetime, game: Game): HTMLElement {
   div.style.color = 'white';
 
   div.appendChild(connCountMeter(lt, game));
-  div.appendChild(fpsMeter(lt, game));
+  for (const elem of fpsMeter(lt, game)) {
+    div.appendChild(elem);
+  }
 
   return div;
 }

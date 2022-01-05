@@ -31,28 +31,28 @@ test('FramerateTracker not null after two frames', () => {
 test('FramerateTracker detects correct FPS after two frames', () => {
   const [fps, recordFrame] = setup();
   fps.subscribe(new DependentLifetime(), (_) => {});
-  recordFrame(1000);
-  recordFrame(1050);
-  expect(fps.get()).toEqual({average: 20, min: 20});
+  recordFrame(10);
+  recordFrame(15);
+  expect(fps.get()).toEqual({average: 5, worst: 5});
 });
 
 test('FramerateTracker detects FPS based on average frame time', () => {
   const [fps, recordFrame] = setup();
   fps.subscribe(new DependentLifetime(), (_) => {});
-  recordFrame(1000);
-  recordFrame(1050);
-  recordFrame(1250);
-  expect(fps.get()).toEqual({average: 8, min: 5}); // NOTE: average frame time, NOT average FPS
+  recordFrame(10);
+  recordFrame(15);
+  recordFrame(16);
+  expect(fps.get()).toEqual({average: 3, worst: 5}); // NOTE: average frame time, NOT average FPS
 });
 
 test('FramerateTracker only uses limited number of samples', () => {
   const [fps, recordFrame] = setup(2);
   fps.subscribe(new DependentLifetime(), (_) => {});
-  recordFrame(1000);
-  recordFrame(1050);
-  recordFrame(1100);
-  recordFrame(1300);
-  expect(fps.get()).toEqual({average: 8, min: 5}); // average frame time, ignoring the first one
+  recordFrame(10);
+  recordFrame(15);
+  recordFrame(20);
+  recordFrame(21);
+  expect(fps.get()).toEqual({average: 3, worst: 5}); // average frame time, ignoring the first one
 });
 
 test('FramerateTracker can be subscribed to', () => {
@@ -60,11 +60,11 @@ test('FramerateTracker can be subscribed to', () => {
   const [fps, recordFrame] = setup();
   fps.subscribe(mockLt, fps => results.push(fps));
   expect(results).toEqual([]);
-  recordFrame(1000);
-  recordFrame(1050);
-  expect(results).toEqual([{average: 20, min: 20}]);
-  recordFrame(1250);
-  expect(results).toEqual([{average: 20, min: 20}, {average: 8, min: 5}]);
+  recordFrame(10);
+  recordFrame(15);
+  expect(results).toEqual([{average: 5, worst: 5}]);
+  recordFrame(16);
+  expect(results).toEqual([{average: 5, worst: 5}, {average: 3, worst: 5}]);
 });
 
 test('FramerateTracker does not send duplicate data to subscriber', () => {
@@ -72,10 +72,10 @@ test('FramerateTracker does not send duplicate data to subscriber', () => {
   const [fps, recordFrame] = setup();
   fps.subscribe(mockLt, fps => results.push(fps));
   expect(results).toEqual([]);
-  recordFrame(1000);
+  recordFrame(10);
   expect(results).toEqual([]);
-  recordFrame(1050);
-  expect(results).toEqual([{average: 20, min: 20}]);
-  recordFrame(1100);
-  expect(results).toEqual([{average: 20, min: 20}]);
+  recordFrame(15);
+  expect(results).toEqual([{average: 5, worst: 5}]);
+  recordFrame(20);
+  expect(results).toEqual([{average: 5, worst: 5}]);
 });
