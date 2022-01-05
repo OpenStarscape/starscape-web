@@ -3,7 +3,7 @@ import { AnimationTimer } from './AnimationTimer';
 
 export type FramerateInfo = {
   average: number,
-  min: number,
+  worst: number,
 }
 
 /// Tracks the framerate of a single scene, reports min and average FPS of the sample size respectively
@@ -46,36 +46,35 @@ export class FramerateTracker extends Conduit<FramerateInfo> {
     return this.next === 0 ? this.frames.length - 1 : this.next - 1;
   }
 
-  private averageFps(): number {
-    const elapsedMs = this.frames[this.endIndex()] - this.frames[this.startIndex()];
+  private averageFrameTime(): number {
+    const elapsedTime = this.frames[this.endIndex()] - this.frames[this.startIndex()];
     const elapsedFrames = this.frames.length - 1;
-    return 1000 * elapsedFrames / elapsedMs;
+    return elapsedTime / elapsedFrames;
   }
 
-  private minFps(): number {
+  private worstFrameTime(): number {
     const start = this.startIndex();
     const end = this.endIndex();
     if (this.info !== null && this.indexOfMin !== null && this.indexOfMin !== end) {
       const almostEndIndex = end === 0 ? this.frames.length - 1 : end - 1;
-      const mostRecentMs = this.frames[end] - this.frames[almostEndIndex];
-      const mostRecentFps = 1000 / mostRecentMs;
-      if (mostRecentFps < this.info.min) {
+      const mostRecentTime = this.frames[end] - this.frames[almostEndIndex];
+      if (mostRecentTime > this.info.worst) {
         this.indexOfMin = almostEndIndex;
-        return mostRecentFps;
+        return mostRecentTime;
       } else {
-        return this.info.min;
+        return this.info.worst;
       }
     } else {
-      let maxMs = 0;
+      let maxTime = 0;
       for (let i = start; i != end; i = (i + 1) % this.frames.length) {
         const nextIndex = (i + 1) % this.frames.length;
-        const ms = this.frames[nextIndex] - this.frames[i];
-        if (ms > maxMs) {
-          maxMs = ms;
+        const time = this.frames[nextIndex] - this.frames[i];
+        if (time > maxTime) {
+          maxTime = time;
           this.indexOfMin = i;
         }
       }
-      return 1000 / maxMs;
+      return maxTime;
     }
   }
 
@@ -97,23 +96,21 @@ export class FramerateTracker extends Conduit<FramerateInfo> {
       return;
     }
     this.addRecord(this.timer.browserTime());
-    let send = false;
     if (this.frames.length >= 2) {
-      const averageFps = this.averageFps();
-      const minFps = this.minFps();
+      const averageFrame = this.averageFrameTime();
+      const worstFrame = this.worstFrameTime();
       if (this.info === null ||
-          averageFps !== this.info.average ||
-          minFps !== this.info.min
+          this.info.average !== averageFrame ||
+          this.info.worst !== worstFrame
       ) {
-        send = true;
+        this.info = {
+          average: averageFrame,
+          worst: worstFrame,
+        }
+        this.sendToAllSubscribers(this.info);
       }
-      this.info = {
-        average: averageFps,
-        min: minFps,
-      }
-    }
-    if (send) {
-      this.sendToAllSubscribers(this.info!);
+    } else {
+      this.info = null;
     }
   }
 
