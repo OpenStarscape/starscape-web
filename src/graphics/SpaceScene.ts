@@ -3,9 +3,9 @@ import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import { Lifetime, Vec3, messageFromError } from '../core';
 import { Game } from '../game';
 import { SsObject } from '../protocol';
-import Starfield from '../graphics/Starfield';
+import { Starfield } from '../graphics/Starfield';
 import { BodyManager } from '../graphics/BodyManager';
-import CameraManager from '../graphics/CameraManager';
+import { CameraManager } from '../graphics/CameraManager';
 
 /// Manages everything required to render a 3D space view with three.js.
 class SpaceScene {

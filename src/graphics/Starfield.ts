@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { Lifetime } from '../core';
 
 /// Adds a stary background to a 3D scene.
-export default class Starfield {
+export class Starfield {
   private closest = 600;
   private farthest = 800;
   private geom;
