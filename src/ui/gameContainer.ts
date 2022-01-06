@@ -1,6 +1,6 @@
 import { Lifetime } from '../core';
 import { Game } from '../game';
-import { spaceScene } from '../graphics/SpaceScene';
+import { spaceScene } from '../graphics';
 import { shipNameField, gameStats, orbitList } from '.';
 
 export function overlay(lt: Lifetime, game: Game): HTMLElement {
