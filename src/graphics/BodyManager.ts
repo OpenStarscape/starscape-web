@@ -31,7 +31,7 @@ export class BodyManager {
 
   /// Unlinks the body from the current name and links it to the new name. Current or new name can
   /// be null.
-  setBodyName(body: Body, name: string | null) {
+  private setBodyName(body: Body, name: string | null) {
     const old = body.getName();
     if (old !== null) {
       // if the body already had a name we need to remove it

@@ -1,5 +1,7 @@
 export * from './Conduit'
 export * from './LocalProperty'
+export * from './LocalAction'
+export * from './SetConduit'
 export * from './Lifetime'
 export * from './valuesEqual'
 export * from './messageFromError'

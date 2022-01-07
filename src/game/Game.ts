@@ -1,4 +1,4 @@
-import { LocalProperty, Lifetime } from '../core';
+import { LocalProperty, Lifetime, SetConduit } from '../core';
 import { FramerateTracker } from './FramerateTracker';
 import { AnimationTimer } from './AnimationTimer';
 import { SsConnection, SsSessionType, SsObject, SsSet } from '../protocol';
@@ -6,7 +6,7 @@ import { SsConnection, SsSessionType, SsObject, SsSet } from '../protocol';
 export class Game extends Lifetime {
   readonly connection: SsConnection;
   readonly root: SsObject;
-  readonly bodies: SsSet<SsObject>;
+  readonly bodies: SetConduit<SsObject>;
   /// The Starscape object of the currently controlled ship
   readonly currentShip = new LocalProperty<SsObject | null>(null);
   readonly animation;
