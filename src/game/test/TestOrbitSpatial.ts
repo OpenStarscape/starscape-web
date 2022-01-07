@@ -1,8 +1,9 @@
-import { OrbitBodySpatial } from '../OrbitBodySpatial';
-import { LocalProperty, assertIsType } from '../../core'
+import { OrbitSpatial } from '../OrbitSpatial';
+import { DependentLifetime, LocalProperty, assertIsType } from '../../core'
 import * as THREE from "three";
 
 const orbitTestData = require('./orbit-test-data.json')
+const lt = new DependentLifetime();
 
 // Looks nice, typechecks, doesn't work
 // import * as orbitTestData from './orbit-test-data.json'
@@ -12,28 +13,26 @@ const mockParent = {};
 const parentPos = new THREE.Vector3();
 const parentVel = new THREE.Vector3();
 
-function mockBodyManager(time?: number) {
-  const manager = {
-    get: (_obj: any) => {
-      // return object's parent body
-      return {
-        copyPositionInto: (vec: THREE.Vector3) => {
-          vec.copy(parentPos);
-        },
-        copyVelocityInto: (vec: THREE.Vector3) => {
-          vec.copy(parentVel);
-        },
-      };
-    },
-    game: {
-      animation: {
-        gameTime: () => {
-          return time ?? 0;
-        },
+function mockGame(time?: number) {
+  return {
+    animation: {
+      gameTime: () => {
+        return time ?? 0;
       },
     },
-  };
-  return manager as any;
+    spatials: {
+      spatialFor: (_lt: any, _obj: any) => {
+        return {
+          copyPositionInto: (vec: THREE.Vector3) => {
+            vec.copy(parentPos);
+          },
+          copyVelocityInto: (vec: THREE.Vector3) => {
+            vec.copy(parentVel);
+          },
+        };
+      },
+    },
+  } as any;
 }
 
 function mockObj() {
@@ -56,28 +55,28 @@ function mockObj() {
   return obj;
 }
 
-test('OrbitBodySpatial subscribes to mass', () => {
+test('OrbitSpatial subscribes to mass', () => {
   const obj = mockObj();
-  const spatial = new OrbitBodySpatial(mockBodyManager(), obj);
+  const spatial = new OrbitSpatial(mockGame(), lt, obj);
   obj.mass.set(12);
-  expect(spatial.getMass()).toEqual(12);
+  expect(spatial.mass()).toEqual(12);
 });
 
-test('OrbitBodySpatial has no issue with undefined mass', () => {
+test('OrbitSpatial has no issue with undefined mass', () => {
   const obj = mockObj();
-  const spatial = new OrbitBodySpatial(mockBodyManager(), obj);
+  const spatial = new OrbitSpatial(mockGame(), lt, obj);
   obj.mass.set(undefined);
-  expect(spatial.getMass()).toEqual(0);
+  expect(spatial.mass()).toEqual(0);
 });
 
-test('OrbitBodySpatial test data available', () => {
+test('OrbitSpatial test data available', () => {
   expect(orbitTestData.length).toBeGreaterThan(1);
 });
 
 for (let i = 0; i < orbitTestData.length; i++) {
   const testData = orbitTestData[i];
   const obj = mockObj();
-  const spatial = new OrbitBodySpatial(mockBodyManager(testData.at_time), obj);
+  const spatial = new OrbitSpatial(mockGame(testData.at_time), lt, obj);
   // Add the mock parent at the end
   const params = (testData.orbit as any[]).concat([mockParent])
   assertIsType(params, [Number, Number, Number, Number, Number, Number, Number, Object]);
