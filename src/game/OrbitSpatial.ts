@@ -1,9 +1,9 @@
 import * as THREE from 'three';
-import { DependentLifetime } from '../core';
-import { CartesianBodySpatial } from './CartesianBodySpatial';
+import { Lifetime, DependentLifetime } from '../core';
 import { SsObject } from '../protocol';
-import type { BodyManager } from './BodyManager'
-import type { Body, BodySpatial } from './Body'
+import { CartesianSpatial } from './CartesianSpatial';
+import type { Spatial } from './Spatial';
+import type { Game } from './Game';
 
 const TAU = 2 * Math.PI;
 const matTemp = new THREE.Matrix4();
@@ -12,10 +12,13 @@ const vecTempB = new THREE.Vector3();
 
 /// Subscribes to the body's orbit and determines position from that
 /// A lot of the math was figured out using https://space.stackexchange.com/a/8915
-export class OrbitBodySpatial extends DependentLifetime implements BodySpatial {
-  private parent: Body | null | undefined;
-  private fallback: BodySpatial | null = null;
-  private mass: number | undefined;
+export class OrbitSpatial implements Spatial {
+  private cachedParent: SsObject | null = null;
+  private parentSpatial: Spatial | null | undefined;
+  private parentSpatialLt: DependentLifetime | null = null;
+  private fallback: Spatial | null = null;
+  private fallbackLt: DependentLifetime | null = null;
+  private bodyMass: number | undefined;
   private baseTime = 0;
   private periodTime = 0;
   private semiMajor = 0; // Needed for velocity calculation
@@ -26,23 +29,43 @@ export class OrbitBodySpatial extends DependentLifetime implements BodySpatial {
   private readonly cachedVelocity = new THREE.Vector3();
 
   constructor(
-    readonly manager: BodyManager,
-    readonly obj: SsObject,
+    private readonly game: Game,
+    private readonly lt: Lifetime,
+    private readonly obj: SsObject,
   ) {
-    super()
     obj.property(
       'orbit',
       {nullable: [Number, Number, Number, Number, Number, Number, Number, SsObject]}
-    ).subscribe(this, params => {
+    ).subscribe(lt, params => {
       if (params === null) {
         this.useFallback();
       } else {
         this.setParams(...params);
       }
     });
-    obj.property('mass', Number).subscribe(this, mass => {
-      this.mass = mass;
+    obj.property('mass', Number).subscribe(lt, mass => {
+      this.bodyMass = mass;
     });
+  }
+
+  bodyObj(): SsObject {
+    return this.obj;
+  }
+
+  private setParentSpatial(parent: SsObject | null) {
+    if (this.cachedParent !== parent) {
+      if (this.parentSpatialLt !== null) {
+        this.parentSpatialLt.kill();
+      }
+      this.cachedParent = parent;
+      if (parent !== null) {
+        this.parentSpatialLt = this.lt.newDependent();
+        this.parentSpatial = this.game.spatials.spatialFor(this.parentSpatialLt, parent);
+      } else {
+        this.parentSpatialLt = null;
+        this.parentSpatial = null;
+      }
+    }
   }
 
   private setParams(
@@ -56,14 +79,13 @@ export class OrbitBodySpatial extends DependentLifetime implements BodySpatial {
     parent: SsObject | null
   ) {
     // Orbital parameters only work if we're orbiting something. If there is no parent, use the fallback
-    this.parent = this.manager.get(parent) ?? null;
-    if (this.parent === null) {
+    this.setParentSpatial(parent);
+    if (this.parentSpatial === null) {
       this.useFallback();
       return;
     }
-    if (this.fallback !== null) {
-      this.fallback.kill();
-      this.fallback = null;
+    if (this.fallbackLt !== null) {
+      this.fallbackLt.kill();
     }
 
     this.baseTime = baseTime;
@@ -86,22 +108,27 @@ export class OrbitBodySpatial extends DependentLifetime implements BodySpatial {
     this.transform.premultiply(matTemp);
   }
 
-  useFallback(): void {
+  private useFallback(): void {
     if (this.fallback === null) {
-      this.fallback = this.addDependent(new CartesianBodySpatial(this.manager, this.obj));
+      this.fallbackLt = this.lt.newDependent();
+      this.fallback = new CartesianSpatial(this.game, this.fallbackLt, this.obj);
+      this.fallbackLt.addCallback(() => {
+        this.fallback = null;
+        this.fallbackLt = null;
+      });
     }
   }
 
   isReady(): boolean {
     return (
-      (!!this.parent && this.mass !== undefined) ||
+      (!!this.parentSpatial && this.mass !== undefined) ||
       (this.fallback !== null && this.fallback.isReady())
     );
   }
 
   ensureCache() {
     // Do nothing if the cache is already up to date
-    const time = this.manager.game.animation.gameTime() ?? 0;
+    const time = this.game.animation.gameTime() ?? 0;
     if (this.cachedTime === time) {
       return;
     }
@@ -162,9 +189,9 @@ export class OrbitBodySpatial extends DependentLifetime implements BodySpatial {
     // Apply parent's position and velocity
     vecTempA.set(0, 0, 0);
     vecTempB.set(0, 0, 0);
-    if (this.parent) {
-      this.parent.copyPositionInto(vecTempA);
-      this.parent.copyVelocityInto(vecTempB);
+    if (this.parentSpatial) {
+      this.parentSpatial.copyPositionInto(vecTempA);
+      this.parentSpatial.copyVelocityInto(vecTempB);
     }
     this.cachedPosition.add(vecTempA);
     this.cachedVelocity.add(vecTempB);
@@ -180,19 +207,19 @@ export class OrbitBodySpatial extends DependentLifetime implements BodySpatial {
     vec.copy(this.cachedVelocity);
   }
 
-  getMass(): number {
-    return this.mass ?? 0;
+  mass(): number {
+    return this.bodyMass ?? 0;
   }
 
-  getParent(): Body | null {
-    return this.parent ?? null;
+  parent(): SsObject | null {
+    return this.parentSpatial ? this.parentSpatial.bodyObj() : null;
   }
 
   copyOrbitMatrixInto(mat: THREE.Matrix4): void {
     mat.copy(this.transform);
     // Apply parent's position
-    if (this.parent) {
-      this.parent.copyPositionInto(vecTempA);
+    if (this.parentSpatial) {
+      this.parentSpatial.copyPositionInto(vecTempA);
       matTemp.makeTranslation(vecTempA.x, vecTempA.y, vecTempA.z);
       mat.premultiply(matTemp);
     }

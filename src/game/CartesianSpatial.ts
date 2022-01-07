@@ -1,8 +1,8 @@
 import * as THREE from "three";
-import { DependentLifetime, Vec3 } from "../core";
+import { Lifetime, Vec3 } from "../core";
 import { SsObject } from "../protocol";
-import type { BodyManager } from './BodyManager'
-import type { Body, BodySpatial } from './Body'
+import type { Game } from './Game'
+import type { Spatial } from './Spatial'
 
 /// These all *should* be locals to copyOrbitMatrixInto() but js is fucking stupid and allocating
 /// objects is expensive and I prematurely optimize so we make them global
@@ -15,29 +15,33 @@ const orbitUp = new THREE.Vector3();
 const orbitQuat = new THREE.Quaternion();
 const zVec = new THREE.Vector3(0, 0, 1);
 
-export class CartesianBodySpatial extends DependentLifetime implements BodySpatial {
+export class CartesianSpatial implements Spatial {
   private position: Vec3 | undefined;
   private velocity: Vec3 | undefined;
-  private mass: number | undefined;
-  private parent: Body | null | undefined;
+  private bodyMass: number | undefined;
+  private parentSpatial: Spatial | null | undefined;
 
   constructor(
-    readonly manager: BodyManager,
-    readonly obj: SsObject,
+    game: Game,
+    lt: Lifetime,
+    private readonly obj: SsObject,
   ) {
-    super()
-    obj.property('position', Vec3).subscribe(this, pos => {
+    obj.property('position', Vec3).subscribe(lt, pos => {
       this.position = pos;
     });
-    obj.property('velocity', Vec3).subscribe(this, vel => {
+    obj.property('velocity', Vec3).subscribe(lt, vel => {
       this.velocity = vel;
     });
-    obj.property('mass', Number).subscribe(this, mass => {
-      this.mass = mass;
+    obj.property('mass', Number).subscribe(lt, mass => {
+      this.bodyMass = mass;
     });
-    obj.property('grav_parent', {nullable: SsObject}).subscribe(this, parent => {
-      this.parent = manager.get(parent) ?? null;
+    obj.property('grav_parent', {nullable: SsObject}).subscribe(lt, parent => {
+      this.parentSpatial = parent ? game.spatials.spatialFor(lt, parent) : null;
     });
+  }
+
+  bodyObj(): SsObject {
+    return this.obj;
   }
 
   isReady(): boolean {
@@ -45,12 +49,13 @@ export class CartesianBodySpatial extends DependentLifetime implements BodySpati
       this.position !== undefined &&
       this.velocity !== undefined &&
       this.mass !== undefined &&
-      this.parent !== undefined
+      this.parentSpatial !== undefined
     )
   }
 
   copyPositionInto(vec: THREE.Vector3): void {
     if (this.position !== undefined) {
+      // TODO: interpolate based on velocity
       this.position.copyInto(vec);
     }
   }
@@ -61,25 +66,25 @@ export class CartesianBodySpatial extends DependentLifetime implements BodySpati
     }
   }
 
-  getMass(): number {
-    return this.mass ?? 0;
+  mass(): number {
+    return this.bodyMass ?? 0;
   }
 
-  getParent(): Body | null {
-    return this.parent ?? null;
+  parent(): SsObject | null {
+    return this.parentSpatial ? this.parentSpatial.bodyObj() : null;
   }
 
   // Primitive, only makes circular orbits
   copyOrbitMatrixInto(mat: THREE.Matrix4): void {
     if (this.position === undefined ||
         this.velocity === undefined ||
-        !this.parent
+        !this.parentSpatial
     ) {
       return;
     }
 
-    this.parent.copyPositionInto(parentPos);
-    this.parent.copyVelocityInto(parentVel);
+    this.parentSpatial.copyPositionInto(parentPos);
+    this.parentSpatial.copyVelocityInto(parentVel);
     this.position.copyInto(ourPos);
     this.velocity.copyInto(relVel);
     relVel.sub(parentVel);
