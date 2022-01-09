@@ -1,0 +1,4 @@
+<html>
+<input><p id="f">
+<script>l=0;w=0;c=0;function r(t){d=l?t-l:0;l=t;c+=1;if(d>w&&c>10){w=d;document.getElementById('f').textContent='Longest frame: '+(w|0)+'ms';}requestAnimationFrame(r);}requestAnimationFrame(r);</script>
+</html>

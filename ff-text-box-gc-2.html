@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"> 
+</head>
+<body>
+
+<input></input>
+<p id="frame"></p>
+
+<script>
+lastTime = null;
+worstDelta = 0;
+count = 0;
+function record(time) {
+  delta = lastTime === null ? 0 : time - lastTime;
+  lastTime = time;
+  count += 1;
+  if (delta > worstDelta && count > 10) {
+    worstDelta = delta;
+    document.getElementById('frame').textContent = (
+      'Longest delay between frames: ' +
+      worstDelta.toFixed(1) + 'ms'
+    );
+  }
+  requestAnimationFrame(record);
+}
+requestAnimationFrame(record);
+</script>
+
+</body>
+</html>
+
