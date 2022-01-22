@@ -18,7 +18,7 @@
     "typescript": "^4.1.5"
   },
   "scripts": {
-    "launch": "tsc --strict --noEmit && esbuild src/index.ts --bundle --minify --sourcemap --outfile=public/code.js && ../starscape-server/target/debug/starscape-server --http-static-content ./public --http-type http --http-port 56560 --http-loopback --open-browser",
+    "start": "tsc --strict --noEmit && esbuild src/index.ts --bundle --minify --sourcemap --outfile=public/code.js && ../starscape-server/target/debug/starscape-server --http-static-content ./public --http-type http --http-port 56560 --http-loopback false --open-browser",
     "build": "tsc --strict --noEmit && esbuild src/index.ts --bundle --minify --sourcemap --outfile=public/code.js",
     "test": "tsc --strict --noEmit && jest --config ./src/jest/jest.config.json"
   }
