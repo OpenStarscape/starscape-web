@@ -12,7 +12,7 @@ This is the primary OpenStarscape frontend. Sometimes available at [https://star
 ## To run locally
 You first need to clone the [OpenStarscape server](https://github.com/OpenStarscape/starscape-server) next to this repo and `cargo build` it. Then you can:
 ```
-npm run launch
+npm start
 ```
 which will compile the web frontend, run the server and open it in a browser. See [package.json](package.json) for details.
 
