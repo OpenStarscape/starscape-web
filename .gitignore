@@ -1,4 +1,5 @@
 node_modules
+auxiliary/starscape-server
 
 # Typescript
 tsconfig.tsbuildinfo

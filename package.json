@@ -18,8 +18,10 @@
     "typescript": "^4.1.5"
   },
   "scripts": {
-    "start": "tsc --strict --noEmit && esbuild src/index.ts --bundle --minify --sourcemap --outfile=public/code.js && ../starscape-server/target/debug/starscape-server --http-static-content ./public --http-type http --http-port 56560 --http-loopback false --open-browser",
-    "build": "tsc --strict --noEmit && esbuild src/index.ts --bundle --minify --sourcemap --outfile=public/code.js",
-    "test": "tsc --strict --noEmit && jest --config ./src/jest/jest.config.json"
+    "start": "./auxiliary/scripts/typecheck.sh && ./auxiliary/scripts/build.sh && ./auxiliary/scripts/start.sh",
+    "build": "./auxiliary/scripts/typecheck.sh && ./auxiliary/scripts/build.sh",
+    "test": "./auxiliary/scripts/typecheck.sh && ./auxiliary/scripts/test.sh",
+    "typecheck": "./auxiliary/scripts/typecheck.sh",
+    "clear-jest-cache": "jest --clearCache"
   }
 }
