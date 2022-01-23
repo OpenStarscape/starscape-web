@@ -10,13 +10,14 @@ This is the primary OpenStarscape frontend. Sometimes available at [https://star
 - [Jest](https://jestjs.io/en/)
 
 ## To run locally
-You first need to clone the [OpenStarscape server](https://github.com/OpenStarscape/starscape-server) next to this repo and `cargo build` it. Then you can:
 ```
 npm start
 ```
-which will compile the web frontend, run the server and open it in a browser. See [package.json](package.json) for details.
+You need to clone the [OpenStarscape server](https://github.com/OpenStarscape/starscape-server), `cargo build` it and symlink the binary in `starscape-server/target/debug/starscape-server` to `auxiliary/starscape-server` for it to work. `npm start` will tell you the commands to run if things aren't set up right. Feel free to open an issue if you can't get it to work.
 
-NOTE: you may be able to make a local frontend work with the server on the internet, but this is not currently tested. There may also be version incompatibilities until the protocol is stabilized.
+`npm start` compiles the web frontend, runs the server and asks it to open a browser. See [package.json](package.json) and [auxiliary/scripts/start.sh](auxiliary/scripts/start.sh) for details.
+
+__NOTE:__ you may be able to make a local frontend work with the server on the internet, but this is not currently tested. There may also be version incompatibilities until the protocol is stabilized.
 
 ## To build for production
 ```
