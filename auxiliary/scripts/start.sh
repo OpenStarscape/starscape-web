@@ -25,11 +25,11 @@ if ! test -e "$SERVER_PATH"; then
 fi
 
 COMMAND="$SERVER_PATH \
---http-static-content ./public \
---http-type http \
---http-port 56560 \
---http-loopback false \
---open-browser true\
+--http-static-content=./public \
+--http-type=http \
+--http-port=56560 \
+--http-loopback=false \
+--open-browser=true\
 "
 echo "> $COMMAND"
 $COMMAND
