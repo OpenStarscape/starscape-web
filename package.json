@@ -18,10 +18,11 @@
     "typescript": "^4.5.5"
   },
   "scripts": {
-    "launch": "./auxiliary/scripts/typecheck.sh && ./auxiliary/scripts/build.sh && ./auxiliary/scripts/launch.sh",
-    "build": "./auxiliary/scripts/typecheck.sh && ./auxiliary/scripts/build.sh",
-    "test": "./auxiliary/scripts/typecheck.sh && ./auxiliary/scripts/test.sh",
-    "typecheck": "./auxiliary/scripts/typecheck.sh",
+    "launch":     "./auxiliary/scripts/typecheck.sh && ./auxiliary/scripts/build.sh --sourcemap && ./auxiliary/scripts/launch.sh",
+    "dev-build":  "./auxiliary/scripts/typecheck.sh && ./auxiliary/scripts/build.sh --sourcemap",
+    "prod-build": "./auxiliary/scripts/build.sh",
+    "test":       "./auxiliary/scripts/typecheck.sh && ./auxiliary/scripts/test.sh",
+    "typecheck":  "./auxiliary/scripts/typecheck.sh",
     "clear-jest-cache": "jest --clearCache"
   }
 }

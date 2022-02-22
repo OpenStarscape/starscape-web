@@ -1,5 +1,5 @@
 #!/bin/sh
-set -eu pipefail
+set -eu
 if ! test -f package.json; then echo "Script run from $PWD, not project root"; exit 1; fi
 
 SERVER_PATH="auxiliary/starscape-server"

@@ -1,7 +1,7 @@
 #!/bin/sh
-set -eu pipefail
+set -eu
 if ! test -f package.json; then echo "Script run from $PWD, not project root"; exit 1; fi
 
-printf "Typechecking... "
+printf "Typechecking…"
 npx tsc --strict --noEmit
 echo "success!"
