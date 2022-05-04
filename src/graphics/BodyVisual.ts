@@ -44,7 +44,7 @@ class BodyVisual {
     readonly spatial: Spatial,
   ) {
     this.obj = spatial.bodyObj();
-    scene.addUpdateable(this.lt, this);
+    scene.subscribe(this.lt, () => this.update());
 
     this.solidMat = this.lt.own(new THREE.MeshBasicMaterial({color: 'white'}));
     this.wireMat = this.lt.own(new THREE.MeshBasicMaterial({color: 'white', wireframe: true}));
@@ -57,11 +57,11 @@ class BodyVisual {
     this.mesh = new THREE.Mesh(emptyGeom, this.wireMat);
     this.mesh.matrixAutoUpdate = true;
 
-    this.scene.add(this.mesh);
-    this.scene.add(this.orbitLine);
+    this.scene.scene.add(this.mesh);
+    this.scene.scene.add(this.orbitLine);
     this.lt.addCallback(() => {
-      this.scene.remove(this.mesh);
-      this.scene.remove(this.orbitLine);
+      this.scene.scene.remove(this.mesh);
+      this.scene.scene.remove(this.orbitLine);
     });
 
     this.labelDiv = document.createElement('div');
@@ -88,7 +88,7 @@ class BodyVisual {
     this.labelDiv.style.color = color;
   }
 
-  update() {
+  protected update() {
     this.spatial.copyPositionInto(this.mesh.position);
     const dist = this.mesh.position.distanceTo(this.scene.camera.position);
     const scale = dist / 100 / this.size;
@@ -139,7 +139,7 @@ class ShipVisual extends BodyVisual {
     });
   }
 
-  update() {
+  protected update() {
     super.update();
     if (this.accel !== undefined) {
       this.accel.copyInto(this.direction);

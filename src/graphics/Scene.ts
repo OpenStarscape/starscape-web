@@ -1,21 +1,17 @@
 import * as THREE from 'three';
 import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
-import { Lifetime, messageFromError } from '../core';
+import { Lifetime, messageFromError, Conduit, DependentLifetime, Subscriber } from '../core';
 import { AnimationTimer } from '../game';
 
 THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
 
-interface Updateable {
-  update(): void;
-}
-
-/// Manages everything required to render a scene with THREE.js
-export abstract class Scene extends THREE.Scene {
+/// Manages everything required to render a scene with THREE.js, subscribers are notified each frame
+export class Scene extends Conduit<null> {
+  readonly scene = new THREE.Scene();
   readonly camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+  readonly normalRenderer: THREE.WebGLRenderer;
+  readonly overlayRenderer: CSS2DRenderer;
 
-  protected readonly normalRenderer: THREE.WebGLRenderer;
-  protected readonly overlayRenderer: CSS2DRenderer;
-  protected updateables: Set<Updateable> | null = new Set();
   private autoRender: boolean;
 
   constructor(
@@ -45,7 +41,7 @@ export abstract class Scene extends THREE.Scene {
     this.overlayRenderer.domElement.style.height = '100%'
     div.appendChild(this.overlayRenderer.domElement);
 
-    this.add(this.camera); // only required so children of the camera are visible
+    this.scene.add(this.camera); // only required so children of the camera are visible
 
     const resizeObserver = new ResizeObserver(entries => {
       const box = entries[0].contentBoxSize[0];
@@ -55,7 +51,7 @@ export abstract class Scene extends THREE.Scene {
 
     lt.addCallback(() => {
       resizeObserver.unobserve(div);
-      this.updateables = null;
+      this.subscribers.clear(); // not needed, just to help the garbage collector
     });
 
     this.resize(div.clientWidth, div.clientHeight);
@@ -65,14 +61,8 @@ export abstract class Scene extends THREE.Scene {
     }
   }
 
-  addUpdateable(lt: Lifetime, updateable: Updateable) {
-    this.updateables!.add(updateable);
-    lt.addCallback(() => {
-      if (this.updateables !== null) {
-        this.updateables.delete(updateable);
-      }
-    });
-  }
+  protected override initialSubscriberAdded(hasSubscribersLt: DependentLifetime): void {}
+  protected override subscriberAdded(subscriber: Subscriber<null>): void {}
 
   private resize(width: number, height: number) {
     this.normalRenderer.setSize(width, height);
@@ -84,11 +74,9 @@ export abstract class Scene extends THREE.Scene {
     }
   }
 
-  protected render() {
-    for (const updateable of this.updateables!) {
-      updateable.update();
-    }
-    this.normalRenderer.render(this, this.camera);
-    this.overlayRenderer.render(this, this.camera);
+  render() {
+    this.sendToAllSubscribers(null);
+    this.normalRenderer.render(this.scene, this.camera);
+    this.overlayRenderer.render(this.scene, this.camera);
   }
 }

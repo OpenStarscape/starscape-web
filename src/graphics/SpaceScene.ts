@@ -10,6 +10,7 @@ import { newBodyVisual } from './BodyVisual';
 /// Manages everything required to render a 3D space view
 class SpaceScene extends Scene {
   readonly starfield: Starfield;
+  readonly cameraManager;
 
   // TODO: move this to Body
   private readonly thrustMesh: THREE.Mesh;
@@ -26,16 +27,14 @@ class SpaceScene extends Scene {
     const geom = this.lt.own(new THREE.ConeGeometry(0.5, 3, 3));
     geom.translate(0, 4, 0);
     this.thrustMesh = new THREE.Mesh(geom, mat);
-    this.add(this.thrustMesh);
+    this.scene.add(this.thrustMesh);
     let currentShipSpatial: Spatial | null = null;
     game.currentShip.subscribeWithValueLifetime(lt, (valueLt, ship) => {
       currentShipSpatial = ship ? game.spatials.spatialFor(valueLt, ship) : null;
     });
-    this.updateables!.add({
-      update: () => {
-        if (currentShipSpatial !== null) {
-          currentShipSpatial.copyPositionInto(this.thrustMesh.position);
-        }
+    this.subscribe(lt, () => {
+      if (currentShipSpatial !== null) {
+        currentShipSpatial.copyPositionInto(this.thrustMesh.position);
       }
     });
 
@@ -54,14 +53,14 @@ class SpaceScene extends Scene {
 
     this.normalRenderer.setClearColor('black');
 
-    this.starfield = new Starfield(this.lt, this);
-    this.updateables!.add(new CameraManager(
-      this.lt,
-      this,
-      this.overlayRenderer.domElement,
-      this.game,
-      this.camera,
-    ));
+    this.starfield = new Starfield(this.lt, this.scene);
+    this.cameraManager = new CameraManager(
+        this.lt,
+        this,
+        this.overlayRenderer.domElement,
+        this.game,
+        this.camera,
+    );
 
     game.bodies.subscribe(this.lt, ([_temLt, body]) => {
       newBodyVisual(this, this.game, body);
