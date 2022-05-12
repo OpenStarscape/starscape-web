@@ -61,6 +61,13 @@ export class Scene extends Conduit<null> {
     }
   }
 
+  addObject(lt: Lifetime, obj3D: THREE.Object3D) {
+    this.scene.add(obj3D);
+    Lifetime.addCallbackToAll([lt, this.lt], () => {
+      this.scene.remove(obj3D);
+    })
+  }
+
   protected override initialSubscriberAdded(hasSubscribersLt: DependentLifetime): void {}
   protected override subscriberAdded(subscriber: Subscriber<null>): void {}
 

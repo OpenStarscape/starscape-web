@@ -1,39 +1,24 @@
-import * as THREE from "three";
+import * as THREE from 'three';
 import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
-import { Lifetime, Vec3 } from "../core";
+import { Lifetime, Vec3, LocalProperty } from '../core';
 import { SsObject } from "../protocol";
+import { ellipticalOrbit } from './ellipticalOrbit'
 import type { Spatial, Game } from '../game'
 import type { Scene } from './Scene'
 
-function makeRingGeom(verts: number): THREE.BufferGeometry {
-  const circleGeom = new THREE.CircleGeometry(1, verts);
-  const attrib = circleGeom.getAttribute('position');
-  const array = Array.from(attrib.array);
-  const itemSize = attrib.itemSize;
-  circleGeom.dispose();
-  for (let i = 0; i < itemSize; i++) {
-    array.shift(); // Shift off the center vertex
-  }
-  const result = new THREE.BufferGeometry();
-  result.setAttribute('position', new THREE.BufferAttribute(new Float32Array(array as any), itemSize));
-  return result;
-}
-
 // NOTE: these would need to be disposed of/added to a lifetime if they were not global
 const emptyGeom = new THREE.BufferGeometry();
-const circleGeom = makeRingGeom(120);
 const yVec = new THREE.Vector3(0, 1, 0);
 
 class BodyVisual {
-  private readonly orbitLine: THREE.LineLoop;
   private readonly labelDiv: HTMLDivElement;
   private readonly label: CSS2DObject;
 
   private readonly solidMat;
   private readonly wireMat;
-  private readonly lineMat;
 
   protected size = 1;
+  protected colorProp = new LocalProperty<string>('#ffffff');
   protected readonly mesh;
 
   readonly obj: SsObject;
@@ -46,22 +31,17 @@ class BodyVisual {
     this.obj = spatial.bodyObj();
     scene.subscribe(this.lt, () => this.update());
 
+    ellipticalOrbit(lt, scene, spatial, this.colorProp);
+
     this.solidMat = this.lt.own(new THREE.MeshBasicMaterial({color: 'white'}));
     this.wireMat = this.lt.own(new THREE.MeshBasicMaterial({color: 'white', wireframe: true}));
-    this.lineMat = this.lt.own(new THREE.LineBasicMaterial({color: 'white'}));
-
-    // This is probs a better way: https://stackoverflow.com/a/21742175
-    this.orbitLine = new THREE.LineLoop(circleGeom, this.lineMat);
-    this.orbitLine.matrixAutoUpdate = false;
 
     this.mesh = new THREE.Mesh(emptyGeom, this.wireMat);
     this.mesh.matrixAutoUpdate = true;
 
     this.scene.scene.add(this.mesh);
-    this.scene.scene.add(this.orbitLine);
     this.lt.addCallback(() => {
       this.scene.scene.remove(this.mesh);
-      this.scene.scene.remove(this.orbitLine);
     });
 
     this.labelDiv = document.createElement('div');
@@ -79,13 +59,12 @@ class BodyVisual {
         this.label.visible = false;
       }
     });
-  }
 
-  protected setColor(color: string) {
-    this.wireMat.color.setStyle(color);
-    this.solidMat.color.setStyle(color);
-    this.lineMat.color.setStyle(color);
-    this.labelDiv.style.color = color;
+    this.colorProp.subscribe(lt, color => {
+      this.wireMat.color.setStyle(color);
+      this.solidMat.color.setStyle(color);
+      this.labelDiv.style.color = color;
+    });
   }
 
   protected update() {
@@ -99,14 +78,6 @@ class BodyVisual {
       this.mesh.scale.setScalar(1);
       this.mesh.material = this.wireMat;
     }
-
-    if (this.spatial.isReady() && this.spatial.parent() !== null) {
-      this.orbitLine.visible = true;
-      this.spatial.copyOrbitMatrixInto(this.orbitLine.matrix);
-      //this.orbitLine.updateMatrix();
-    } else {
-      this.orbitLine.visible = false;
-    }
   }
 }
 
@@ -116,7 +87,7 @@ class CelestialVisual extends BodyVisual {
     this.obj.property('color', String).subscribe(this.lt, color => {
       // Set color using a Starscape protocol color (starts with 0x...)
       color = '#' + color.slice(2);
-      this.setColor(color);
+      this.colorProp.set(color);
     });
     this.obj.property('size', Number).getThen(this.lt, km => {
       this.size = km;
@@ -131,7 +102,7 @@ class ShipVisual extends BodyVisual {
 
   constructor(scene: Scene, lt: Lifetime, spatial: Spatial) {
     super(scene, lt, spatial);
-    this.setColor('#ffffff');
+    this.colorProp.set('#ffffff');
     this.size = 0.01;
     this.mesh.geometry = this.lt.own(new THREE.ConeBufferGeometry(0.01, 0.03, 16));
     this.obj.property('accel', Vec3).subscribe(this.lt, accel => {
