@@ -1,4 +1,4 @@
-import { DependentLifetime } from '../Lifetime';
+import { DependentLifetime, Lifetime } from '../Lifetime';
 
 class MockDisposable {
   disposed = false;
@@ -81,4 +81,32 @@ test('Lifetime reports dead after killed', () => {
   expect(lt.alive()).toBe(false);
   lt.kill();
   expect(lt.alive()).toBe(false);
+});
+
+test('Callback can be added', () => {
+  const lt = new DependentLifetime();
+  let called = 0;
+  lt.addCallback(() => {
+    called += 1;
+  });
+  expect(called).toBe(0);
+  lt.kill();
+  expect(called).toBe(1);
+});
+
+test('Callback added to multiple lifetimes only called once', () => {
+  const lt0 = new DependentLifetime();
+  const lt1 = new DependentLifetime();
+  const lt2 = new DependentLifetime();
+  let called = 0;
+  Lifetime.addCallbackToAll([lt0, lt1, lt2], () => {
+    called += 1;
+  });
+  expect(called).toBe(0);
+  lt1.kill();
+  expect(called).toBe(1);
+  lt0.kill();
+  expect(called).toBe(1);
+  lt2.kill();
+  expect(called).toBe(1);
 });

@@ -67,6 +67,14 @@ export abstract class Lifetime {
     this.own(new CallbackDisposable(callback));
   }
 
+  /// The callback will be called only once the first time one of the given lifetimes dies
+  static addCallbackToAll(lts: Lifetime[], callback: () => void): void {
+    const disposable = new CallbackDisposable(callback);
+    for (const lt of lts) {
+      lt.own(disposable);
+    }
+  }
+
   /// Adds an object with a .dispose() method. .dispose() will be called when this lifetime is
   /// disposed of unless the object is deleted from it before then. The given object is returned
   /// so this call can be placed inside an expression.
