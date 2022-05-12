@@ -23,7 +23,7 @@ export function scalingMesh(
   for (const child of children) {
     mesh.add(child);
   }
-  mesh.matrixAutoUpdate = true;
+  mesh.matrixAutoUpdate = false;
   colorProp.subscribe(lt, color => {
     wireMat.color.setStyle(color);
     solidMat.color.setStyle(color);
@@ -45,5 +45,6 @@ export function scalingMesh(
       mesh.material = wireMat;
     }
     updateQuat(mesh.quaternion);
+    mesh.updateMatrix();
   });
 }
