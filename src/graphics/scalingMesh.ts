@@ -12,14 +12,15 @@ export function scalingMesh(
   scene: Scene,
   spatial: Spatial,
   colorProp: LocalProperty<string>,
-  geomProp: LocalProperty<[geom: THREE.BufferGeometry, size: number]>,
-  updateQuat: (quat: THREE.Quaternion) => void,
+  geomProp: LocalProperty<[geom: THREE.BufferGeometry | null, size: number]>,
+  updateQuat: ((quat: THREE.Quaternion) => void) | null,
   children: THREE.Object3D[],
 ) {
   let size = 1;
   const solidMat = lt.own(new THREE.MeshBasicMaterial({color: 'white'}));
   const wireMat = lt.own(new THREE.MeshBasicMaterial({color: 'white', wireframe: true}));
   const mesh = new THREE.Mesh(emptyGeom, wireMat);
+  mesh.visible = false;
   for (const child of children) {
     mesh.add(child);
   }
@@ -29,8 +30,13 @@ export function scalingMesh(
     solidMat.color.setStyle(color);
   });
   geomProp.subscribe(lt, ([geom, newSize]) => {
-    size = newSize;
-    mesh.geometry = geom;
+    if (geom === null) {
+      mesh.visible = false;
+    } else {
+      mesh.visible = true;
+      size = newSize;
+      mesh.geometry = geom;
+    }
   });
   scene.addObject(lt, mesh);
   scene.subscribe(lt, () => {
@@ -44,7 +50,9 @@ export function scalingMesh(
       mesh.scale.setScalar(1);
       mesh.material = wireMat;
     }
-    updateQuat(mesh.quaternion);
+    if (updateQuat !== null) {
+      updateQuat(mesh.quaternion);
+    }
     mesh.updateMatrix();
   });
 }
