@@ -1,25 +1,15 @@
-import { Lifetime, DependentLifetime, Conduit, SetConduit, Subscriber } from '../core';
+import { DependentLifetime, SetConduitImpl } from '../core';
 import { SsObject } from './SsObject';
 import { SsProperty } from './SsProperty';
 import { SsValue } from './SsValue';
 
 /// Keeps track of a starscape property that is a set (a list of items that are guaranteed to be
 /// unique and are in an arbitrary order). See SetConduit for interface documentation.
-export class SsSet<T extends SsValue> extends Conduit<[Lifetime, T]> implements SetConduit<T> {
-  private items = new Map<T, DependentLifetime>();
-
+export class SsSet<T extends SsValue> extends SetConduitImpl<T> {
   constructor(
     private readonly property: SsProperty<T[]>,
   ) {
     super();
-  }
-
-  has(value: T): boolean {
-    return this.items.has(value);
-  }
-
-  keys(): IterableIterator<T> {
-    return this.items.keys();
   }
 
   private newItem(item: T) {
@@ -76,17 +66,5 @@ export class SsSet<T extends SsValue> extends Conduit<[Lifetime, T]> implements 
       }
       this.handleArray(items);
     });
-  }
-
-  protected subscriberAdded(subscriber: Subscriber<[Lifetime, T]>): void {
-    for (const [item, itemLt] of this.items.entries()) {
-      this.sendNewItem(itemLt, subscriber, item);
-    }
-  }
-
-  private sendNewItem(itemLt: Lifetime, subscriber: Subscriber<[Lifetime, T]>, item: T) {
-    const itemSubscriberLt = itemLt.newDependent();
-    subscriber.lifetime.addDependent(itemSubscriberLt);
-    subscriber.sendValue([itemSubscriberLt, item]);
   }
 }
