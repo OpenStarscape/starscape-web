@@ -74,7 +74,7 @@ export class SsProperty<T extends SsValue> extends SsConduit<T> {
     return this.value;
   }
 
-  initialSubscriberAdded(hasSubscribersLt: DependentLifetime): void {
+  protected initialSubscriberAdded(hasSubscribersLt: DependentLifetime): void {
     this.obj.addDependent(hasSubscribersLt);
     this.obj.makeRequest({
       method: SsRequestType.Subscribe,
@@ -91,7 +91,7 @@ export class SsProperty<T extends SsValue> extends SsConduit<T> {
     })
   }
 
-  subscriberAdded(subscriber: Subscriber<T>): void {
+  protected subscriberAdded(subscriber: Subscriber<T>): void {
     if (this.value !== undefined) {
       subscriber.sendValue(this.value);
     }

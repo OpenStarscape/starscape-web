@@ -9,7 +9,7 @@ export class SsSignal<T extends SsValue> extends SsConduit<T> {
     return 'signal';
   }
 
-  initialSubscriberAdded(hasSubscribersLt: DependentLifetime): void {
+  protected initialSubscriberAdded(hasSubscribersLt: DependentLifetime): void {
     this.obj.addDependent(hasSubscribersLt);
     this.obj.makeRequest({
       method: SsRequestType.Subscribe,
@@ -25,7 +25,7 @@ export class SsSignal<T extends SsValue> extends SsConduit<T> {
     })
   }
 
-  subscriberAdded(_subscriber: Subscriber<T>): void {}
+  protected subscriberAdded(_subscriber: Subscriber<T>): void {}
 
   /// Called by the event's object when the server sends an event.
   handleSignal(value: SsValue) {
