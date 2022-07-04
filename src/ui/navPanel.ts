@@ -23,9 +23,7 @@ function setOrbit(game: Game, targetObj: SsObject | null) {
 /// The panel that allows the user to select which body to orbit and other navigation related options
 export function navPanel(lt: Lifetime, game: Game): HTMLElement {
   const div = document.createElement('div');
-  const [selector, selectedBody] = bodySelector(lt, game, _body => {
-    return new LocalProperty<boolean>(true);
-  });
+  const [selector, selectedBody] = bodySelector(lt, game.notCurrentShipBodies);
   div.appendChild(selector);
   selectedBody.subscribe(lt, obj => {
     setOrbit(game, obj);

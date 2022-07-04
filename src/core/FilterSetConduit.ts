@@ -5,16 +5,18 @@ import { Lifetime, DependentLifetime } from './Lifetime';
 
 export class FilterSetConduit<T> extends SetConduitImpl<T> {
   constructor(
-    lt: Lifetime,
-    source: SetConduit<T>,
-    filter: (lt: Lifetime, item: T) => Conduit<boolean>
+    readonly source: SetConduit<T>,
+    readonly filter: (lt: Lifetime, item: T) => Conduit<boolean>
   ) {
     super();
-    lt.addCallback(() => {
+  }
+
+  protected initialSubscriberAdded(hasSubscribersLt: DependentLifetime): void {
+    hasSubscribersLt.addCallback(() => {
       this.clear();
     })
-    source.subscribe(lt, ([lt, item]) => {
-      filter(lt, item).subscribe(lt, include => {
+    this.source.subscribe(hasSubscribersLt, ([lt, item]) => {
+      this.filter(lt, item).subscribe(lt, include => {
         if (include) {
           this.add(item);
         } else {
@@ -25,5 +27,19 @@ export class FilterSetConduit<T> extends SetConduitImpl<T> {
         this.delete(item);
       });
     });
+  }
+
+  has(value: T): boolean {
+    if (!this.hasSubscribers()) {
+      throw new Error('FilterSetConduit.has() called when not subscribed to');
+    }
+    return super.has(value);
+  }
+
+  keys(): IterableIterator<T> {
+    if (!this.hasSubscribers()) {
+      throw new Error('FilterSetConduit.keys() called when not subscribed to');
+    }
+    return super.keys();
   }
 }

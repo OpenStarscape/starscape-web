@@ -1,6 +1,5 @@
-import { Lifetime, LocalProperty, Conduit } from '../core';
+import { Lifetime, SetConduit, LocalProperty, FilterSetConduit, Conduit } from '../core';
 import { SsObject } from '../protocol';
-import { Game } from '../game';
 
 function listItem(
   lt: Lifetime,
@@ -39,14 +38,31 @@ function listItem(
 
 export function bodySelector(
   lt: Lifetime,
-  game: Game,
-  includeFn: (obj: SsObject) => Conduit<boolean>
+  bodySet: SetConduit<SsObject>,
 ): [HTMLElement, Conduit<null | SsObject>] {
-  const div = document.createElement('div');
   let isSelectedPropOfCurrentItem: null | LocalProperty<boolean> = null
   const currentSelected = new LocalProperty<null | SsObject>(null);
 
-  game.bodies.subscribe(lt, ([itemLt, obj]) => {
+  const filterText = new LocalProperty<null | string>(null);
+  const filterSet = new FilterSetConduit(bodySet, (bodyLt, body) => {
+    const include = new LocalProperty(true);
+    const nameProp = body.property('name', {nullable: String});
+    const getName = nameProp.getter(bodyLt);
+    const update = () => {
+      const filter = filterText.get();
+      const name = getName();
+      include.set(filter === null || (name ? name.toLowerCase().includes(filter.toLowerCase()) : false));
+    }
+    nameProp.subscribe(bodyLt, _name => update());
+    filterText.subscribe(bodyLt, _text => update());
+    return include;
+  })
+  const div = document.createElement('div');
+  const filterBox = div.appendChild(document.createElement('input'));
+  filterBox.addEventListener('input', () => {
+    filterText.set(filterBox.value ? filterBox.value : null);
+  });
+  filterSet.subscribe(lt, ([itemLt, obj]) => {
     const selectedProp = new LocalProperty(false);
     const item = listItem(itemLt, obj, selectedProp, () => {
       isSelectedPropOfCurrentItem?.set(false);
