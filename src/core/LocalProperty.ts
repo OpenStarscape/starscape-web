@@ -10,9 +10,9 @@ export class LocalProperty<T> extends Conduit<T> {
     super();
   }
 
-  initialSubscriberAdded(_hasSubscribersLt: Lifetime): void {}
+  protected initialSubscriberAdded(_hasSubscribersLt: Lifetime): void {}
 
-  subscriberAdded(subscriber: Subscriber<T>): void {
+  protected subscriberAdded(subscriber: Subscriber<T>): void {
     subscriber.sendValue(this.value);
   }
 

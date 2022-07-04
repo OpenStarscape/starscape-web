@@ -10,11 +10,11 @@ export class SsAction<T extends SsValue> extends SsConduit<T> {
     return 'action';
   }
 
-  initialSubscriberAdded(hasSubscribersLt: DependentLifetime): void {
+  protected initialSubscriberAdded(hasSubscribersLt: DependentLifetime): void {
     this.obj.addDependent(hasSubscribersLt);
   }
 
-  subscriberAdded(_subscriber: Subscriber<T>): void {}
+  protected subscriberAdded(_subscriber: Subscriber<T>): void {}
 
   /// Fire the action, which results in a server request and local subscribers being notified.
   fire(value: T) {
