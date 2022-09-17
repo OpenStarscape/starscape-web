@@ -24,7 +24,6 @@ export function ellipticalOrbit(
   lt: Lifetime,
   scene: Scene,
   spatial: Spatial,
-  colorProp: LocalProperty<string>,
 ) {
   const lineMat = lt.own(new THREE.LineBasicMaterial({color: 'white'}));
 
@@ -33,7 +32,7 @@ export function ellipticalOrbit(
   orbitLine.matrixAutoUpdate = false;
   orbitLine.visible = false;
 
-  colorProp.subscribe(lt, color => {
+  spatial.body.color.subscribe(lt, color => {
     lineMat.color.setStyle(color);
   });
 

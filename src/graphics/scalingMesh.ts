@@ -11,7 +11,6 @@ export function scalingMesh(
   lt: Lifetime,
   scene: Scene,
   spatial: Spatial,
-  colorProp: LocalProperty<string>,
   geomProp: LocalProperty<[geom: THREE.BufferGeometry | null, size: number]>,
   updateQuat: ((quat: THREE.Quaternion) => void) | null,
   children: THREE.Object3D[],
@@ -25,7 +24,7 @@ export function scalingMesh(
     mesh.add(child);
   }
   mesh.matrixAutoUpdate = false;
-  colorProp.subscribe(lt, color => {
+  spatial.body.color.subscribe(lt, color => {
     wireMat.color.setStyle(color);
     solidMat.color.setStyle(color);
   });

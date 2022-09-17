@@ -1,8 +1,8 @@
-import { Lifetime, LocalProperty } from '../core';
+import { Lifetime, Conduit } from '../core';
 import { Spatial } from '../game';
 
 /// The HTML element that hovers over a body in the 3D view
-export function bodyHUD(lt: Lifetime, spatial: Spatial, colorProp: LocalProperty<string>): HTMLElement {
+export function bodyHUD(lt: Lifetime, spatial: Spatial): HTMLElement {
   const body = spatial.body;
   const div = document.createElement('div');
   div.style.marginTop = '1em';
@@ -18,7 +18,7 @@ export function bodyHUD(lt: Lifetime, spatial: Spatial, colorProp: LocalProperty
       p.style.display = 'none';
     }
   });
-  colorProp.subscribe(lt, color => {
+  body.color.subscribe(lt, color => {
     p.style.color = color;
   });
   return div;
