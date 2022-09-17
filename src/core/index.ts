@@ -1,6 +1,7 @@
 export * from './Conduit'
 export * from './LocalProperty'
 export * from './LocalAction'
+export * from './MappingConduit'
 export * from './SetConduit'
 export * from './SetConduitImpl'
 export * from './LocalSetProperty'
