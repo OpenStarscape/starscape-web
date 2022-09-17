@@ -1,17 +1,17 @@
-import { Lifetime, SetConduit, LocalProperty, FilterSetConduit, Conduit } from '../core';
+import { Lifetime, SetConduit, LocalProperty, FilterSetConduit } from '../core';
 import { SsObject } from '../protocol';
+import { Game, Body } from '../game';
 
 function listItem(
   lt: Lifetime,
-  obj: SsObject,
-  isSelected: Conduit<boolean>,
+  body: Body,
   isClicked: () => void,
 ): HTMLElement {
   const elem = document.createElement('button');
   elem.style.display = 'block';
   elem.textContent = '---';
 
-  obj.property('name', {nullable: String}).subscribe(lt, name => {
+  body.name.subscribe(lt, name => {
     if (name == null) {
       elem.textContent = '---';
     } else {
@@ -19,7 +19,7 @@ function listItem(
     }
   })
 
-  isSelected.subscribe(lt, isSelected => {
+  body.isSelected.subscribe(lt, isSelected => {
     if (isSelected) {
       elem.style.fontWeight = 'bold';
       elem.style.color = 'blue';
@@ -38,11 +38,9 @@ function listItem(
 
 export function bodySelector(
   lt: Lifetime,
+  game: Game,
   bodySet: SetConduit<SsObject>,
-): [HTMLElement, Conduit<null | SsObject>] {
-  let isSelectedPropOfCurrentItem: null | LocalProperty<boolean> = null
-  const currentSelected = new LocalProperty<null | SsObject>(null);
-
+): HTMLElement {
   const filterText = new LocalProperty<null | string>(null);
   const filterSet = new FilterSetConduit(bodySet, (bodyLt, body) => {
     const include = new LocalProperty(true);
@@ -63,22 +61,19 @@ export function bodySelector(
     filterText.set(filterBox.value ? filterBox.value : null);
   });
   filterSet.subscribe(lt, ([itemLt, obj]) => {
-    const selectedProp = new LocalProperty(false);
-    const item = listItem(itemLt, obj, selectedProp, () => {
-      isSelectedPropOfCurrentItem?.set(false);
-      isSelectedPropOfCurrentItem = selectedProp;
-      selectedProp.set(true);
-      currentSelected.set(obj);
+    const body = game.getBody(obj);
+    const item = listItem(itemLt, body, () => {
+      game.selectedBody.set(body);
     });
     div.appendChild(item);
     // When body is destroyed, remove its button
     itemLt.addCallback(() => {
       div.removeChild(item);
-      if (currentSelected.get() == obj) {
-        currentSelected.set(null);
+      if (game.selectedBody.get() === body) {
+        game.selectedBody.set(null);
       }
     });
   });
 
-  return [div, currentSelected];
+  return div;
 }
