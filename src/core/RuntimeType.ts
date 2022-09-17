@@ -274,9 +274,9 @@ export function isType<T extends RuntimeType>(value: unknown, t: T): boolean {
             (value as any).constructor === t
           );
         case 'object':
-          if ('nullable' in t) {
+          if ('nullable' in t!) {
             return value === null || isType(value, t.nullable);
-          } else if ('arrayOf' in t) {
+          } else if ('arrayOf' in t!) {
             if (Array.isArray(value)) {
               for (let i = 0; i < value.length; i++) {
                 if (!isType(value[i], (t as any).arrayOf)) {
