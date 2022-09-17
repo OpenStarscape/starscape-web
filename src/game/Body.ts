@@ -1,37 +1,18 @@
 import { SsObject } from '../protocol'
-import { Lifetime, DependentLifetime, Subscriber, Conduit, MappingConduit } from '../core'
+import { Lifetime, MappingConduit } from '../core'
 import { Game } from '../game'
 import { Spatial } from './Spatial'
 import { OrbitSpatial } from './OrbitSpatial'
-
-/// Creates a spatial when needed and holds onto it only as long as it has users
-class SpatialCache extends Conduit<null> {
-  public spatial: Spatial | null = null;
-
-  constructor(
-    private readonly game: Game,
-    private readonly body: Body,
-  ) {
-    super();
-  }
-
-  protected initialSubscriberAdded(hasSubscribersLt: DependentLifetime): void {
-    this.spatial = new OrbitSpatial(this.game, hasSubscribersLt, this.body);
-    hasSubscribersLt.addCallback(() => {
-      this.spatial = null;
-    });
-  }
-  protected subscriberAdded(_subscriber: Subscriber<null>): void {}
-}
 
 export class Body {
   readonly name;
   readonly color;
   readonly size;
-  private readonly cache;
+  private readonly spatialUserTracker;
+  private cachedSpatial: Spatial | null = null;
 
   constructor(
-    game: Game,
+    private readonly game: Game,
     readonly obj: SsObject,
   ) {
     this.name = obj.property('name', {nullable: String});
@@ -43,12 +24,18 @@ export class Body {
       });
     })
     this.size = obj.property('size', Number);
-    this.cache = new SpatialCache(game, this);
+    // Create the spatial when it is needed, clear it when all users are dead
+    this.spatialUserTracker = new MappingConduit<void>((lt, _setter) => {
+      this.cachedSpatial = new OrbitSpatial(this.game, lt, this);
+      lt.addCallback(() => {
+        this.cachedSpatial = null;
+      });
+    });
   }
 
   spatial(lt: Lifetime): Spatial {
-    this.cache.subscribe(lt, () => {});
-    // cache.spatial will always have a value when the cache has subscribers
-    return this.cache.spatial!;
+    this.spatialUserTracker.subscribe(lt, () => {});
+    // cache.spatial will always have a value when spatialUserTracker has subscribers
+    return this.cachedSpatial!;
   }
 }
