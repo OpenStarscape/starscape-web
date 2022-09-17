@@ -3,6 +3,7 @@ import { Lifetime, Vec3 } from "../core";
 import { SsObject } from "../protocol";
 import type { Game } from './Game'
 import type { Spatial } from './Spatial'
+import type { Body } from './Body'
 
 /// These all *should* be locals to copyOrbitMatrixInto() but js is fucking stupid and allocating
 /// objects is expensive and I prematurely optimize so we make them global
@@ -24,24 +25,20 @@ export class CartesianSpatial implements Spatial {
   constructor(
     game: Game,
     lt: Lifetime,
-    private readonly obj: SsObject,
+    readonly body: Body,
   ) {
-    obj.property('position', Vec3).subscribe(lt, pos => {
+    body.obj.property('position', Vec3).subscribe(lt, pos => {
       this.position = pos;
     });
-    obj.property('velocity', Vec3).subscribe(lt, vel => {
+    body.obj.property('velocity', Vec3).subscribe(lt, vel => {
       this.velocity = vel;
     });
-    obj.property('mass', Number).subscribe(lt, mass => {
+    body.obj.property('mass', Number).subscribe(lt, mass => {
       this.bodyMass = mass;
     });
-    obj.property('grav_parent', {nullable: SsObject}).subscribe(lt, parent => {
-      this.parentSpatial = parent ? game.spatials.spatialFor(lt, parent) : null;
+    body.obj.property('grav_parent', {nullable: SsObject}).subscribe(lt, parent => {
+      this.parentSpatial = parent ? game.getBody(parent).spatial(lt) : null;
     });
-  }
-
-  bodyObj(): SsObject {
-    return this.obj;
   }
 
   isReady(): boolean {
@@ -70,8 +67,8 @@ export class CartesianSpatial implements Spatial {
     return this.bodyMass ?? 0;
   }
 
-  parent(): SsObject | null {
-    return this.parentSpatial ? this.parentSpatial.bodyObj() : null;
+  parent(): Body | null {
+    return this.parentSpatial ? this.parentSpatial.body : null;
   }
 
   // Primitive, only makes circular orbits

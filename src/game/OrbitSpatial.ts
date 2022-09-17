@@ -4,6 +4,7 @@ import { SsObject } from '../protocol';
 import { CartesianSpatial } from './CartesianSpatial';
 import type { Spatial } from './Spatial';
 import type { Game } from './Game';
+import type { Body } from './Body';
 
 const TAU = 2 * Math.PI;
 const matTemp = new THREE.Matrix4();
@@ -31,9 +32,9 @@ export class OrbitSpatial implements Spatial {
   constructor(
     private readonly game: Game,
     private readonly lt: Lifetime,
-    private readonly obj: SsObject,
+    readonly body: Body,
   ) {
-    obj.property(
+    body.obj.property(
       'orbit',
       {nullable: [Number, Number, Number, Number, Number, Number, Number, SsObject]}
     ).subscribe(lt, params => {
@@ -43,13 +44,9 @@ export class OrbitSpatial implements Spatial {
         this.setParams(...params);
       }
     });
-    obj.property('mass', Number).subscribe(lt, mass => {
+    body.obj.property('mass', Number).subscribe(lt, mass => {
       this.bodyMass = mass;
     });
-  }
-
-  bodyObj(): SsObject {
-    return this.obj;
   }
 
   private setParentSpatial(parent: SsObject | null) {
@@ -60,7 +57,7 @@ export class OrbitSpatial implements Spatial {
       this.cachedParent = parent;
       if (parent !== null) {
         this.parentSpatialLt = this.lt.newDependent();
-        this.parentSpatial = this.game.spatials.spatialFor(this.parentSpatialLt, parent);
+        this.parentSpatial = this.game.getBody(parent).spatial(this.parentSpatialLt);
       } else {
         this.parentSpatialLt = null;
         this.parentSpatial = null;
@@ -111,7 +108,7 @@ export class OrbitSpatial implements Spatial {
   private useFallback(): void {
     if (this.fallback === null) {
       this.fallbackLt = this.lt.newDependent();
-      this.fallback = new CartesianSpatial(this.game, this.fallbackLt, this.obj);
+      this.fallback = new CartesianSpatial(this.game, this.fallbackLt, this.body);
       this.fallbackLt.addCallback(() => {
         this.fallback = null;
         this.fallbackLt = null;
@@ -211,8 +208,8 @@ export class OrbitSpatial implements Spatial {
     return this.bodyMass ?? 0;
   }
 
-  parent(): SsObject | null {
-    return this.parentSpatial ? this.parentSpatial.bodyObj() : null;
+  parent(): Body | null {
+    return this.parentSpatial ? this.parentSpatial.body : null;
   }
 
   copyOrbitMatrixInto(mat: THREE.Matrix4): void {

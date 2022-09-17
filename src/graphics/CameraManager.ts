@@ -21,7 +21,7 @@ export class CameraManager {
     this.cameraController = new OrbitControls(this.camera, domElement);
     this.cameraController.target.set(-20, -20, -10);
     game.currentShip.subscribeWithValueLifetime(lt, (valueLt, ship) => {
-      this.currentSpatial = ship ? game.spatials.spatialFor(valueLt, ship) : null;
+      this.currentSpatial = ship ? ship.spatial(valueLt) : null;
     });
     scene.subscribe(lt, () => {
       if (this.currentSpatial !== null) {
