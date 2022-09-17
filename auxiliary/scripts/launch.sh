@@ -34,6 +34,12 @@ if ! test -e "$SERVER_PATH"; then
   exit 1
 fi
 
+# If yarn/node is installed as a snap, these are set. If these are set, FF will think it's in a
+# snap, open the wrong profile and act weird
+unset SNAP
+unset SNAP_NAME
+unset SNAP_INSTANCE_NAME
+
 COMMAND="$SERVER_PATH \
 --http-static-content=./public \
 --http-type=http \
