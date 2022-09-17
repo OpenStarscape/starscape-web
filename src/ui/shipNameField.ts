@@ -28,7 +28,7 @@ export function shipNameField(lt: Lifetime, game: Game): HTMLElement {
   let nameProp: SsProperty<string | null> | null = null;
 
   game.currentShip.subscribeWithValueLifetime(lt, (currentShipLt, ship) => {
-    nameProp = ship ? ship.property('name', {nullable: String}) : null;
+    nameProp = ship ? ship.name : null;
     if (nameProp !== null) {
       nameProp.subscribe(currentShipLt, name => {
         // If we are not typing, update the name. If input focus is in the box don't mess with it

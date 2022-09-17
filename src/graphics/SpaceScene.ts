@@ -30,7 +30,7 @@ class SpaceScene extends Scene {
     this.scene.add(this.thrustMesh);
     let currentShipSpatial: Spatial | null = null;
     game.currentShip.subscribeWithValueLifetime(lt, (valueLt, ship) => {
-      currentShipSpatial = ship ? game.spatials.spatialFor(valueLt, ship) : null;
+      currentShipSpatial = ship ? ship.spatial(valueLt) : null;
     });
     this.subscribe(lt, () => {
       if (currentShipSpatial !== null) {
@@ -38,10 +38,10 @@ class SpaceScene extends Scene {
       }
     });
 
-    this.game.currentShip.subscribeWithValueLifetime(this.lt, (currentShipLt, obj) => {
-      if (obj) {
-        console.log('Switching to ship ', obj.id);
-        obj.property('accel', Vec3).subscribe(currentShipLt, accel => {
+    this.game.currentShip.subscribeWithValueLifetime(this.lt, (currentShipLt, ship) => {
+      if (ship) {
+        console.log('Switching to ship ', ship.obj.id);
+        ship.obj.property('accel', Vec3).subscribe(currentShipLt, accel => {
           const vec = accel.newThreeVector3();
           vec.normalize();
           this.thrustMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), vec);
@@ -68,7 +68,7 @@ class SpaceScene extends Scene {
 
     const shipCreatedLt = this.lt.newDependent();
     this.game.root.signal('ship_created', SsObject).subscribe(shipCreatedLt, obj => {
-      this.game.currentShip.set(obj);
+      this.game.currentShip.set(game.getBody(obj));
       shipCreatedLt.kill(); // only handle this callback once
     });
 

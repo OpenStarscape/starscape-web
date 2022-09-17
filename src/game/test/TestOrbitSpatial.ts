@@ -20,25 +20,25 @@ function mockGame(time?: number) {
         return time ?? 0;
       },
     },
-    spatials: {
-      spatialFor: (_lt: any, _obj: any) => {
-        return {
-          copyPositionInto: (vec: THREE.Vector3) => {
-            vec.copy(parentPos);
-          },
-          copyVelocityInto: (vec: THREE.Vector3) => {
-            vec.copy(parentVel);
-          },
-        };
-      },
+    getBody: () => {
+      return {
+        spatial: () => {
+          return {
+            copyPositionInto: (_vec: THREE.Vector3) => {},
+            copyVelocityInto: (_vec: THREE.Vector3) => {},
+          }
+        }
+      }
     },
   } as any;
 }
 
-function mockObj() {
-  const obj = {
-    property: (name: string, _rtType: any) => {
-      return obj[name];
+function mockBody() {
+  const body = {
+    obj: {
+      property: (name: string, _rtType: any) => {
+        return body[name];
+      },
     },
     orbit: new LocalProperty([
       1, // semiMajor
@@ -52,20 +52,20 @@ function mockObj() {
     ]),
     mass: new LocalProperty(1),
   } as any;
-  return obj;
+  return body;
 }
 
 test('OrbitSpatial subscribes to mass', () => {
-  const obj = mockObj();
-  const spatial = new OrbitSpatial(mockGame(), lt, obj);
-  obj.mass.set(12);
+  const body = mockBody();
+  const spatial = new OrbitSpatial(mockGame(), lt, body);
+  body.mass.set(12);
   expect(spatial.mass()).toEqual(12);
 });
 
 test('OrbitSpatial has no issue with undefined mass', () => {
-  const obj = mockObj();
-  const spatial = new OrbitSpatial(mockGame(), lt, obj);
-  obj.mass.set(undefined);
+  const body = mockBody();
+  const spatial = new OrbitSpatial(mockGame(), lt, body);
+  body.mass.set(undefined);
   expect(spatial.mass()).toEqual(0);
 });
 
@@ -75,12 +75,12 @@ test('OrbitSpatial test data available', () => {
 
 for (let i = 0; i < orbitTestData.length; i++) {
   const testData = orbitTestData[i];
-  const obj = mockObj();
-  const spatial = new OrbitSpatial(mockGame(testData.at_time), lt, obj);
+  const body = mockBody();
+  const spatial = new OrbitSpatial(mockGame(testData.at_time), lt, body);
   // Add the mock parent at the end
   const params = (testData.orbit as any[]).concat([mockParent])
   assertIsType(params, [Number, Number, Number, Number, Number, Number, Number, Object]);
-  obj.orbit.set(params);
+  body.orbit.set(params);
   test('position at ' + testData.name, () => {
     const result = new THREE.Vector3();
     spatial.copyPositionInto(result);
