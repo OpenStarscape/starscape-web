@@ -1,4 +1,4 @@
-import { LocalProperty, Lifetime, SetConduit, FilterSetConduit } from '../core';
+import { LocalProperty, Lifetime, DependentLifetime, SetConduit, FilterSetConduit } from '../core';
 import { FramerateTracker } from './FramerateTracker';
 import { AnimationTimer } from './AnimationTimer';
 import { Body } from './Body';
@@ -10,10 +10,12 @@ export class Game extends Lifetime {
   readonly bodies: SetConduit<SsObject>;
   /// The Starscape object of the currently controlled ship
   readonly currentShip = new LocalProperty<Body | null>(null);
+  readonly selectedBody = new LocalProperty<Body | null>(null);
   readonly notCurrentShipBodies;
   readonly animation;
   readonly framerate;
   private readonly bodyMap = new Map<SsObject, Body>();
+  readonly lt = new DependentLifetime();
 
   constructor() {
     super();
@@ -29,6 +31,16 @@ export class Game extends Lifetime {
     })
     this.animation = new AnimationTimer(this.root);
     this.framerate = new FramerateTracker(this.animation);
+    let prevSelected = this.selectedBody.get();
+    this.selectedBody.subscribe(this.lt, selected => {
+      if (prevSelected) {
+        prevSelected.isSelected.set(false);
+      }
+      if (selected) {
+        selected.isSelected.set(true);
+      }
+      prevSelected = selected;
+    });
   }
 
   getBody(obj: SsObject): Body {

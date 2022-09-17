@@ -1,5 +1,5 @@
 import { SsObject } from '../protocol'
-import { Lifetime, MappingConduit } from '../core'
+import { Lifetime, MappingConduit, LocalProperty } from '../core'
 import { Game } from '../game'
 import { Spatial } from './Spatial'
 import { OrbitSpatial } from './OrbitSpatial'
@@ -8,11 +8,12 @@ export class Body {
   readonly name;
   readonly color;
   readonly size;
+  readonly isSelected = new LocalProperty(false);
   private readonly spatialUserTracker;
   private cachedSpatial: Spatial | null = null;
 
   constructor(
-    private readonly game: Game,
+    readonly game: Game,
     readonly obj: SsObject,
   ) {
     this.name = obj.property('name', {nullable: String});

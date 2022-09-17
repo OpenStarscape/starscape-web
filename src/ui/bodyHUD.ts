@@ -1,4 +1,4 @@
-import { Lifetime, Conduit } from '../core';
+import { Lifetime } from '../core';
 import { Spatial } from '../game';
 
 /// The HTML element that hovers over a body in the 3D view
@@ -20,6 +20,16 @@ export function bodyHUD(lt: Lifetime, spatial: Spatial): HTMLElement {
   });
   body.color.subscribe(lt, color => {
     p.style.color = color;
+  });
+  body.isSelected.subscribe(lt, selected => {
+    if (selected) {
+      p.style.backgroundColor = 'white';
+    } else {
+      p.style.backgroundColor = 'black';
+    }
+  });
+  div.addEventListener('click', () => {
+    body.game.selectedBody.set(body);
   });
   return div;
 }
