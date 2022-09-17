@@ -11,22 +11,15 @@ import type { Scene } from './Scene'
 const yVec = new THREE.Vector3(0, 1, 0);
 
 function newCelestialVisual(scene: Scene, lt: Lifetime, body: Body) {
-  const colorProp = new LocalProperty('#ffffff');
-  body.color.subscribe(lt, color => {
-    // Set color using a Starscape protocol color (starts with 0x...)
-    color = '#' + color.slice(2);
-    colorProp.set(color);
-  });
-
   const geomProp = new LocalProperty<[geom: THREE.BufferGeometry | null, size: number]>([null, 1]);
   body.size.getThen(lt, km => {
     geomProp.set([lt.own(new THREE.SphereBufferGeometry(km, 16, 16)), km]);
   });
 
   const spatial = body.spatial(lt);
-  const hudElement = new CSS2DObject(bodyHUD(lt, spatial, colorProp));
-  ellipticalOrbit(lt, scene, spatial, colorProp);
-  scalingMesh(lt, scene, spatial, colorProp, geomProp, null, [hudElement]);
+  const hudElement = new CSS2DObject(bodyHUD(lt, spatial));
+  ellipticalOrbit(lt, scene, spatial);
+  scalingMesh(lt, scene, spatial, geomProp, null, [hudElement]);
 }
 
 function newShipVisual(scene: Scene, lt: Lifetime, body: Body) {
@@ -47,15 +40,14 @@ function newShipVisual(scene: Scene, lt: Lifetime, body: Body) {
     q.setFromUnitVectors(yVec, direction);
   };
 
-  const colorProp = new LocalProperty('#ffffff');
   const geomProp = new LocalProperty<[geom: THREE.BufferGeometry | null, size: number]>([
     lt.own(new THREE.ConeBufferGeometry(0.01, 0.03, 16)),
     0.01
   ]);
 
-  const hudElement = new CSS2DObject(bodyHUD(lt, spatial, colorProp));
-  ellipticalOrbit(lt, scene, spatial, colorProp);
-  scalingMesh(lt, scene, spatial, colorProp, geomProp, updateQuat, [hudElement]);
+  const hudElement = new CSS2DObject(bodyHUD(lt, spatial));
+  ellipticalOrbit(lt, scene, spatial);
+  scalingMesh(lt, scene, spatial, geomProp, updateQuat, [hudElement]);
 }
 
 export function newBodyVisual(scene: Scene, game: Game, obj: SsObject) {

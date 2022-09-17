@@ -1,5 +1,5 @@
 import { SsObject } from '../protocol'
-import { Lifetime, DependentLifetime, Subscriber, Conduit } from '../core'
+import { Lifetime, DependentLifetime, Subscriber, Conduit, MappingConduit } from '../core'
 import { Game } from '../game'
 import { Spatial } from './Spatial'
 import { OrbitSpatial } from './OrbitSpatial'
@@ -35,7 +35,13 @@ export class Body {
     readonly obj: SsObject,
   ) {
     this.name = obj.property('name', {nullable: String});
-    this.color = obj.property('color', String);
+    this.color = new MappingConduit((lt: Lifetime, setter: (value: string) => void) => {
+      setter('#ffffff');
+      obj.property('color', String).subscribe(lt, color => {
+        // Set color using a Starscape protocol color (starts with 0x...)
+        setter('#' + color.slice(2));
+      });
+    })
     this.size = obj.property('size', Number);
     this.cache = new SpatialCache(game, this);
   }
