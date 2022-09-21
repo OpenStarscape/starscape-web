@@ -19,9 +19,12 @@ export class Body {
     this.name = obj.property('name', {nullable: String});
     this.color = new MappingConduit((lt: Lifetime, setter: (value: string) => void) => {
       setter('#ffffff');
-      obj.property('color', String).subscribe(lt, color => {
+      obj.property('color', {nullable: String}).subscribe(lt, color => {
         // Set color using a Starscape protocol color (starts with 0x...)
-        setter('#' + color.slice(2));
+        setter(color ?
+          ('#' + color.slice(2)) :
+          '#ffffff'
+        );
       });
     })
     this.size = obj.property('size', Number);
