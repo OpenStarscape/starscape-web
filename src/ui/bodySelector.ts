@@ -40,6 +40,7 @@ export function bodySelector(
   lt: Lifetime,
   game: Game,
   bodySet: SetConduit<SsObject>,
+  selected: LocalProperty<Body | null>,
 ): HTMLElement {
   const filterText = new LocalProperty<null | string>(null);
   const filterSet = new FilterSetConduit(bodySet, (bodyLt, body) => {
@@ -63,14 +64,14 @@ export function bodySelector(
   filterSet.subscribe(lt, ([itemLt, obj]) => {
     const body = game.getBody(obj);
     const item = listItem(itemLt, body, () => {
-      game.selectedBody.set(body);
+      selected.set(body);
     });
     div.appendChild(item);
     // When body is destroyed, remove its button
     itemLt.addCallback(() => {
       div.removeChild(item);
-      if (game.selectedBody.get() === body) {
-        game.selectedBody.set(null);
+      if (selected.get() === body) {
+        selected.set(null);
       }
     });
   });

@@ -2,6 +2,7 @@ import { LocalProperty, Lifetime, DependentLifetime, SetConduit, FilterSetCondui
 import { FramerateTracker } from './FramerateTracker';
 import { AnimationTimer } from './AnimationTimer';
 import { Body } from './Body';
+import * as Nav from './Navigation';
 import { SsConnection, SsSessionType, SsObject, SsSet } from '../protocol';
 
 export class Game extends Lifetime {
@@ -11,6 +12,7 @@ export class Game extends Lifetime {
   /// The Starscape object of the currently controlled ship
   readonly currentShip = new LocalProperty<Body | null>(null);
   readonly selectedBody = new LocalProperty<Body | null>(null);
+  readonly nav = new LocalProperty<Nav.State>({scheme: Nav.Scheme.None})
   readonly notCurrentShipBodies;
   readonly animation;
   readonly framerate;
