@@ -6,6 +6,8 @@ export interface Spatial {
   readonly body: Body;
   /// Returns if values will be meaningful
   isReady(): boolean;
+  /// Calls the callback once when isReady becomes true, or immediately if it's already true
+  onReady(callback: () => void): void;
   /// Get the position, may leave input unchanged if position is not available
   copyPositionInto(vec: THREE.Vector3): void;
   /// Get the velocity, may leave input unchanged if position is not available
