@@ -1,13 +1,14 @@
 import { Lifetime } from '../core';
 import { Game } from '../game';
 import { spaceScene } from '../graphics';
-import { shipNameField, gameStats, navPanel } from '.';
+import { shipNameField, gameStats, navPanel, weaponsPanel } from '.';
 
 export function overlay(lt: Lifetime, game: Game): HTMLElement {
   const div = document.createElement('div');
   div.appendChild(shipNameField(lt, game));
   div.appendChild(gameStats(lt, game));
   div.appendChild(navPanel(lt, game));
+  div.appendChild(weaponsPanel(lt, game));
   return div;
 }
 
