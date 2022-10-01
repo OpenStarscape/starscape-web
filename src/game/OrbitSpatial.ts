@@ -28,6 +28,7 @@ export class OrbitSpatial implements Spatial {
   private cachedTime: number | null = null; // The game time (if any) for which the cache is valid
   private readonly cachedPosition = new THREE.Vector3();
   private readonly cachedVelocity = new THREE.Vector3();
+  private onReadyCallbacks: (() => void)[] = [];
 
   constructor(
     private readonly game: Game,
@@ -42,10 +43,12 @@ export class OrbitSpatial implements Spatial {
         this.useFallback();
       } else {
         this.setParams(...params);
+        this.maybeReady();
       }
     });
     body.obj.property('mass', Number).subscribe(lt, mass => {
       this.bodyMass = mass;
+      this.maybeReady();
     });
   }
 
@@ -113,6 +116,9 @@ export class OrbitSpatial implements Spatial {
         this.fallback = null;
         this.fallbackLt = null;
       });
+      this.fallback.onReady(() => {
+        this.maybeReady();
+      })
     }
   }
 
@@ -121,6 +127,23 @@ export class OrbitSpatial implements Spatial {
       (!!this.parentSpatial && this.mass !== undefined) ||
       (this.fallback !== null && this.fallback.isReady())
     );
+  }
+
+  maybeReady(): void {
+    if (this.onReadyCallbacks.length && this.isReady()) {
+      for (let callback of this.onReadyCallbacks) {
+        callback();
+      }
+      this.onReadyCallbacks = [];
+    }
+  }
+
+  onReady(callback: () => void): void {
+    if (this.isReady()) {
+      callback();
+    } else {
+      this.onReadyCallbacks.push(callback);
+    }
   }
 
   ensureCache() {
