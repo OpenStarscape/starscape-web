@@ -26,11 +26,6 @@ export function bodyHUD(lt: Lifetime, spatial: Spatial): HTMLElement {
   });
   div.addEventListener('click', () => {
     body.game.selectedBody.set(body);
-    body.game.nav.set({
-      scheme: Nav.Scheme.Orbit,
-      target: body,
-      distance: null,
-    });
   });
   return div;
 }

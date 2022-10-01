@@ -44,3 +44,7 @@ export function applyState(ship: Body, state: State) {
     console.error('Invalid autopilot state');
   }
 }
+
+export function targetOf(state: State): Body | null {
+  return state.scheme === Scheme.None ? null : state.target
+}
