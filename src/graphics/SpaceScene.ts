@@ -72,7 +72,7 @@ class SpaceScene extends Scene {
       shipCreatedLt.kill(); // only handle this callback once
     });
 
-    this.game.root.action('create_ship', {arrayOf: Vec3}).fire([
+    this.game.root.action('create_ship', [Vec3, Vec3]).fire([
       new Vec3(150, 0, 10),
       new Vec3(0, 30, 0),
     ]);
