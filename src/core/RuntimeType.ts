@@ -7,9 +7,8 @@
 /// - String          -> string
 /// - {nullable: T}   -> T | null (where T is any RuntimeType)
 /// - {arrayOf: T}    -> T[] (where T is any RuntimeType)
+/// - [T, U, V]       -> Tuple with types T, U and V
 /// - T               -> T (where T is any non-generic object constructor)
-/// Note there is currently not support for generic objects except arrays. If it's needed the easiest thing to do will
-/// be to patch it on an object-by-object basis
 export type RuntimeType =
   null |
   undefined |
