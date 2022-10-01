@@ -8,7 +8,8 @@ export function navPanel(lt: Lifetime, game: Game): HTMLElement {
   const targetProp = new LocalProperty<Body | null>(null);
   //const selector = bodySelector(lt, game, game.notCurrentShipBodies, targetProp);
   //div.appendChild(selector);
-  const orbitButton = document.createElement('button')
+  const orbitButton = document.createElement('button');
+  orbitButton.classList.add('action-button');
   game.selectedBody.subscribeWithValueLifetime(lt, (valueLt, body) => {
     orbitButton.disabled = true;
     if (body) {
