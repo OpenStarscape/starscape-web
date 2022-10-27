@@ -25,6 +25,31 @@ export function navPanel(lt: Lifetime, game: Game): HTMLElement {
     targetProp.set(game.selectedBody.get());
   });
   div.appendChild(orbitButton);
+
+  const cancelButton = document.createElement('button');
+  cancelButton.classList.add('action-button');
+  cancelButton.textContent = 'Cancel Orbit';
+  cancelButton.addEventListener('click', () => {
+    targetProp.set(null);
+  })
+
+  game.nav.subscribe(lt, nav => {
+    switch (nav.scheme) {
+      case Nav.Scheme.None:
+        cancelButton.disabled = true;
+        break;
+      case Nav.Scheme.Dock:
+        cancelButton.disabled = false;
+        cancelButton.textContent = 'Cancel Dock';
+        break;
+      case Nav.Scheme.Orbit:
+        cancelButton.disabled = false;
+        cancelButton.textContent = 'Cancel Orbit';
+        break;
+    }
+  });
+  div.appendChild(cancelButton);
+
   targetProp.subscribe(lt, target => {
     let nav = { ...game.nav.get() };
     if (nav.scheme == Nav.Scheme.Orbit || nav.scheme == Nav.Scheme.Dock) {
