@@ -119,6 +119,8 @@ export class SsConnection extends Lifetime {
         } else {
           throw new Error('should be unreachable');
         }
+      } else if (message.mtype === 'destroyed') {
+        this.destroyObj(message.object);
       } else if (message.mtype === 'error') {
         this.handleError('Error from OpenStarscape server:\n' + message.text);
       } else {
