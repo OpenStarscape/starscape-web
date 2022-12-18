@@ -24,6 +24,15 @@ export class Game extends Lifetime {
     this.connection = new SsConnection(SsSessionType.WebSocket);
     this.root = this.connection.root;
     this.bodies = new SsSet(this.root.property('bodies', {arrayOf: SsObject}));
+    this.currentShip.subscribe(this, newShip => {
+      if (newShip) {
+        newShip.obj.addCallback(() => {
+          if (this.currentShip.get() === newShip) {
+            this.currentShip.set(null);
+          }
+        });
+      }
+    });
     this.notCurrentShipBodies = new FilterSetConduit(this.bodies, (lt, body) => {
       const prop = new LocalProperty(true);
       this.currentShip.subscribe(lt, current => {
