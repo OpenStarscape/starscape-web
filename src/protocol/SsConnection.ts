@@ -164,7 +164,7 @@ export class SsConnection extends Lifetime {
       json = JSON.stringify({mtype: 'get', object: rq.objId, property: rq.member})
     } else if (rq.method === SsRequestType.Fire) {
       const value = this.encodeValue(rq.value);
-      json = JSON.stringify({mtype: 'set', object: rq.objId, property: rq.member, value: value});
+      json = JSON.stringify({mtype: 'fire', object: rq.objId, property: rq.member, value: value});
     } else if (rq.method === SsRequestType.Subscribe) {
       json = JSON.stringify({mtype: 'subscribe', object: rq.objId, property: rq.member})
     } else if (rq.method === SsRequestType.Unsubscribe) {
