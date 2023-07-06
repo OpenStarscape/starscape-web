@@ -127,7 +127,9 @@ export class SsObject extends DependentLifetime {
 
   /// Called by members
   makeRequest(rq: SsRequest) {
-    this.connection.makeRequest(rq);
+    if (this.alive()) {
+      this.connection.makeRequest(rq);
+    }
   }
 
   /// Called by the connection.
