@@ -22,7 +22,7 @@ export function bodyHUD(lt: Lifetime, spatial: Spatial): HTMLElement {
     p.style.color = color;
   });
   body.isSelected.subscribe(lt, selected => {
-    p.classList[selected ? 'add' : 'remove']('selected');
+    p.classList.toggle('selected', selected);
   });
   div.addEventListener('click', () => {
     body.game.selectedBody.set(body);

@@ -22,6 +22,11 @@ export function scalingMesh(
   mesh.visible = false;
   for (const child of children) {
     mesh.add(child);
+    // The mesh is removed from the scene when the lifetime dies, unclear why that doesn't remove
+    // children but it doesn't.
+    lt.addCallback(() => {
+      mesh.remove(child);
+    })
   }
   mesh.matrixAutoUpdate = false;
   spatial.body.color.subscribe(lt, color => {

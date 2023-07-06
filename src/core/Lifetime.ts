@@ -51,7 +51,7 @@ export abstract class Lifetime {
   /// soon as any of them do.
   addDependent<T extends DependentLifetime>(dependent: T): T {
     if (this.dependents === null) {
-      throw new Error('disposable can not be added to dead lifetime');
+      throw new Error('dependent can not be added to dead lifetime');
     }
     this.dependents.add(dependent);
     dependent.addCallback(() => {
@@ -80,7 +80,7 @@ export abstract class Lifetime {
   /// so this call can be placed inside an expression.
   own<T extends Disposable>(disposable: T): T {
     if (this.disposables === null) {
-      throw new Error('dead lifetime can not own new things');
+      throw new Error('disposable can not be added to dead lifetime');
     }
     this.disposables.add(disposable);
     return disposable;
