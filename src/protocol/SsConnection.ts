@@ -28,6 +28,9 @@ export class SsConnection extends Lifetime {
       throw new Error('unknown session type "' + sessionType + '"');
     }
     this.root = this.getObj(1);
+    this.root.signal('error', String).subscribe(this.root, message => {
+      console.error('server: ' + message);
+    });
   }
 
   /// Used internally to get or create an object with a given object ID.
