@@ -1,4 +1,4 @@
-import { integrationTest } from './integrationTests';
+import { integrationTest, TestStatus } from './integrationTests';
 import { Vec3 } from '../core';
 
 type OrbitTestCase = {
@@ -15,7 +15,7 @@ const orbitTestData: OrbitTestCase[] = require('./orbit-test-data.json')
 const gravConstant = 6.67430e-17;
 
 orbitTestData.forEach(params => {
-  integrationTest(params.name, (lt, game, completed) => {
+  integrationTest(params.name, (lt, game, status) => {
     game.root.action('reset', null).fire(null);
     game.root.property('time_per_time', Number).set(0);
     let pause_time = Infinity;
@@ -60,8 +60,16 @@ orbitTestData.forEach(params => {
               if (name == 'Satellite') {
                 body.property('position', Vec3).getThen(lt, position => {
                   const distance = position.newThreeVector3().distanceTo(startPos.newThreeVector3());
-                  const proportional = distance / startPos.newThreeVector3().length();
-                  completed(proportional < 0.1);
+                  const semiMajor = params.orbit[0];
+                  const proportional = distance / semiMajor;
+                  if (proportional < 0.1) {
+                    status.set(TestStatus.Passed);
+                  } else {
+                    console.error(
+                      'body ended up ' + distance + ' away from expected (' +
+                      proportional + ' length of semi-major), which is too much');
+                    status.set(TestStatus.Failed);
+                  }
                 });
               }
             });

@@ -17,14 +17,28 @@ body {
   gap: 12px;
 }
 
-.v-box {
+.v-box, .scroll-box {
   display: flex;
   flex-direction: column;
   align-items: stretch;
   gap: 12px;
-  flex-grow: 1;
+}
+
+.scroll-box {
   overflow: auto;
   scrollbar-width: thin;
+}
+
+.good {
+  background-color: green;
+}
+
+.bad {
+  background-color: red;
+}
+
+.important {
+  background-color: blue;
 }
 
 .body-label {
