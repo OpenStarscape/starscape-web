@@ -9,6 +9,24 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+.h-box {
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-start;
+  flex-grow: 0;
+  gap: 12px;
+}
+
+.v-box {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  flex-grow: 1;
+  overflow: auto;
+  scrollbar-width: thin;
+}
+
 .body-label {
   color: #FFFFFF;
   font-family: sans-serif;

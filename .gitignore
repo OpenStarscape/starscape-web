@@ -7,3 +7,5 @@ tsconfig.tsbuildinfo
 # Built by SWC
 public/code.js
 public/code.js.map
+public/test.js
+public/test.js.map

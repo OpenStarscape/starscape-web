@@ -2,7 +2,16 @@ import { OrbitSpatial } from '../OrbitSpatial';
 import { DependentLifetime, LocalProperty, assertIsType } from '../../core'
 import * as THREE from "three";
 
-const orbitTestData = require('./orbit-test-data.json')
+type OrbitTestCase = {
+  name: string,
+  orbit: [number, number, number, number, number, number, number],
+  grav_param: number,
+  at_time: number,
+  position: [number, number, number],
+  velocity: [number, number, number],
+};
+
+const orbitTestData: OrbitTestCase[] = require('./../../test/orbit-test-data.json')
 const lt = new DependentLifetime();
 
 // Looks nice, typechecks, doesn't work
