@@ -11,7 +11,8 @@ export class Vec3 {
   constructor();
   constructor(x: number, y: number, z: number);
   constructor(threeVec: THREE.Vector3);
-  constructor(first?: number | THREE.Vector3, second?: number, third?: number) {
+  constructor(array: [number, number, number]);
+  constructor(first?: number | THREE.Vector3 | number[], second?: number, third?: number) {
     if (first === undefined) {
       this.x = 0;
       this.y = 0;
@@ -20,6 +21,10 @@ export class Vec3 {
       this.x = first;
       this.y = second!;
       this.z = third!;
+    } else if (Array.isArray(first)) {
+      this.x = first[0];
+      this.y = first[1];
+      this.z = first[2];
     } else {
       this.x = first.x;
       this.y = first.y;
