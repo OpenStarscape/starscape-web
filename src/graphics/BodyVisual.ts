@@ -70,9 +70,9 @@ function pointObject3DInDirection(object: THREE.Object3D, direction: THREE.Vecto
 }
 
 function createThrustIndicator(lt: Lifetime, scene: Scene, spatial: Spatial) {
-  const mat = lt.own(new THREE.MeshBasicMaterial({color: 0x20ff40, wireframe: true}));
-  const geom = lt.own(new THREE.ConeGeometry(0.001, 0.01, 3));
-  geom.translate(0, 0.01, 0);
+  const mat = lt.own(new THREE.MeshBasicMaterial({color: 0xFFA000}));
+  const geom = lt.own(new THREE.ConeGeometry(0.0007, 0.01, 5));
+  geom.translate(0, 0.007, 0);
   const mesh = createMesh(lt, scene);
   mesh.geometry = geom;
   const getAccel = spatial.body.obj.property('accel', Vec3).getter(lt);
@@ -85,7 +85,7 @@ function createThrustIndicator(lt: Lifetime, scene: Scene, spatial: Spatial) {
     if (thrust.lengthSq() > 0.0005 && spatial.isReady()) {
       spatial.copyPositionInto(mesh.position);
       scaleMeshToView(scene, mesh, 0.001, [mat, mat]);
-      mesh.scale.multiplyScalar(magnitude);
+      mesh.scale.y *= -magnitude;
       pointObject3DInDirection(mesh, thrust);
       mesh.updateMatrix();
       mesh.visible = true;
