@@ -144,7 +144,7 @@ export class SsConnection extends Lifetime {
 
   /// Handle a packet string, which could contain one or more message.
   handlePacket(packet: string) {
-    //console.log('got packet', packet);
+    //console.log('  > ', packet);
     //try {
       let bundle = JSON.parse(packet);
       if (Array.isArray(bundle)) {
@@ -181,6 +181,7 @@ export class SsConnection extends Lifetime {
     } else {
       throw new Error('Request has invalid request type: ' + JSON.stringify(rq));
     }
+    //console.log(' <  ', json);
     this.session.sendPacket(json + '\n');
   }
 }

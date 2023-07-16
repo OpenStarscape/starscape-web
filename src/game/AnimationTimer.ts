@@ -8,7 +8,7 @@ export class AnimationTimer extends Conduit<null> {
   private lastGameTime: number | null = null;
   private gameTimePerBrowserTime: number = 1;
   private readonly timeProp;
-  private readonly physicsTicksPerNetworkTickProp;
+  private readonly timePerTimeProp;
 
   constructor(
     root: SsObject,
@@ -19,7 +19,7 @@ export class AnimationTimer extends Conduit<null> {
   ) {
     super();
     this.timeProp = root.property('time', Number);
-    this.physicsTicksPerNetworkTickProp = root.property('physics_ticks_per_network_tick', Number);
+    this.timePerTimeProp = root.property('time_per_time', Number);
   }
 
   /// Time (in seconds) of last animation frame
@@ -50,12 +50,10 @@ export class AnimationTimer extends Conduit<null> {
 
   protected initialSubscriberAdded(hasSubscribersLt: Lifetime): void {
     this.requestAnimFrame(ms => this.handleAnimFrame(ms));
-    this.physicsTicksPerNetworkTickProp.subscribe(hasSubscribersLt, ticks => {
-      if (ticks > 0) {
-        this.gameTimePerBrowserTime = 1;
-      } else {
-        this.gameTimePerBrowserTime = 0;
-      }
+    hasSubscribersLt.addCallback(() => {
+    })
+    this.timePerTimeProp.subscribe(hasSubscribersLt, tpt => {
+      this.gameTimePerBrowserTime = tpt;
     });
     this.timeProp.subscribe(hasSubscribersLt, gameTime => {
       const browserTime = this.browserTime();

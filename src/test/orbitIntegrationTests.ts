@@ -17,7 +17,7 @@ const gravConstant = 6.67430e-17;
 orbitTestData.forEach(params => {
   integrationTest(params.name, (lt, game, completed) => {
     game.root.action('reset', null).fire(null);
-    game.root.property('physics_ticks_per_network_tick', Number).set(0);
+    game.root.property('time_per_time', Number).set(0);
     let pause_time = Infinity;
     game.root.property('time', Number).getThen(lt, time => {
       pause_time = time + params.orbit[6];
@@ -39,22 +39,21 @@ orbitTestData.forEach(params => {
       position: startPos,
       velocity: new Vec3(params.velocity),
       radius: 0.02,
-      mass: centralMass / 10000,
+      mass: centralMass / 100000,
     });
+    game.root.property('min_roundtrip_time', Number).set(0);
     setTimeout(() => {
-      game.root.property('physics_ticks_per_network_tick', Number).set(4);
+      game.root.property('time_per_time', Number).set(100);
     }, 100);
     game.root.signal('paused', Number).subscribe(lt, t => {
-      console.log('paused');
       if (t >= pause_time) {
-        console.log('paused after enough time has passed');
         setTimeout(() => {
           createCelestial.fire({
             name: 'Expected',
             color: '0x00FF00',
             position: startPos,
             radius: 0.02,
-            mass: centralMass / 10000,
+            mass: centralMass / 100000,
           });
           game.bodies.subscribe(lt, ([_, body]) => {
             body.property('name', {nullable: String}).getThen(lt, name => {
@@ -62,7 +61,6 @@ orbitTestData.forEach(params => {
                 body.property('position', Vec3).getThen(lt, position => {
                   const distance = position.newThreeVector3().distanceTo(startPos.newThreeVector3());
                   const proportional = distance / startPos.newThreeVector3().length();
-                  console.log('proportional:', proportional);
                   completed(proportional < 0.1);
                 });
               }
