@@ -68,8 +68,8 @@ export class Scene extends Conduit<null> {
     })
   }
 
-  protected override initialSubscriberAdded(hasSubscribersLt: DependentLifetime): void {}
-  protected override subscriberAdded(subscriber: Subscriber<null>): void {}
+  protected override initialSubscriberAdded(_hasSubscribersLt: DependentLifetime): void {}
+  protected override subscriberAdded(_subscriber: Subscriber<null>): void {}
 
   private resize(width: number, height: number) {
     this.normalRenderer.setSize(width, height);

@@ -65,25 +65,14 @@ class SpaceScene extends Scene {
     game.bodies.subscribe(this.lt, ([_temLt, body]) => {
       newBodyVisual(this, this.game, body);
     });
-
-    const shipCreatedLt = this.lt.newDependent();
-    this.game.root.signal('ship_created', SsObject).subscribe(shipCreatedLt, obj => {
-      this.game.currentShip.set(game.getBody(obj));
-      shipCreatedLt.kill(); // only handle this callback once
-    });
-
-    this.game.root.action('create_ship', [Vec3, Vec3]).fire([
-      new Vec3(150, 0, 10),
-      new Vec3(0, 30, 0),
-    ]);
   }
 }
 
 export function spaceScene(lt: Lifetime, game: Game): HTMLElement {
   const div = document.createElement('div');
   div.style.writingMode = 'horizontal-tb';
-  div.style.width = '100%'
-  div.style.height = '100%'
+  div.style.width = '100%';
+  div.style.height = '100%';
   new SpaceScene(game, lt, div);
   return div;
 }
