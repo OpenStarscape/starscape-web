@@ -24,13 +24,23 @@ orbitTestData.forEach(params => {
       game.root.property('pause_at', {nullable: Number}).set(pause_time);
     });
     const createCelestial = game.root
-      .action('create_celestial', [String, Vec3, Vec3, Number, Number]);
+      .action('create_celestial', undefined);
     const centralMass = params.grav_param / gravConstant;
-    createCelestial
-      .fire(['Central', new Vec3(), new Vec3(), 0.1, centralMass]);
+    createCelestial.fire({
+      name: 'Central',
+      color: '0xFF8000',
+      radius: 0.1,
+      mass: centralMass,
+    });
     const startPos = new Vec3(params.position);
-    createCelestial
-      .fire(['Satellite', startPos, new Vec3(params.velocity), 0.02, centralMass / 10000]);
+    createCelestial.fire({
+      name: 'Satellite',
+      color: '0xFFFFFF',
+      position: startPos,
+      velocity: new Vec3(params.velocity),
+      radius: 0.02,
+      mass: centralMass / 10000,
+    });
     setTimeout(() => {
       game.root.property('physics_ticks_per_network_tick', Number).set(4);
     }, 100);
@@ -39,8 +49,13 @@ orbitTestData.forEach(params => {
       if (t >= pause_time) {
         console.log('paused after enough time has passed');
         setTimeout(() => {
-          createCelestial
-            .fire(['Expected', startPos, new Vec3(), 0.02, centralMass / 10000]);
+          createCelestial.fire({
+            name: 'Expected',
+            color: '0x00FF00',
+            position: startPos,
+            radius: 0.02,
+            mass: centralMass / 10000,
+          });
           game.bodies.subscribe(lt, ([_, body]) => {
             body.property('name', {nullable: String}).getThen(lt, name => {
               if (name == 'Satellite') {
