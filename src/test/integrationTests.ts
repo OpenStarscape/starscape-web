@@ -56,6 +56,7 @@ function runAllTests(lt: Lifetime, game: Game) {
   let i = 0;
   let runNext = () => {
     const testLt = lt.newDependent();
+    runTest(testLt, testList[i], game);
     testList[i].status.subscribe(testLt, status => {
       if (status == TestStatus.Passed || status == TestStatus.Failed) {
         testLt.kill();
@@ -65,7 +66,6 @@ function runAllTests(lt: Lifetime, game: Game) {
         }
       }
     });
-    runTest(testLt, testList[i], game);
   }
   runNext();
 }
@@ -85,6 +85,7 @@ function testListDiv(lt: Lifetime, game: Game): HTMLElement {
       labelDiv.classList.toggle('good', status === TestStatus.Passed);
       labelDiv.classList.toggle('bad', status === TestStatus.Failed);
       labelDiv.classList.toggle('important', status === TestStatus.Running);
+      labelDiv.scrollIntoView({behavior: "smooth", block: "nearest"});
     })
     labelDiv.addEventListener('click', () => {
       runTest(lt, test, game);
