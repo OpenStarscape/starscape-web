@@ -78,6 +78,7 @@ export class OrbitSpatial implements Spatial {
     periodTime: number,
     parent: SsObject | null
   ) {
+    this.cachedTime = null;
     // Orbital parameters only work if we're orbiting something. If there is no parent, use the fallback
     this.setParentSpatial(parent);
     if (this.parentSpatial === null) {
@@ -118,7 +119,7 @@ export class OrbitSpatial implements Spatial {
       });
       this.fallback.onReady(() => {
         this.maybeReady();
-      })
+      });
     }
   }
 
@@ -150,6 +151,10 @@ export class OrbitSpatial implements Spatial {
     // Do nothing if the cache is already up to date
     const time = this.game.animation.gameTime() ?? 0;
     if (this.cachedTime === time) {
+      return;
+    }
+    if (this.periodTime === 0) {
+      // Everything would be NaN
       return;
     }
     this.cachedTime = time;
@@ -218,30 +223,50 @@ export class OrbitSpatial implements Spatial {
   }
 
   copyPositionInto(vec: THREE.Vector3): void {
-    this.ensureCache();
-    vec.copy(this.cachedPosition);
+    if (this.fallback !== null) {
+      this.fallback.copyPositionInto(vec);
+    } else {
+      this.ensureCache();
+      vec.copy(this.cachedPosition);
+    }
   }
 
   copyVelocityInto(vec: THREE.Vector3): void {
-    this.ensureCache();
-    vec.copy(this.cachedVelocity);
+    if (this.fallback !== null) {
+      this.fallback.copyVelocityInto(vec);
+    } else {
+      this.ensureCache();
+      vec.copy(this.cachedVelocity);
+    }
   }
 
   mass(): number {
-    return this.bodyMass ?? 0;
+    if (this.fallback !== null) {
+      return this.fallback.mass();
+    } else {
+      return this.bodyMass ?? 0;
+    }
   }
 
   parent(): Body | null {
-    return this.parentSpatial ? this.parentSpatial.body : null;
+    if (this.fallback !== null) {
+      return this.fallback.parent();
+    } else {
+      return this.parentSpatial ? this.parentSpatial.body : null;
+    }
   }
 
   copyOrbitMatrixInto(mat: THREE.Matrix4): void {
-    mat.copy(this.transform);
-    // Apply parent's position
-    if (this.parentSpatial) {
-      this.parentSpatial.copyPositionInto(vecTempA);
-      matTemp.makeTranslation(vecTempA.x, vecTempA.y, vecTempA.z);
-      mat.premultiply(matTemp);
+    if (this.fallback !== null) {
+      this.fallback.copyOrbitMatrixInto(mat);
+    } else {
+      mat.copy(this.transform);
+      // Apply parent's position
+      if (this.parentSpatial) {
+        this.parentSpatial.copyPositionInto(vecTempA);
+        matTemp.makeTranslation(vecTempA.x, vecTempA.y, vecTempA.z);
+        mat.premultiply(matTemp);
+      }
     }
   }
 }
