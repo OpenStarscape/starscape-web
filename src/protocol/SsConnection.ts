@@ -96,6 +96,12 @@ export class SsConnection extends Lifetime {
       return [value.map(i => this.encodeValue(i))];
     } else if (value === undefined) {
       throw new Error("value is undefined");
+    } else if (value !== null && typeof value === 'object') {
+      Object.fromEntries(Object.entries(value).map((a, b) => [a, b]))
+      for (const [k, v] of Object.entries(value)) {
+        (value[k] as any) = this.encodeValue(v as any);
+      }
+      return value;
     } else {
       return value;
     }

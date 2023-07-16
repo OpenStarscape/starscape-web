@@ -12,6 +12,7 @@ export type SsValue =
 
 export type SsValueRuntimeType =
   RuntimeType & (
+    undefined |
     null |
     BooleanConstructor |
     NumberConstructor |
