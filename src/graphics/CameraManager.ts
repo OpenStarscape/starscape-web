@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { Lifetime } from '../core';
 import { Game, Spatial } from '../game';
 import { Scene } from './Scene';

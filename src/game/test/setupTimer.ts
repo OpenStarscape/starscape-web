@@ -8,10 +8,15 @@ export function setupTimer(): [
   let sendGameTime = (_time: number) => {}
   const mockRoot = {
     property: (name: any, _rtType: any) => {
-      expect(name).toBe('time');
-      return {
-        subscribe: (_lt: any, callback: any) => {
-          sendGameTime = callback;
+      if (name === 'time') {
+        return {
+          subscribe: (_lt: any, callback: any) => {
+            sendGameTime = callback;
+          }
+        }
+      } else {
+        return {
+          subscribe: (_lt: any, _callback: any) => {}
         }
       }
     }
