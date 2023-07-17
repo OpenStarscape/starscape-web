@@ -1,16 +1,17 @@
 {
   "name": "starscape-web",
   "version": "0.1.0",
+  "license": "MIT",
   "private": true,
   "dependencies": {
-    "three": "^0.135.0"
+    "three": "^0.154.0"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^5.11.9",
     "@testing-library/user-event": "^12.7.2",
     "@types/jest": "^26.0.20",
     "@types/node": "^14.14.31",
-    "@types/three": "^0.135.0",
+    "@types/three": "^0.154.0",
     "esbuild": "^0.14.8",
     "esbuild-jest": "^0.5.0",
     "jest": "^27.4.3",

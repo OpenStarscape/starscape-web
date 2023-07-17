@@ -8,7 +8,6 @@ import type { Game, Spatial } from '../game'
 import type { Scene } from './Scene'
 
 const yVec = new THREE.Vector3(0, 1, 0);
-const tmpVecA = new THREE.Vector3();
 
 function createColorMaterialPair(
   lt: Lifetime,
@@ -31,11 +30,11 @@ function createMesh(lt: Lifetime, scene: Scene): THREE.Mesh {
 }
 
 function createCelestialGeom(lt: Lifetime, mesh: THREE.Mesh, size: number) {
-  mesh.geometry = lt.own(new THREE.SphereBufferGeometry(size, 16, 16));
+  mesh.geometry = lt.own(new THREE.SphereGeometry(size, 16, 16));
 }
 
 function createShipGeom(lt: Lifetime, mesh: THREE.Mesh, size: number) {
-  mesh.geometry = lt.own(new THREE.ConeBufferGeometry(1 * size, 3 * size, 16));
+  mesh.geometry = lt.own(new THREE.ConeGeometry(1 * size, 3 * size, 16));
 }
 
 function object3DAddChild(lt: Lifetime, parent: THREE.Object3D, child: THREE.Object3D) {

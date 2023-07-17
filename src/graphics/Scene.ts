@@ -3,7 +3,7 @@ import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import { Lifetime, messageFromError, Conduit, DependentLifetime, Subscriber } from '../core';
 import { AnimationTimer } from '../game';
 
-THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
+THREE.Object3D.DEFAULT_UP = new THREE.Vector3(0, 0, 1);
 
 /// Manages everything required to render a scene with THREE.js, subscribers are notified each frame
 export class Scene extends Conduit<null> {
