@@ -21,10 +21,7 @@ export class Body {
       setter('#ffffff');
       obj.property('color', {nullable: String}).subscribe(lt, color => {
         // Set color using a Starscape protocol color (starts with 0x...)
-        setter(color ?
-          ('#' + color.slice(2)) :
-          '#ffffff'
-        );
+        setter(color || '#ffffff');
       });
     })
     this.size = obj.property('size', Number);
