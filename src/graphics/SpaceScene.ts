@@ -19,7 +19,8 @@ class SpaceScene extends Scene {
 
     this.normalRenderer.setClearColor('black');
 
-    this.starfield = new Starfield(this.lt, this.scene);
+    this.starfield = new Starfield(this.lt, this);
+    this.starfield.setVisible(true);
     this.cameraManager = new CameraManager(
         this.lt,
         this,
