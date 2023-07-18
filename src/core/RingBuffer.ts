@@ -49,6 +49,7 @@ export class RingBuffer<T> {
       throw Error('ring buffer empty');
     }
     const val = this.array[this.first];
+    this.array[this.first] = undefined as any;
     this.privLength--;
     if (this.privLength == 0) {
       this.first = 0;
@@ -61,6 +62,13 @@ export class RingBuffer<T> {
     }
     this.shrinkIfNeeded();
     return val;
+  }
+
+  clear(): void {
+    this.first = 0;
+    this.last = -1;
+    this.privLength = 0;
+    this.array = [];
   }
 
   at(index: number): T {
