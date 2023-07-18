@@ -4,11 +4,12 @@ import { Scene } from './Scene';
 
 // lets go logarithmicDepthBuffer
 const galaxyDiameter = 1e16;
-const galaxyCount = 10000;
+const galaxyCount = 5000;
 const localDiameter = 1e15;
-const localCount = 10000;
+const localCount = 2000;
 const colorSaturation = 0.3;
-const pointSize = 0.7;
+const minGalaxyPointSize = 0.3;
+const maxGalaxyPointSize = 0.7;
 
 const TAU = 2 * Math.PI;
 
@@ -24,28 +25,10 @@ export class Starfield {
     readonly scene: Scene
   ) {
     scene.subscribe(lt, () => {
-      if (this.localMat && this.galaxyMat && this.local && this.galaxy) {
-        const distance = scene.camera.position.length();
-        const lowDistance = 10e6;
-        const hightDistance = localDiameter;
-        if (distance < lowDistance) {
-          this.local.visible = true;
-          this.galaxy.visible = false;
-          this.localMat.size = pointSize;
-        } else if (distance > hightDistance) {
-          this.local.visible = false;
-          this.galaxy.visible = true;
-          this.galaxyMat.size = pointSize;
-        } else {
-          const rangeBottom = Math.log10(lowDistance);
-          const rangeTop = Math.log10(hightDistance) - rangeBottom;
-          const factor = Math.min(Math.max(Math.log10(distance) - rangeBottom, 0), rangeTop) / rangeTop;
-          console.log(factor);
-          this.local.visible = true;
-          this.galaxy.visible = true;
-          this.localMat.size = (1 - factor) * pointSize;
-          this.galaxyMat.size = factor * pointSize;
-        }
+      if (this.galaxyMat && scene.camera.position.lengthSq() > galaxyDiameter) {
+        const dist = scene.camera.position.length();
+        const pointSize = Math.log10(dist * 1000 / galaxyDiameter) / 3;
+        this.galaxyMat.size = Math.min(Math.max(pointSize, minGalaxyPointSize), maxGalaxyPointSize);
       }
     });
   }
@@ -80,14 +63,15 @@ export class Starfield {
     this.galaxyMat = this.lt.own(new THREE.PointsMaterial({
       sizeAttenuation: false,
       vertexColors: true,
-      size: pointSize,
+      size: minGalaxyPointSize,
     }));
     this.galaxy = new THREE.Points(geom, this.galaxyMat);
     this.galaxy.matrixAutoUpdate = false;
     this.galaxy.scale.set(galaxyDiameter, galaxyDiameter, galaxyDiameter);
     this.galaxy.translateX(galaxyDiameter * 0.5);
-    this.galaxy.rotateX(0.3);
-    this.galaxy.rotateY(0.1);
+    this.galaxy.translateZ(-galaxyDiameter * 0.2);
+    this.galaxy.rotateX(0.1 * TAU);
+    this.galaxy.rotateY(0.05 * TAU);
     this.galaxy.updateMatrix();
     this.scene.addObject(this.lt, this.galaxy);
   }
@@ -109,9 +93,9 @@ export class Starfield {
     geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     geom.setAttribute('color', new THREE.BufferAttribute(colors, 3));
     this.localMat = this.lt.own(new THREE.PointsMaterial({
-      sizeAttenuation: false,
+      sizeAttenuation: true,
       vertexColors: true,
-      size: pointSize,
+      size: localDiameter / 4000,
     }));
     this.local = new THREE.Points(geom, this.localMat);
     this.local.matrixAutoUpdate = false;
@@ -141,6 +125,6 @@ export class Starfield {
       (Math.random() - 0.5),
       (Math.random() - 0.5));
     pos.normalize();
-    pos.multiplyScalar(Math.random() + 0.1);
+    pos.multiplyScalar((Math.random() + 0.1));
   }
 }
