@@ -4,7 +4,7 @@ import { Scene } from './Scene';
 
 // lets go logarithmicDepthBuffer
 const galaxyDiameter = 1e16;
-const fullGalaxyCount = 100000;
+const fullGalaxyCount = 200000;
 const sparseGalaxyCount = 5000;
 const localDiameter = 1e15;
 const localCount = 4000;
@@ -12,13 +12,17 @@ const localSize = localDiameter / 5000;
 const localColorSaturation = 0.3;
 const localColorBrightness = 0.8;
 const galaxyColorSaturation = 0.4;
-const galaxyColorBrightness = 0.8;
+const galaxyColorBrightness = 1;
 const minGalaxyPointSize = 0.5;
-const maxGalaxyPointSize = 0.8;
-const galaxyDimDist = 10 ** (Math.log10(galaxyDiameter) / 2);
-const galaxyBrightDist = galaxyDiameter;
+const maxGalaxyPointSize = 1;
+const galaxyDimDist = 10 ** (Math.log10(galaxyDiameter) * 0.8);
+const galaxyBrightDist = galaxyDiameter * 2;
 
 const TAU = 2 * Math.PI;
+
+function lerpClamp(input: number, inLow: number, inHigh: number, outLow: number, outHigh: number): number {
+  return Math.min(Math.max(((input - inLow) / (inHigh - inLow)) * (outHigh - outLow) + outLow, outLow), outHigh);
+}
 
 /// Adds a stary background to a 3D scene.
 export class Starfield {
@@ -47,8 +51,10 @@ export class Starfield {
       this.scene.subscribe(this.visibleLt, () => {
         if (this.fullGalaxy || this.scene.camera.position.lengthSq() > minLengthSq) {
           const dist = this.scene.camera.position.length();
-          const zeroToOne = Math.min(Math.max(Math.log10(dist / galaxyDimDist) * logScale, 0), 1);
-          if (zeroToOne > 0) {
+          const zeroToOne = Math.log10(dist / galaxyDimDist) * logScale;
+          const sparsePointSize = lerpClamp(zeroToOne, 0, 0.5, minGalaxyPointSize, maxGalaxyPointSize)
+          const fullPointSize = lerpClamp(zeroToOne, 0.3, 1, 0, maxGalaxyPointSize)
+          if (fullPointSize > 0.0001) {
             if (!this.fullGalaxyLt) {
               this.fullGalaxyLt = this.visibleLt!.newDependent();
               this.fullGalaxy = this.initGalaxy(this.fullGalaxyLt, fullGalaxyCount);
@@ -56,21 +62,12 @@ export class Starfield {
                 this.fullGalaxy = null;
                 this.fullGalaxyLt = null;
               });
-              console.log('full galaxy created');
             }
-          } else {
-            if (this.fullGalaxyLt) {
-              this.fullGalaxyLt.kill();
-              console.log('full galaxy destroyed');
-            }
+            (this.fullGalaxy!.material as THREE.PointsMaterial).size = fullPointSize;
+          } else if (this.fullGalaxyLt) {
+            this.fullGalaxyLt.kill();
           }
-          const sparsePointSize = zeroToOne * (maxGalaxyPointSize - minGalaxyPointSize) + minGalaxyPointSize;
-          const fullPointSize = zeroToOne * maxGalaxyPointSize;
-          console.log('sparsePointSize:', sparsePointSize, 'fullPointSize:', fullPointSize);
           (this.sparseGalaxy!.material as THREE.PointsMaterial).size = sparsePointSize;
-          if (this.fullGalaxy) {
-            (this.fullGalaxy.material as THREE.PointsMaterial).size = fullPointSize;
-          }
         }
       });
     } else if (!visible && this.visibleLt) {
@@ -114,12 +111,12 @@ export class Starfield {
 
   private positionGalaxyStar(pos: THREE.Vector3, color: Float32Array) {
     const arm = Math.floor(Math.random() * 4);
-    const distanceAlongArm = Math.random() ** 2;
+    const distanceAlongArm = Math.random() ** 3;
     const angle = distanceAlongArm * 1.4 * TAU + arm * 0.25 * TAU;
     const armCenterX = Math.cos(angle) * distanceAlongArm;
     const armCenterY = Math.sin(angle) * distanceAlongArm;
     const jitter = (0.5 - 0.2 * distanceAlongArm);
-    const height = (Math.random() - 0.5) * ((1 - distanceAlongArm) ** 3 + 0.6) * 0.6 * jitter * Math.random();
+    const height = (Math.random() - 0.5) * ((1 - distanceAlongArm) ** 3 + 0.6) * 0.4 * jitter * Math.random();
     pos.set(
       armCenterX + (Math.random() - 0.5) * (jitter * Math.random() - Math.abs(height)),
       armCenterY + (Math.random() - 0.5) * (jitter * Math.random() - Math.abs(height)),
