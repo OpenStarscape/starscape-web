@@ -1,11 +1,15 @@
-import { Conduit, Lifetime, Subscriber } from '../core';
+import { Conduit, Lifetime, Subscriber, RingBuffer } from '../core';
 import { SsObject } from '../protocol';
+
+const lookBack = 3, lookAhead = 2;
 
 /// Handles calling requestAnimationFrame and keeping track of game time
 export class AnimationTimer extends Conduit<null> {
   private animationFrameTime: number | null = null;
-  private browserTimeAtLastGameTime: number | null = null;
-  private lastGameTime: number | null = null;
+  private animationFrameRequested = false;
+  private recordedTimes = new RingBuffer<[number, number]>();
+  private browserTimeBase: number | null = null;
+  private gameTimeBase: number | null = null;
   private gameTimePerBrowserTime: number = 1;
   private readonly timeProp;
   private readonly timePerTimeProp;
@@ -28,14 +32,14 @@ export class AnimationTimer extends Conduit<null> {
   }
 
   gameTime(): number | null {
-    if (this.browserTimeAtLastGameTime === null ||
-        this.lastGameTime === null
+    if (this.browserTimeBase === null ||
+        this.gameTimeBase === null
     ) {
       return null;
     } else {
-      return (this.browserTime() - this.browserTimeAtLastGameTime) *
+      return (this.browserTime() - this.browserTimeBase) *
         this.gameTimePerBrowserTime +
-        this.lastGameTime;
+        this.gameTimeBase;
     }
   }
 
@@ -44,28 +48,50 @@ export class AnimationTimer extends Conduit<null> {
     this.sendToAllSubscribers(null);
     if (this.hasSubscribers()) {
       this.requestAnimFrame(ms => this.handleAnimFrame(ms));
+    } else {
+      this.animationFrameRequested = false;
     }
     this.animationFrameTime = null;
   }
 
   protected initialSubscriberAdded(hasSubscribersLt: Lifetime): void {
-    this.requestAnimFrame(ms => this.handleAnimFrame(ms));
+    if (!this.animationFrameRequested) {
+      this.requestAnimFrame(ms => this.handleAnimFrame(ms));
+      this.animationFrameRequested = true;
+    }
     hasSubscribersLt.addCallback(() => {
-    })
+      this.recordedTimes.clear();
+      this.gameTimePerBrowserTime = 0;
+    });
     this.timePerTimeProp.subscribe(hasSubscribersLt, tpt => {
+      if (this.recordedTimes.length()) {
+        // Reset back to known correct times to keep things getting weird (tolorate a jump)
+        this.browserTimeBase = this.recordedTimes.at(-1)[0];
+        this.gameTimeBase = this.recordedTimes.at(-1)[1];
+        // Clear history as this was based on a different game state
+        this.recordedTimes.clear();
+      }
       this.gameTimePerBrowserTime = tpt;
     });
     this.timeProp.subscribe(hasSubscribersLt, gameTime => {
       const browserTime = this.browserTime();
-      if (this.lastGameTime !== null &&
-          this.browserTimeAtLastGameTime !== null &&
-          browserTime - this.browserTimeAtLastGameTime > 0.001
+      // Set to the previous effective game time so we don't jump around
+      this.gameTimeBase = this.gameTime() || gameTime;
+      this.browserTimeBase = browserTime;
+      while (this.recordedTimes.length() > 1 &&
+        this.recordedTimes.at(0)[0] < browserTime - lookBack
       ) {
-        this.gameTimePerBrowserTime = (gameTime - this.lastGameTime) /
-          (browserTime - this.browserTimeAtLastGameTime);
+        this.recordedTimes.popFront();
       }
-      this.lastGameTime = gameTime;
-      this.browserTimeAtLastGameTime = this.browserTime();
+      this.recordedTimes.pushBack([browserTime, gameTime]);
+      if (this.recordedTimes.length() > 1) {
+        const [oldBrowserTime, oldGameTime] = this.recordedTimes.at(0);
+        const empiricalGameTimePerBrowserTime = (gameTime - oldGameTime) /
+          (browserTime - oldBrowserTime);
+        const predictedFutureGameTime = gameTime + empiricalGameTimePerBrowserTime * lookAhead;
+        const timeRateForConvergence = (predictedFutureGameTime - this.gameTimeBase) / lookAhead;
+        this.gameTimePerBrowserTime = timeRateForConvergence;
+      }
     });
   }
 
