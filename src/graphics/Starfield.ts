@@ -4,12 +4,15 @@ import { Scene } from './Scene';
 
 // lets go logarithmicDepthBuffer
 const galaxyDiameter = 1e16;
-const galaxyCount = 5000;
+const galaxyCount = 100000;
 const localDiameter = 1e15;
-const localCount = 2000;
-const colorSaturation = 0.3;
+const localCount = 4000;
+const galaxyColorSaturation = 0.5;
+const localColorSaturation = 0.3;
 const minGalaxyPointSize = 0.3;
-const maxGalaxyPointSize = 0.7;
+const maxGalaxyPointSize = 0.9;
+const galaxyDimDist = 10 ** (Math.log10(galaxyDiameter) / 2);
+const galaxyBrightDist = galaxyDiameter;
 
 const TAU = 2 * Math.PI;
 
@@ -24,11 +27,20 @@ export class Starfield {
     readonly lt: Lifetime,
     readonly scene: Scene
   ) {
+    const divisor = Math.log10(galaxyBrightDist / galaxyDimDist);
+    const minLengthSq = galaxyDimDist * galaxyDimDist;
+    let pointSizeSet = false;
     scene.subscribe(lt, () => {
-      if (this.galaxyMat && scene.camera.position.lengthSq() > galaxyDiameter) {
+      if (this.galaxyMat && (pointSizeSet || scene.camera.position.lengthSq() > minLengthSq)) {
         const dist = scene.camera.position.length();
-        const pointSize = Math.log10(dist * 1000 / galaxyDiameter) / 3;
-        this.galaxyMat.size = Math.min(Math.max(pointSize, minGalaxyPointSize), maxGalaxyPointSize);
+        const zeroToOne = Math.log10(dist / galaxyDimDist) / divisor;
+        if (zeroToOne < 0) {
+          pointSizeSet = false;
+        } else {
+          pointSizeSet = true;
+        }
+        const pointSizeUnclamped = zeroToOne * (maxGalaxyPointSize - minGalaxyPointSize) + minGalaxyPointSize;
+        this.galaxyMat.size = Math.min(Math.max(pointSizeUnclamped, minGalaxyPointSize), maxGalaxyPointSize);
       }
     });
   }
@@ -48,14 +60,15 @@ export class Starfield {
     const positions = new Float32Array(galaxyCount * 3);
     const colors = new Float32Array(galaxyCount * 3);
     const position = new THREE.Vector3();
+    const color = new Float32Array(3);
     for(let i = 0; i < galaxyCount; i++) {
-      this.positionGalaxyStar(position);
+      this.positionGalaxyStar(position, color);
       positions[i * 3 + 0] = position.x;
       positions[i * 3 + 1] = position.y;
       positions[i * 3 + 2] = position.z;
-      colors[i * 3 + 0] = Math.min((1 - colorSaturation) + Math.random() * colorSaturation, 1);
-      colors[i * 3 + 1] = Math.min((1 - colorSaturation) + Math.random() * colorSaturation, 1);
-      colors[i * 3 + 2] = Math.min((1 - colorSaturation) + Math.random() * colorSaturation, 1);
+      colors[i * 3 + 0] = Math.min(1 - galaxyColorSaturation + color[0] * galaxyColorSaturation, 1);
+      colors[i * 3 + 1] = Math.min(1 - galaxyColorSaturation + color[1] * galaxyColorSaturation, 1);
+      colors[i * 3 + 2] = Math.min(1 - galaxyColorSaturation + color[2] * galaxyColorSaturation, 1);
     }
     const geom = this.lt.own(new THREE.BufferGeometry());
     geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
@@ -76,6 +89,24 @@ export class Starfield {
     this.scene.addObject(this.lt, this.galaxy);
   }
 
+  private positionGalaxyStar(pos: THREE.Vector3, color: Float32Array) {
+    const arm = Math.floor(Math.random() * 4);
+    const distanceAlongArm = Math.random() ** 2;
+    const angle = distanceAlongArm * 1.4 * TAU + arm * 0.25 * TAU;
+    const armCenterX = Math.cos(angle) * distanceAlongArm;
+    const armCenterY = Math.sin(angle) * distanceAlongArm;
+    const jitter = (0.5 - 0.2 * distanceAlongArm) * Math.random();
+    const height = (Math.random() - 0.5) * ((1 - distanceAlongArm) ** 3 + 0.6) * 0.6 * jitter;
+    pos.set(
+      armCenterX + (Math.random() - 0.5) * (jitter - Math.abs(height)),
+      armCenterY + (Math.random() - 0.5) * (jitter - Math.abs(height)),
+      height,
+    );
+    color[0] = 1 - distanceAlongArm * 0.7;
+    color[1] = (1 - distanceAlongArm) ** 2;
+    color[2] = distanceAlongArm + Math.max(1 - distanceAlongArm * 4, 0) ** 2;
+  }
+
   private initLocal() {
     const positions = new Float32Array(localCount * 3);
     const colors = new Float32Array(localCount * 3);
@@ -85,9 +116,9 @@ export class Starfield {
       positions[i * 3 + 0] = position.x;
       positions[i * 3 + 1] = position.y;
       positions[i * 3 + 2] = position.z;
-      colors[i * 3 + 0] = Math.min((1 - colorSaturation) + Math.random() * colorSaturation, 1);
-      colors[i * 3 + 1] = Math.min((1 - colorSaturation) + Math.random() * colorSaturation, 1);
-      colors[i * 3 + 2] = Math.min((1 - colorSaturation) + Math.random() * colorSaturation, 1);
+      colors[i * 3 + 0] = Math.min((1 - localColorSaturation) + Math.random() * localColorSaturation, 1);
+      colors[i * 3 + 1] = Math.min((1 - localColorSaturation) + Math.random() * localColorSaturation, 1);
+      colors[i * 3 + 2] = Math.min((1 - localColorSaturation) + Math.random() * localColorSaturation, 1);
     }
     const geom = this.lt.own(new THREE.BufferGeometry());
     geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
@@ -102,21 +133,6 @@ export class Starfield {
     this.local.scale.set(localDiameter, localDiameter, localDiameter);
     this.local.updateMatrix();
     this.scene.addObject(this.lt, this.local);
-  }
-
-  private positionGalaxyStar(pos: THREE.Vector3) {
-    const arm = Math.floor(Math.random() * 4);
-    const distanceAlongArm = Math.random() ** 2;
-    const angle = distanceAlongArm * 1.4 * TAU + arm * 0.25 * TAU;
-    const armCenterX = Math.cos(angle) * distanceAlongArm;
-    const armCenterY = Math.sin(angle) * distanceAlongArm;
-    const jitter = (0.5 - 0.2 * distanceAlongArm) * Math.random();
-    const height = (Math.random() - 0.5) * ((1 - distanceAlongArm) ** 3 + 0.6) * 0.6 * jitter;
-    pos.set(
-      armCenterX + (Math.random() - 0.5) * (jitter - Math.abs(height)),
-      armCenterY + (Math.random() - 0.5) * (jitter - Math.abs(height)),
-      height,
-    );
   }
 
   private positionLocalStar(pos: THREE.Vector3) {
