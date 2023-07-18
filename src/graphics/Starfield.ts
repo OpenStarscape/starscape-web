@@ -3,11 +3,11 @@ import { Lifetime } from '../core';
 
 /// Adds a stary background to a 3D scene.
 export class Starfield {
-  private closest = 600;
-  private farthest = 800;
+  // lets go logarithmicDepthBuffer
+  private closest = 1e12;
+  private farthest = 1e16;
   private geom;
-  private smallMat;
-  private bigMat;
+  private materials: THREE.PointsMaterial[] = [];
   private stars: THREE.Points[] = [];
 
   constructor(
@@ -16,22 +16,21 @@ export class Starfield {
   ) {
     this.geom = lt.own(new THREE.BufferGeometry());
     this.geom.setAttribute('position', new THREE.BufferAttribute(new Float32Array([0.0, 0.0, 0.0]), 3));
-    this.smallMat = lt.own(new THREE.PointsMaterial({ color: 0xffffff, size: 1.5 }));
-    this.bigMat = lt.own(new THREE.PointsMaterial({ color: 0xffffff, size: 2.0 }));
-
-    for(let i = 0; i < 100; i++) {
-      this.newStar(this.bigMat);
-    }
-    for(let i = 0; i < 300; i++) {
-      this.newStar(this.smallMat);
+    for (let i = 0.5; i < 1.5; i *= 1.1) {
+      this.materials.push(lt.own(new THREE.PointsMaterial({
+        color: 0xffffff,
+        sizeAttenuation: false,
+        size: i
+      })));
     }
 
-    for (let i = 0; i < this.stars.length; i++) {
-      this.scene.add(this.stars[i]);
+    for(let i = 0; i < 1000; i++) {
+      this.newStar();
     }
   }
 
-  newStar(mat: THREE.Material) {
+  newStar() {
+    const mat = this.materials[Math.floor(Math.random() * this.materials.length)];
     const star = new THREE.Points(this.geom, mat);
     star.position.set(
       Math.random() - 0.5,
@@ -43,6 +42,7 @@ export class Starfield {
     star.matrixAutoUpdate = false;
     star.updateMatrix();
     this.stars.push(star);
+    this.scene.add(star);
   }
 
   /// removing from scene can be easily implemented if needed
