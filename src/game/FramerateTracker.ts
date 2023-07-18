@@ -56,7 +56,7 @@ export class FramerateTracker extends Conduit<FramerateInfo> {
       const latest = this.frames.at(-1) - this.frames.at(-2);
       if (latest > this.slowestFrame) {
         this.indexOfSlowest = this.frames.length() - 1;
-        this.slowestFrame
+        this.slowestFrame = latest;
       }
     }
     return this.slowestFrame;
