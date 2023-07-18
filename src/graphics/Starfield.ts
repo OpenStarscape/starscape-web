@@ -26,8 +26,14 @@ function lerpClamp(input: number, inLow: number, inHigh: number, outLow: number,
 
 /// Adds a stary background to a 3D scene.
 export class Starfield {
+  // This will show a faint smudge when inside the galaxy
   private sparseGalaxy: THREE.Points | null = null;
+  // This has more stars and is shows when zoomed out
   private fullGalaxy: THREE.Points | null = null;
+  // This uses the same points as fullGalaxy and is shown at the same time. The difference is the
+  // material has sizeAttenuation turned on, so the points are mostly too small to see but
+  // get big if the camera is close
+  private fullGalaxyAttenuation: THREE.Points | null = null;
   private local: THREE.Points | null = null;
   private visibleLt: DependentLifetime | null = null;
   private fullGalaxyLt: DependentLifetime | null = null;
@@ -39,7 +45,12 @@ export class Starfield {
   setVisible(visible: boolean) {
     if (visible && !this.visibleLt) {
       this.visibleLt = this.scene.lt.newDependent();
-      this.sparseGalaxy = this.initGalaxy(this.visibleLt, sparseGalaxyCount);
+      this.sparseGalaxy = this.initGalaxyMesh(
+        this.visibleLt,
+        this.initGalaxyGeom(this.visibleLt, sparseGalaxyCount),
+        minGalaxyPointSize,
+        false
+      );
       this.local = this.initLocal(this.visibleLt, localCount);
       this.visibleLt.addCallback(() => {
         this.visibleLt = null;
@@ -52,14 +63,18 @@ export class Starfield {
         if (this.fullGalaxy || this.scene.camera.position.lengthSq() > minLengthSq) {
           const dist = this.scene.camera.position.length();
           const zeroToOne = Math.log10(dist / galaxyDimDist) * logScale;
-          const sparsePointSize = lerpClamp(zeroToOne, 0, 0.5, minGalaxyPointSize, maxGalaxyPointSize)
-          const fullPointSize = lerpClamp(zeroToOne, 0.3, 1, 0, maxGalaxyPointSize)
+          const sparsePointSize = lerpClamp(zeroToOne, 0, 0.8, minGalaxyPointSize, maxGalaxyPointSize)
+          const fullPointSize = lerpClamp(zeroToOne, 0.2, 1, 0, maxGalaxyPointSize)
           if (fullPointSize > 0.0001) {
             if (!this.fullGalaxyLt) {
               this.fullGalaxyLt = this.visibleLt!.newDependent();
-              this.fullGalaxy = this.initGalaxy(this.fullGalaxyLt, fullGalaxyCount);
+              const geom = this.initGalaxyGeom(this.fullGalaxyLt, fullGalaxyCount)
+              this.fullGalaxy = this.initGalaxyMesh(this.fullGalaxyLt, geom, 0, false);
+              this.fullGalaxyAttenuation = this.initGalaxyMesh(
+                this.fullGalaxyLt, geom, galaxyDiameter / 10000, true);
               this.fullGalaxyLt.addCallback(() => {
                 this.fullGalaxy = null;
+                this.fullGalaxyAttenuation = null;
                 this.fullGalaxyLt = null;
               });
             }
@@ -75,7 +90,7 @@ export class Starfield {
     }
   }
 
-  private initGalaxy(lt: Lifetime, count: number): THREE.Points {
+  private initGalaxyGeom(lt: Lifetime, count: number): THREE.BufferGeometry {
     const positions = new Float32Array(count * 3);
     const colors = new Float32Array(count * 3);
     const position = new THREE.Vector3();
@@ -92,10 +107,19 @@ export class Starfield {
     const geom = lt.own(new THREE.BufferGeometry());
     geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     geom.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    return geom;
+  }
+
+  private initGalaxyMesh(
+    lt: Lifetime,
+    geom: THREE.BufferGeometry,
+    size: number,
+    attenuation: boolean
+  ): THREE.Points {
     const galaxyMat = lt.own(new THREE.PointsMaterial({
-      sizeAttenuation: false,
+      sizeAttenuation: attenuation,
       vertexColors: true,
-      size: minGalaxyPointSize,
+      size: size,
     }));
     const galaxy = new THREE.Points(geom, galaxyMat);
     galaxy.matrixAutoUpdate = false;
