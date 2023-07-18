@@ -5,10 +5,13 @@ import { AnimationTimer } from '../game';
 
 THREE.Object3D.DEFAULT_UP = new THREE.Vector3(0, 0, 1);
 
+// using logarithmicDepthBuffer, so this is fine (numbers taken from three.js example)
+const NEAR = 1e-6, FAR = 1e27;
+
 /// Manages everything required to render a scene with THREE.js, subscribers are notified each frame
 export class Scene extends Conduit<null> {
   readonly scene = new THREE.Scene();
-  readonly camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+  readonly camera = new THREE.PerspectiveCamera(75, 1, NEAR, FAR);
   readonly normalRenderer: THREE.WebGLRenderer;
   readonly overlayRenderer: CSS2DRenderer;
 
@@ -22,7 +25,10 @@ export class Scene extends Conduit<null> {
     super();
 
     try {
-      this.normalRenderer = this.lt.own(new THREE.WebGLRenderer({antialias: true}));
+      this.normalRenderer = this.lt.own(new THREE.WebGLRenderer({
+        antialias: true,
+        logarithmicDepthBuffer: true
+      }));
     } catch (e) {
       // TODO: some standard mechanism for alerts that looks good?
       window.alert('Failed to initialize WebGL: ' + messageFromError(e));
