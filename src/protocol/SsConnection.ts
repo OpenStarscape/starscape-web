@@ -25,7 +25,7 @@ export class SsConnection extends Lifetime {
     } else if (sessionType === SsSessionType.WebSocket) {
       this.session = new SsWebSocketSession(this);
     } else {
-      throw new Error('unknown session type "' + sessionType + '"');
+      throw Error('unknown session type "' + sessionType + '"');
     }
     this.root = this.getObj(1);
     this.root.signal('error', String).subscribe(this.root, message => {
@@ -36,14 +36,14 @@ export class SsConnection extends Lifetime {
   /// Used internally to get or create an object with a given object ID.
   getObj(id: number): SsObject {
     if (typeof id !== 'number' || !Number.isInteger(id)) {
-      throw new Error('ID ' + id + ' is not an int');
+      throw Error('ID ' + id + ' is not an int');
     }
     let obj = this.objects.get(id);
     if (obj === undefined) {
       obj = this.addDependent(new SsObject(this, id));
       this.objects.set(id, obj);
     } else if (obj === null) {
-      throw new Error('object ' + id + ' has already been destroyed');
+      throw Error('object ' + id + ' has already been destroyed');
     }
     return obj;
   }
@@ -73,12 +73,12 @@ export class SsConnection extends Lifetime {
         } else if (Array.isArray(value[0])) {
           return value[0].map(item => this.decodeValue(item));
         } else {
-          throw new Error('array-wrapped value is not a number or array');
+          throw Error('array-wrapped value is not a number or array');
         }
       } else if (value.length === 3) {
         return new Vec3(value[0], value[1], value[2]);
       } else {
-        throw new Error('array-wrapped value has invalid length ' + value.length);
+        throw Error('array-wrapped value has invalid length ' + value.length);
       }
     } else {
       return value;
@@ -95,7 +95,7 @@ export class SsConnection extends Lifetime {
     } else if (Array.isArray(value)) {
       return [value.map(i => this.encodeValue(i))];
     } else if (value === undefined) {
-      throw new Error("value is undefined");
+      throw Error("value is undefined");
     } else if (value !== null && typeof value === 'object') {
       Object.fromEntries(Object.entries(value).map((a, b) => [a, b]))
       for (const [k, v] of Object.entries(value)) {
@@ -108,38 +108,38 @@ export class SsConnection extends Lifetime {
   }
 
   /// Handle a single protocol message, deserialized from JSON
-  handleMessage(message: any) {
-    //try {
-      if (message.mtype === 'update' || message.mtype === 'value' || message.mtype === 'event') {
-        if (typeof message.object !== 'number') {
-          throw new Error('object not a number');
-        }
-        if (typeof message.property !== 'string') {
-          throw new Error('property is a ' + typeof message.proprty + ' not a string');
-        }
-        let obj = this.getObj(message.object);
-        let value = this.decodeValue(message.value);
-        if (message.mtype === 'update') {
-          obj.handleUpdate(message.property, value);
-        } else if (message.mtype === 'value') {
-          obj.handleGetReply(message.property, value);
-        } else if (message.mtype === 'event') {
-          obj.handleSignal(message.property, value);
-        } else {
-          throw new Error('should be unreachable');
-        }
-      } else if (message.mtype === 'destroyed') {
-        this.destroyObj(message.object);
-      } else if (message.mtype === 'error') {
-        this.handleError('Error from OpenStarscape server:\n' + message.text);
-      } else {
-        throw new Error('unknown mtype ' + message.mtype);
+  handleMessage(message: any[]) {
+    if (!message.length || typeof message[0] !== 'number') {
+      throw Error('invalid message: ' + message.toString());
+    }
+    const opcode = message[0];
+    if (opcode === 0) {
+      if (message.length !== 2 || typeof message[1] !== 'string') {
+        throw Error('invalid fatal error message: ' + message.toString());
       }
-    //}
-    //catch(err) {
-    //  console.error('error handling message: ' + err + ' (message: ' + message + ')');
-    //  console.trace();
-    //}
+      this.handleError('Error from OpenStarscape server:\n' + message[1]);
+    } else if (opcode === 1) {
+      if (message.length !== 2 || typeof message[1] !== 'number') {
+        throw Error('invalid object destroyed message: ' + message.toString());
+      }
+    } else if (message.length === 4) {
+      if (message.length !== 4 ||
+          typeof message[1] !== 'number' ||
+          typeof message[2] !== 'string'
+      ) {
+        throw Error('invalid object member message: ' + message.toString());
+      }
+      const obj = this.getObj(message[1]);
+      const member = message[2];
+      const value = this.decodeValue(message[3]);
+      switch (opcode) {
+        case 2: obj.handleGetReply(member, value); return;
+        case 3: obj.handleUpdate(member, value); return;
+        case 4: obj.handleSignal(member, value); return;
+      }
+    } else {
+      throw Error('message has invalid length: ' + message.toString());
+    }
   }
 
   /// Handle a packet string, which could contain one or more message.
@@ -148,13 +148,9 @@ export class SsConnection extends Lifetime {
     //try {
       let bundle = JSON.parse(packet);
       if (Array.isArray(bundle)) {
-        for (let i = 0; i < bundle.length; i++) {
-          this.handleMessage(bundle[i]);
-        }
-      } else if (typeof bundle === 'object') {
         this.handleMessage(bundle);
       } else {
-        throw new Error('bundle ' + packet.toString() + ' has invalid type');
+        throw Error('invalid packet: ' + packet);
       }
     //}
     //catch(err) {
@@ -168,20 +164,21 @@ export class SsConnection extends Lifetime {
     let json;
     if (rq.method === SsRequestType.Set) {
       const value = this.encodeValue(rq.value);
-      json = JSON.stringify({mtype: 'set', object: rq.objId, property: rq.member, value: value});
+      json = [9, rq.objId, rq.member, value];
     } else if (rq.method === SsRequestType.Get) {
-      json = JSON.stringify({mtype: 'get', object: rq.objId, property: rq.member})
+      json = [8, rq.objId, rq.member];
     } else if (rq.method === SsRequestType.Fire) {
       const value = this.encodeValue(rq.value);
-      json = JSON.stringify({mtype: 'fire', object: rq.objId, property: rq.member, value: value});
+      json = [14, rq.objId, rq.member, value];
     } else if (rq.method === SsRequestType.Subscribe) {
-      json = JSON.stringify({mtype: 'subscribe', object: rq.objId, property: rq.member})
+      json = [10, rq.objId, rq.member];
     } else if (rq.method === SsRequestType.Unsubscribe) {
-      json = JSON.stringify({mtype: 'unsubscribe', object: rq.objId, property: rq.member})
+      json = [11, rq.objId, rq.member];
     } else {
-      throw new Error('Request has invalid request type: ' + JSON.stringify(rq));
+      throw Error('Request has invalid request type: ' + JSON.stringify(rq));
     }
-    //console.log(' <  ', json);
-    this.session.sendPacket(json + '\n');
+    const encoded = JSON.stringify(json) + '\n';
+    this.session.sendPacket(encoded);
+    //console.log(' <  ', encoded);
   }
 }
