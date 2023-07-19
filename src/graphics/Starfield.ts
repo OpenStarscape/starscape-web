@@ -4,7 +4,7 @@ import { Scene } from './Scene';
 
 // lets go logarithmicDepthBuffer
 const galaxyDiameter = 1e16;
-const fullGalaxyCount = 200000;
+const fullGalaxyCount = 100000;
 const sparseGalaxyCount = 5000;
 const localDiameter = 1e15;
 const localCount = 4000;
@@ -13,8 +13,8 @@ const localColorSaturation = 0.3;
 const localColorBrightness = 0.8;
 const galaxyColorSaturation = 0.4;
 const galaxyColorBrightness = 1;
-const minGalaxyPointSize = 0.5;
-const maxGalaxyPointSize = 1;
+const galaxyPointSize = 1;
+const minSparseOpacity = 0.4;
 const galaxyDimDist = 10 ** (Math.log10(galaxyDiameter) * 0.8);
 const galaxyBrightDist = galaxyDiameter * 2;
 
@@ -48,9 +48,10 @@ export class Starfield {
       this.sparseGalaxy = this.initGalaxyMesh(
         this.visibleLt,
         this.initGalaxyGeom(this.visibleLt, sparseGalaxyCount),
-        minGalaxyPointSize,
+        galaxyPointSize,
         false
       );
+      (this.sparseGalaxy!.material as THREE.PointsMaterial).opacity = minSparseOpacity;
       this.local = this.initLocal(this.visibleLt, localCount);
       this.visibleLt.addCallback(() => {
         this.visibleLt = null;
@@ -63,13 +64,13 @@ export class Starfield {
         if (this.fullGalaxy || this.scene.camera.position.lengthSq() > minLengthSq) {
           const dist = this.scene.camera.position.length();
           const zeroToOne = Math.log10(dist / galaxyDimDist) * logScale;
-          const sparsePointSize = lerpClamp(zeroToOne, 0, 0.8, minGalaxyPointSize, maxGalaxyPointSize)
-          const fullPointSize = lerpClamp(zeroToOne, 0.2, 1, 0, maxGalaxyPointSize)
-          if (fullPointSize > 0.0001) {
+          const sparseOpacity = lerpClamp(zeroToOne, 0, 0.8, minSparseOpacity, 1)
+          const fullOpacity = lerpClamp(zeroToOne, 0.2, 1, 0, 1)
+          if (zeroToOne > 0.0001) {
             if (!this.fullGalaxyLt) {
               this.fullGalaxyLt = this.visibleLt!.newDependent();
               const geom = this.initGalaxyGeom(this.fullGalaxyLt, fullGalaxyCount)
-              this.fullGalaxy = this.initGalaxyMesh(this.fullGalaxyLt, geom, 0, false);
+              this.fullGalaxy = this.initGalaxyMesh(this.fullGalaxyLt, geom, galaxyPointSize, false);
               this.fullGalaxyAttenuation = this.initGalaxyMesh(
                 this.fullGalaxyLt, geom, galaxyDiameter / 10000, true);
               this.fullGalaxyLt.addCallback(() => {
@@ -78,11 +79,18 @@ export class Starfield {
                 this.fullGalaxyLt = null;
               });
             }
-            (this.fullGalaxy!.material as THREE.PointsMaterial).size = fullPointSize;
+            (this.fullGalaxy!.material as THREE.PointsMaterial).opacity = fullOpacity;
+            (this.fullGalaxyAttenuation!.material as THREE.PointsMaterial).opacity = fullOpacity;
           } else if (this.fullGalaxyLt) {
             this.fullGalaxyLt.kill();
           }
-          (this.sparseGalaxy!.material as THREE.PointsMaterial).size = sparsePointSize;
+          (this.sparseGalaxy!.material as THREE.PointsMaterial).opacity = sparseOpacity;
+          // hack because sizeAttenuation doesn't seem to work well on phones
+          if (dist > localDiameter) {
+            this.local!.visible = false;
+          } else {
+            this.local!.visible = true;
+          }
         }
       });
     } else if (!visible && this.visibleLt) {
@@ -121,6 +129,7 @@ export class Starfield {
       vertexColors: true,
       size: size,
     }));
+    galaxyMat.transparent = true;
     const galaxy = new THREE.Points(geom, galaxyMat);
     galaxy.matrixAutoUpdate = false;
     galaxy.scale.set(galaxyDiameter, galaxyDiameter, galaxyDiameter);
