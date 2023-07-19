@@ -3,18 +3,18 @@ import { Lifetime, DependentLifetime } from '../core';
 import { Scene } from './Scene';
 
 // lets go logarithmicDepthBuffer
-const galaxyDiameter = 1e16;
-const fullGalaxyCount = 100000;
+const galaxyDiameter = 1e17;
+const fullGalaxyCount = 200000;
 const sparseGalaxyCount = 5000;
-const localDiameter = 1e15;
-const localCount = 4000;
-const localSize = localDiameter / 5000;
+const localDiameter = 5e15;
+const localCount = 6000;
+const localSize = localDiameter / 6000;
 const localColorSaturation = 0.3;
 const localColorBrightness = 0.8;
 const galaxyColorSaturation = 0.4;
 const galaxyColorBrightness = 1;
 const galaxyPointSize = 1;
-const minSparseOpacity = 0.4;
+const minSparseOpacity = 0.2;
 const galaxyDimDist = 10 ** (Math.log10(galaxyDiameter) * 0.8);
 const galaxyBrightDist = galaxyDiameter * 2;
 
@@ -134,7 +134,7 @@ export class Starfield {
     galaxy.matrixAutoUpdate = false;
     galaxy.scale.set(galaxyDiameter, galaxyDiameter, galaxyDiameter);
     galaxy.translateX(galaxyDiameter * 0.5);
-    galaxy.translateZ(-galaxyDiameter * 0.15);
+    galaxy.translateZ(-galaxyDiameter * 0.19);
     galaxy.rotateX(0.1 * TAU);
     galaxy.rotateY(0.05 * TAU);
     galaxy.updateMatrix();
