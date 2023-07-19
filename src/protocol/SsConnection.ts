@@ -122,6 +122,7 @@ export class SsConnection extends Lifetime {
       if (message.length !== 2 || typeof message[1] !== 'number') {
         throw Error('invalid object destroyed message: ' + message.toString());
       }
+      this.destroyObj(message[1]);
     } else if (message.length === 4) {
       if (message.length !== 4 ||
           typeof message[1] !== 'number' ||
