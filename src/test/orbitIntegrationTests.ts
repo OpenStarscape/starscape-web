@@ -42,39 +42,28 @@ orbitTestData.forEach(params => {
       mass: centralMass / 100000,
     });
     game.root.property('min_roundtrip_time', Number).set(0);
-    setTimeout(() => {
-      game.root.property('time_per_time', Number).set(100);
-    }, 100);
+    game.root.property('time_per_time', Number).set(100);
     game.root.signal('paused', Number).subscribe(lt, t => {
       if (t >= pause_time) {
-        setTimeout(() => {
-          createCelestial.fire({
-            name: 'Expected',
-            color: '#00FF00',
-            position: startPos,
-            radius: 0.02,
-            mass: centralMass / 100000,
+        game.bodies.subscribe(lt, ([_, body]) => {
+          body.property('name', {nullable: String}).getThen(lt, name => {
+            if (name == 'Satellite') {
+              body.property('position', Vec3).getThen(lt, position => {
+                const distance = position.newThreeVector3().distanceTo(startPos.newThreeVector3());
+                const semiMajor = params.orbit[0];
+                const proportional = distance / semiMajor;
+                if (proportional < 0.1) {
+                  status.set(TestStatus.Passed);
+                } else {
+                  console.error(
+                    'body ended up ' + distance + ' away from expected (' +
+                    proportional + ' length of semi-major), which is too much');
+                  status.set(TestStatus.Failed);
+                }
+              });
+            }
           });
-          game.bodies.subscribe(lt, ([_, body]) => {
-            body.property('name', {nullable: String}).getThen(lt, name => {
-              if (name == 'Satellite') {
-                body.property('position', Vec3).getThen(lt, position => {
-                  const distance = position.newThreeVector3().distanceTo(startPos.newThreeVector3());
-                  const semiMajor = params.orbit[0];
-                  const proportional = distance / semiMajor;
-                  if (proportional < 0.1) {
-                    status.set(TestStatus.Passed);
-                  } else {
-                    console.error(
-                      'body ended up ' + distance + ' away from expected (' +
-                      proportional + ' length of semi-major), which is too much');
-                    status.set(TestStatus.Failed);
-                  }
-                });
-              }
-            });
-          });
-        }, 100);
+        });
       }
     });
   });
