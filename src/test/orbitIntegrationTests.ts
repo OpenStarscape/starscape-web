@@ -28,14 +28,14 @@ orbitTestData.forEach(params => {
     const centralMass = params.grav_param / gravConstant;
     createCelestial.fire({
       name: 'Central',
-      color: '0xFF8000',
+      color: '#FF8000',
       radius: 0.1,
       mass: centralMass,
     });
     const startPos = new Vec3(params.position);
     createCelestial.fire({
       name: 'Satellite',
-      color: '0xFFFFFF',
+      color: '#FFFFFF',
       position: startPos,
       velocity: new Vec3(params.velocity),
       radius: 0.02,
@@ -50,7 +50,7 @@ orbitTestData.forEach(params => {
         setTimeout(() => {
           createCelestial.fire({
             name: 'Expected',
-            color: '0x00FF00',
+            color: '#00FF00',
             position: startPos,
             radius: 0.02,
             mass: centralMass / 100000,
