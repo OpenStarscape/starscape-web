@@ -103,6 +103,7 @@ export function newBodyVisual(scene: Scene, game: Game, obj: SsObject) {
   const mesh = createMesh(lt, scene);
   const matPair = createColorMaterialPair(lt, body.color);
   const hudElement = new CSS2DObject(bodyHUD(lt, spatial));
+  mesh.visible = false; // Shouldn't be needed because geom is empty, but see https://github.com/mrdoob/three.js/issues/26464
   object3DAddChild(lt, mesh, hudElement);
   ellipticalOrbit(lt, scene, spatial);
 
@@ -126,12 +127,14 @@ export function newBodyVisual(scene: Scene, game: Game, obj: SsObject) {
     if (cls === 'celestial') {
       body.size.getThen(lt, s => {
         createCelestialGeom(lt, mesh, s);
+        mesh.visible = true;
       });
     } else if (cls === 'ship') {
       getAccel = spatial.body.obj.property('accel', Vec3).getter(lt);
       createThrustIndicator(lt, scene, spatial);
       body.size.getThen(lt, s => {
         createShipGeom(lt, mesh, s);
+        mesh.visible = true;
       });
     } else {
       console.error('unknown body class ', cls);
