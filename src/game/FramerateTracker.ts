@@ -38,7 +38,7 @@ export class FramerateTracker extends Conduit<FramerateInfo> {
 
   private averageFrameTime(): number {
     const elapsedTime = this.frames.at(-1) - this.frames.at(0);
-    const elapsedFrames = this.frames.length();
+    const elapsedFrames = this.frames.length() - 1;
     return elapsedTime / elapsedFrames;
   }
 
@@ -63,7 +63,7 @@ export class FramerateTracker extends Conduit<FramerateInfo> {
   }
 
   private addRecord(ms: number) {
-    if (this.frames.length() >= this.samples) {
+    if (this.frames.length() > this.samples) {
       this.frames.popFront();
       this.indexOfSlowest--;
     }
