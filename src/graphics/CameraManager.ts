@@ -23,6 +23,9 @@ export class CameraManager {
     game.currentShip.subscribeWithValueLifetime(lt, (valueLt, ship) => {
       this.currentSpatial = ship ? ship.spatial(valueLt) : null;
     });
+    // Manually updating the matrices isn't smooth, idk why
+    camera.matrixAutoUpdate = true;
+    camera.matrixWorldAutoUpdate = true;
     scene.subscribe(lt, () => {
       if (this.currentSpatial !== null) {
         this.currentSpatial.copyPositionInto(this.bodyPos);

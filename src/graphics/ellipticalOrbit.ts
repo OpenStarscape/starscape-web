@@ -29,7 +29,6 @@ export function ellipticalOrbit(
 
   // This is probs a better way: https://stackoverflow.com/a/21742175
   const orbitLine = new THREE.LineLoop(circleGeom, lineMat);
-  orbitLine.matrixAutoUpdate = false;
   orbitLine.visible = false;
 
   spatial.body.color.subscribe(lt, color => {
@@ -40,8 +39,7 @@ export function ellipticalOrbit(
   scene.subscribe(lt, () => {
     if (spatial.isReady() && spatial.parent() !== null) {
       orbitLine.visible = true;
-      spatial.copyOrbitMatrixInto(orbitLine.matrix);
-      //this.orbitLine.updateMatrix();
+      spatial.copyOrbitMatrixInto(orbitLine.matrixWorld);
     } else {
       orbitLine.visible = false;
     }

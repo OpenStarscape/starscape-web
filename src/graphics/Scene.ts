@@ -4,6 +4,8 @@ import { Lifetime, messageFromError, Conduit, DependentLifetime, Subscriber } fr
 import { AnimationTimer } from '../game';
 
 THREE.Object3D.DEFAULT_UP = new THREE.Vector3(0, 0, 1);
+THREE.Object3D.DEFAULT_MATRIX_AUTO_UPDATE = false;
+THREE.Object3D.DEFAULT_MATRIX_WORLD_AUTO_UPDATE = false;
 
 // using logarithmicDepthBuffer, so this is fine (numbers taken from three.js example)
 const NEAR = 1e-6, FAR = 1e27;

@@ -131,13 +131,13 @@ export class Starfield {
     }));
     galaxyMat.transparent = true;
     const galaxy = new THREE.Points(geom, galaxyMat);
-    galaxy.matrixAutoUpdate = false;
     galaxy.scale.set(galaxyDiameter, galaxyDiameter, galaxyDiameter);
     galaxy.translateX(galaxyDiameter * 0.5);
     galaxy.translateZ(-galaxyDiameter * 0.19);
     galaxy.rotateX(0.1 * TAU);
     galaxy.rotateY(0.05 * TAU);
     galaxy.updateMatrix();
+    galaxy.updateMatrixWorld();
     this.scene.addObject(lt, galaxy);
     return galaxy;
   }
@@ -182,9 +182,9 @@ export class Starfield {
       size: localSize,
     }));
     const local = new THREE.Points(geom, localMat);
-    local.matrixAutoUpdate = false;
     local.scale.set(localDiameter, localDiameter, localDiameter);
     local.updateMatrix();
+    local.updateMatrixWorld();
     this.scene.addObject(lt, local);
     return local;
   }

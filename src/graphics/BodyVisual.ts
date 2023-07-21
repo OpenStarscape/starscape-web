@@ -8,6 +8,7 @@ import type { Game, Spatial } from '../game'
 import type { Scene } from './Scene'
 
 const yVec = new THREE.Vector3(0, 1, 0);
+const emptyGeom = new THREE.BufferGeometry();
 
 function createColorMaterialPair(
   lt: Lifetime,
@@ -20,13 +21,6 @@ function createColorMaterialPair(
     wireMat.color.setStyle(color);
   });
   return [solidMat, wireMat];
-}
-
-function createMesh(lt: Lifetime, scene: Scene): THREE.Mesh {
-  const mesh = new THREE.Mesh();
-  mesh.matrixAutoUpdate = false;
-  scene.addObject(lt, mesh);
-  return mesh;
 }
 
 function createCelestialGeom(lt: Lifetime, mesh: THREE.Mesh, size: number) {
@@ -50,16 +44,21 @@ function scaleMeshToView(
   scene: Scene,
   mesh: THREE.Mesh,
   size: number,
-  matPair: [THREE.Material, THREE.Material],
+  farMat: THREE.Material | null,
+  closeMat: THREE.Material | null,
 ) {
   const dist = mesh.position.distanceTo(scene.camera.position);
   const scale = dist / 100 / size;
   if (scale > 1) {
     mesh.scale.setScalar(scale);
-    mesh.material = matPair[0];
+    if (farMat) {
+      mesh.material = farMat;
+    }
   } else {
     mesh.scale.setScalar(1);
-    mesh.material = matPair[1];
+    if (closeMat) {
+      mesh.material = closeMat;
+    }
   }
 }
 
@@ -72,8 +71,8 @@ function createThrustIndicator(lt: Lifetime, scene: Scene, spatial: Spatial) {
   const mat = lt.own(new THREE.MeshBasicMaterial({color: 0xFFA000}));
   const geom = lt.own(new THREE.ConeGeometry(0.0007, 0.01, 5));
   geom.translate(0, 0.007, 0);
-  const mesh = createMesh(lt, scene);
-  mesh.geometry = geom;
+  const mesh = new THREE.Mesh(geom, mat);
+  scene.addObject(lt, mesh);
   const getAccel = spatial.body.obj.property('accel', Vec3).getter(lt);
   const thrust = new THREE.Vector3();
   scene.subscribe(lt, () => {
@@ -83,10 +82,11 @@ function createThrustIndicator(lt: Lifetime, scene: Scene, spatial: Spatial) {
     const magnitude = thrust.length();
     if (thrust.lengthSq() > 0.0005 && spatial.isReady()) {
       spatial.copyPositionInto(mesh.position);
-      scaleMeshToView(scene, mesh, 0.001, [mat, mat]);
+      scaleMeshToView(scene, mesh, 0.001, null, null);
       mesh.scale.y *= -magnitude;
       pointObject3DInDirection(mesh, thrust);
       mesh.updateMatrix();
+      mesh.updateMatrixWorld();
       mesh.visible = true;
     } else {
       mesh.visible = false;
@@ -100,10 +100,11 @@ export function newBodyVisual(scene: Scene, game: Game, obj: SsObject) {
   const spatial = body.spatial(lt);
   let getSize = body.size.getter(lt);
 
-  const mesh = createMesh(lt, scene);
-  const matPair = createColorMaterialPair(lt, body.color);
+  const [farMat, nearMat] = createColorMaterialPair(lt, body.color);
   const hudElement = new CSS2DObject(bodyHUD(lt, spatial));
+  const mesh = new THREE.Mesh(emptyGeom, farMat);
   mesh.visible = false; // Shouldn't be needed because geom is empty, but see https://github.com/mrdoob/three.js/issues/26464
+  scene.addObject(lt, mesh);
   object3DAddChild(lt, mesh, hudElement);
   ellipticalOrbit(lt, scene, spatial);
 
@@ -112,7 +113,7 @@ export function newBodyVisual(scene: Scene, game: Game, obj: SsObject) {
   scene.subscribe(lt, () => {
     spatial.copyPositionInto(mesh.position);
     const displaySize = (getSize() || 0) * 0.75;
-    scaleMeshToView(scene, mesh, displaySize, matPair);
+    scaleMeshToView(scene, mesh, displaySize, farMat, nearMat);
     if (getAccel) {
       thrust.set(0, 0, 0);
       const accel = getAccel();
@@ -121,6 +122,7 @@ export function newBodyVisual(scene: Scene, game: Game, obj: SsObject) {
       pointObject3DInDirection(mesh, thrust)
     }
     mesh.updateMatrix();
+    mesh.updateMatrixWorld();
   });
 
   obj.property('class', String).getThen(lt, cls => {
