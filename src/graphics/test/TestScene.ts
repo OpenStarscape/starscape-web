@@ -4,21 +4,21 @@ import { Lifetime, LocalAction } from '../../core';
 // Lifetime mock
 const mockLt = {
   own: (d: any) => { return d; },
-  addCallback: (c: any) => {},
+  addCallback: (_c: any) => {},
 } as unknown as Lifetime;
 
 test('Can construct Scene without animation', () => {
-  new Scene(mockLt, document.createElement('div'), null);
+  new Scene(mockLt, null);
 });
 
 test('Can construct Scene with animation', () => {
   const timer: any = new LocalAction();
-  new Scene(mockLt, document.createElement('div'), timer);
+  new Scene(mockLt, timer);
 });
 
 test('Updates subscribers on frame', () => {
   const timer: any = new LocalAction();
-  const scene = new Scene(mockLt, document.createElement('div'), timer);
+  const scene = new Scene(mockLt, timer);
   let calls = 0;
   scene.subscribe(mockLt, () => {
     calls += 1;

@@ -12,42 +12,45 @@ const NEAR = 1e-6, FAR = 1e27;
 
 /// Manages everything required to render a scene with THREE.js, subscribers are notified each frame
 export class Scene extends Conduit<null> {
+  readonly div = document.createElement('div');
   readonly scene = new THREE.Scene();
   readonly camera = new THREE.PerspectiveCamera(75, 1, NEAR, FAR);
-  readonly normalRenderer: THREE.WebGLRenderer;
+  readonly normalRenderer?: THREE.WebGLRenderer;
   readonly overlayRenderer: CSS2DRenderer;
 
   private autoRender: boolean;
 
   constructor(
     readonly lt: Lifetime,
-    div: HTMLDivElement,
     animation: AnimationTimer | null,
   ) {
     super();
+
+    this.div.style.writingMode = 'horizontal-tb';
+    this.div.style.width = '100%';
+    this.div.style.height = '100%';
 
     try {
       this.normalRenderer = this.lt.own(new THREE.WebGLRenderer({
         antialias: true,
         logarithmicDepthBuffer: true
       }));
+      this.normalRenderer.setPixelRatio(window.devicePixelRatio);
+      this.normalRenderer.domElement.style.width = '100%'
+      this.normalRenderer.domElement.style.height = '100%'
+      this.div.appendChild(this.normalRenderer.domElement);
     } catch (e) {
-      // TODO: some standard mechanism for alerts that looks good?
-      window.alert('Failed to initialize WebGL: ' + messageFromError(e));
-      throw (e);
+      const p = document.createElement('p');
+      p.textContent = 'Failed to initialize WebGL: ' + messageFromError(e);
+      this.div.appendChild(p);
     }
-
-    this.normalRenderer.setPixelRatio(window.devicePixelRatio);
-    this.normalRenderer.domElement.style.width = '100%'
-    this.normalRenderer.domElement.style.height = '100%'
-    div.appendChild(this.normalRenderer.domElement);
 
     this.overlayRenderer = new CSS2DRenderer();
     this.overlayRenderer.domElement.style.position = 'absolute';
     this.overlayRenderer.domElement.style.top = '0px';
     this.overlayRenderer.domElement.style.width = '100%'
     this.overlayRenderer.domElement.style.height = '100%'
-    div.appendChild(this.overlayRenderer.domElement);
+    this.div.appendChild(this.overlayRenderer.domElement);
 
     this.scene.add(this.camera); // only required so children of the camera are visible
 
@@ -55,14 +58,14 @@ export class Scene extends Conduit<null> {
       const box = entries[0].contentBoxSize[0];
       this.resize(box.inlineSize, box.blockSize);
     });
-    resizeObserver.observe(div);
+    resizeObserver.observe(this.div);
 
     lt.addCallback(() => {
-      resizeObserver.unobserve(div);
+      resizeObserver.unobserve(this.div);
       this.subscribers.clear(); // not needed, just to help the garbage collector
     });
 
-    this.resize(div.clientWidth, div.clientHeight);
+    this.resize(this.div.clientWidth, this.div.clientHeight);
     this.autoRender = animation !== null;
     if (animation !== null) {
       animation.subscribe(this.lt, () => this.render());
@@ -80,7 +83,9 @@ export class Scene extends Conduit<null> {
   protected override subscriberAdded(_subscriber: Subscriber<null>): void {}
 
   private resize(width: number, height: number) {
-    this.normalRenderer.setSize(width, height);
+    if (this.normalRenderer) {
+      this.normalRenderer.setSize(width, height);
+    }
     this.overlayRenderer.setSize(width, height);
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
@@ -91,7 +96,9 @@ export class Scene extends Conduit<null> {
 
   render() {
     this.sendToAllSubscribers(null);
-    this.normalRenderer.render(this.scene, this.camera);
+    if (this.normalRenderer) {
+      this.normalRenderer.render(this.scene, this.camera);
+    }
     this.overlayRenderer.render(this.scene, this.camera);
   }
 }

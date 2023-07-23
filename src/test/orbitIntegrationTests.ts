@@ -1,5 +1,8 @@
-import { integrationTest, TestStatus } from './integrationTests';
+import * as THREE from 'three';
+import { integrationTest, TestStatus, withBodyWithName } from './integrationTests';
 import { Vec3 } from '../core';
+import { ConnectingLine } from '../graphics';
+import { Spatial } from '../game';
 
 type OrbitTestCase = {
   name: string,
@@ -15,7 +18,7 @@ const orbitTestData: OrbitTestCase[] = require('./orbit-test-data.json')
 const gravConstant = 6.67430e-17;
 
 orbitTestData.forEach(params => {
-  integrationTest(params.name, (lt, game, status) => {
+  integrationTest(params.name, (lt, game, scene, status) => {
     game.root.action('reset', null).fire(null);
     game.root.property('time_per_time', Number).set(0);
     let pause_time = Infinity;
@@ -41,6 +44,31 @@ orbitTestData.forEach(params => {
       radius: 0.02,
       mass: centralMass / 100000,
     });
+
+    const dashedLineMat = lt.own(new THREE.LineDashedMaterial( {
+      color: '#808080',
+      linewidth: 2,
+      scale: 100,
+    }));
+    const errorLine = new ConnectingLine(dashedLineMat);
+    errorLine.line.visible = false;
+    scene.addObject(lt, errorLine.line);
+    startPos.copyInto(errorLine.a);
+    let satelliteSpatial: Spatial | null = null;
+    withBodyWithName(lt, game, 'Satellite', body => {
+      const spatial = body.spatial(lt);
+      spatial.onReady(() => {
+        satelliteSpatial = spatial;
+      })
+    });
+    scene.subscribe(lt, () => {
+      if (satelliteSpatial) {
+        satelliteSpatial.copyPositionInto(errorLine.b);
+        errorLine.line.visible = true;
+        errorLine.update();
+      }
+    });
+
     game.root.property('min_roundtrip_time', Number).set(0);
     game.root.property('time_per_time', Number).set(100);
     game.root.signal('paused', Number).subscribe(lt, t => {
@@ -53,8 +81,10 @@ orbitTestData.forEach(params => {
                 const semiMajor = params.orbit[0];
                 const proportional = distance / semiMajor;
                 if (proportional < 0.1) {
+                  dashedLineMat.color.set('#00FF00');
                   status.set(TestStatus.Passed);
                 } else {
+                  dashedLineMat.color.set('#FF0000');
                   console.error(
                     'body ended up ' + distance + ' away from expected (' +
                     proportional + ' length of semi-major), which is too much');

@@ -1,7 +1,7 @@
 import { Lifetime, Vec3 } from '../core';
 import { SsObject } from '../protocol';
 import { Game } from '../game';
-import { spaceScene } from '../graphics';
+import { SpaceScene } from '../graphics';
 import { shipNameField, gameStats, navPanel, weaponsPanel } from '.';
 
 export function overlay(lt: Lifetime, game: Game): HTMLElement {
@@ -18,7 +18,8 @@ export function gameContainer(lt: Lifetime, game: Game): HTMLElement {
   stack.style.width = '100%'
   stack.style.height = '100%'
 
-  stack.appendChild(spaceScene(lt, game));
+  const scene = new SpaceScene(lt, game);
+  stack.appendChild(scene.div);
 
   stack.appendChild(overlay(lt, game));
 

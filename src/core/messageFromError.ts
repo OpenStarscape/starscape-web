@@ -8,7 +8,6 @@ export function messageFromError(err: unknown): string {
     typeof (err as any).message === 'string'
   ) {
     return (err as any).message;
-
   } else if (typeof err === 'string') {
     return err;
   } else {
