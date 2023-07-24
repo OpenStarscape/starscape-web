@@ -45,14 +45,10 @@ orbitTestData.forEach(params => {
       mass: centralMass / 100000,
     });
 
-    const dashedLineMat = lt.own(new THREE.LineDashedMaterial( {
-      color: '#808080',
-      linewidth: 2,
-      scale: 100,
-    }));
-    const errorLine = new ConnectingLine(dashedLineMat);
-    errorLine.line.visible = false;
-    scene.addObject(lt, errorLine.line);
+    const errorLine = new ConnectingLine(lt, 10);
+    errorLine.mat.color.set('#808080');
+    scene.addObject(lt, errorLine);
+    errorLine.visible = false;
     startPos.copyInto(errorLine.a);
     let satelliteSpatial: Spatial | null = null;
     withBodyWithName(lt, game, 'Satellite', body => {
@@ -64,13 +60,13 @@ orbitTestData.forEach(params => {
     scene.subscribe(lt, () => {
       if (satelliteSpatial) {
         satelliteSpatial.copyPositionInto(errorLine.b);
-        errorLine.line.visible = true;
+        errorLine.visible = true;
         errorLine.update();
       }
     });
 
     game.root.property('min_roundtrip_time', Number).set(0);
-    game.root.property('time_per_time', Number).set(100);
+    game.root.property('time_per_time', Number).set(1);
     game.root.signal('paused', Number).subscribe(lt, t => {
       if (t >= pause_time) {
         game.bodies.subscribe(lt, ([_, body]) => {
@@ -81,10 +77,10 @@ orbitTestData.forEach(params => {
                 const semiMajor = params.orbit[0];
                 const proportional = distance / semiMajor;
                 if (proportional < 0.1) {
-                  dashedLineMat.color.set('#00FF00');
+                  errorLine.mat.color.set('#00FF00');
                   status.set(TestStatus.Passed);
                 } else {
-                  dashedLineMat.color.set('#FF0000');
+                  errorLine.mat.color.set('#FF0000');
                   console.error(
                     'body ended up ' + distance + ' away from expected (' +
                     proportional + ' length of semi-major), which is too much');
