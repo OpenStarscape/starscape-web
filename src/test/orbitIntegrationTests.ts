@@ -2,7 +2,6 @@ import * as THREE from 'three';
 import { integrationTest, TestStatus, withBodyWithName, withSpatialWithName } from './integrationTests';
 import { Vec3 } from '../core';
 import { ConnectingLine } from '../graphics';
-import { Spatial } from '../game';
 
 type OrbitTestCase = {
   name: string,
@@ -16,9 +15,10 @@ type OrbitTestCase = {
 const orbitTestData: OrbitTestCase[] = require('./orbit-test-data.json')
 
 const gravConstant = 6.67430e-17;
+const suiteName = 'Orbit';
 
 orbitTestData.forEach(params => {
-  integrationTest(params.name, (lt, game, scene, status) => {
+  integrationTest(suiteName, params.name, (lt, game, scene, status) => {
     game.root.action('reset', null).fire(null);
     game.root.property('time_per_time', Number).set(0);
     let pause_time = Infinity;
