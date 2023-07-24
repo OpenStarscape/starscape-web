@@ -1,4 +1,4 @@
-import { Game, Body } from '../game'
+import { Game, Body, Spatial } from '../game'
 import { DependentLifetime, Lifetime, LocalProperty } from '../core';
 import { Scene } from '../graphics';
 import { errorMessage } from '../ui';
@@ -39,6 +39,15 @@ export function withBodyWithName(lt: Lifetime, game: Game, name: string, callbac
         callback(game.getBody(body));
       }
     });
+  });
+}
+
+export function withSpatialWithName(lt: Lifetime, game: Game, name: string, callback: (spatial: Spatial) => void) {
+  withBodyWithName(lt, game, name, body => {
+    const spatial = body.spatial(lt);
+    spatial.onReady(() => {
+      callback(spatial);
+    })
   });
 }
 

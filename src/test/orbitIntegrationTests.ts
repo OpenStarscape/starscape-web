@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { integrationTest, TestStatus, withBodyWithName } from './integrationTests';
+import { integrationTest, TestStatus, withBodyWithName, withSpatialWithName } from './integrationTests';
 import { Vec3 } from '../core';
 import { ConnectingLine } from '../graphics';
 import { Spatial } from '../game';
@@ -26,6 +26,8 @@ orbitTestData.forEach(params => {
       pause_time = time + params.orbit[6];
       game.root.property('pause_at', {nullable: Number}).set(pause_time);
     });
+
+    const startPos = new Vec3(params.position);
     const createCelestial = game.root
       .action('create_celestial', undefined);
     const centralMass = params.grav_param / gravConstant;
@@ -35,7 +37,6 @@ orbitTestData.forEach(params => {
       radius: 0.1,
       mass: centralMass,
     });
-    const startPos = new Vec3(params.position);
     createCelestial.fire({
       name: 'Satellite',
       color: '#FFFFFF',
@@ -50,47 +51,37 @@ orbitTestData.forEach(params => {
     scene.addObject(lt, errorLine);
     errorLine.visible = false;
     startPos.copyInto(errorLine.a);
-    let satelliteSpatial: Spatial | null = null;
-    withBodyWithName(lt, game, 'Satellite', body => {
-      const spatial = body.spatial(lt);
-      spatial.onReady(() => {
-        satelliteSpatial = spatial;
-      })
-    });
-    scene.subscribe(lt, () => {
-      if (satelliteSpatial) {
-        satelliteSpatial.copyPositionInto(errorLine.b);
+    withSpatialWithName(lt, game, 'Satellite', spatial => {
+      scene.subscribe(lt, () => {
+        spatial.copyPositionInto(errorLine.b);
         errorLine.visible = true;
         errorLine.update();
-      }
+      });
     });
 
-    game.root.property('min_roundtrip_time', Number).set(0);
-    game.root.property('time_per_time', Number).set(1);
     game.root.signal('paused', Number).subscribe(lt, t => {
       if (t >= pause_time) {
-        game.bodies.subscribe(lt, ([_, body]) => {
-          body.property('name', {nullable: String}).getThen(lt, name => {
-            if (name == 'Satellite') {
-              body.property('position', Vec3).getThen(lt, position => {
-                const distance = position.newThreeVector3().distanceTo(startPos.newThreeVector3());
-                const semiMajor = params.orbit[0];
-                const proportional = distance / semiMajor;
-                if (proportional < 0.1) {
-                  errorLine.mat.color.set('#00FF00');
-                  status.set(TestStatus.Passed);
-                } else {
-                  errorLine.mat.color.set('#FF0000');
-                  console.error(
-                    'body ended up ' + distance + ' away from expected (' +
-                    proportional + ' length of semi-major), which is too much');
-                  status.set(TestStatus.Failed);
-                }
-              });
+        withBodyWithName(lt, game, 'Satellite', body => {
+          body.obj.property('position', Vec3).getThen(lt, position => {
+            const distance = position.newThreeVector3().distanceTo(startPos.newThreeVector3());
+            const semiMajor = params.orbit[0];
+            const proportional = distance / semiMajor;
+            if (proportional < 0.1) {
+              errorLine.mat.color.set('#00FF00');
+              status.set(TestStatus.Passed);
+            } else {
+              errorLine.mat.color.set('#FF0000');
+              console.error(
+                'body ended up ' + distance + ' away from expected (' +
+                proportional + ' length of semi-major), which is too much');
+              status.set(TestStatus.Failed);
             }
           });
         });
       }
     });
+
+    game.root.property('min_roundtrip_time', Number).set(0);
+    game.root.property('time_per_time', Number).set(100);
   });
 });
