@@ -34,10 +34,10 @@ export function gameContainer(lt: Lifetime, game: Game): HTMLElement {
     shipCreatedLt.kill(); // only handle this callback once
   });
 
-  game.root.action('create_ship', [Vec3, Vec3]).fire([
-    new Vec3(150, 0, 10),
-    new Vec3(0, 30, 0),
-  ]);
+  game.root.action('create_ship', undefined).fire({
+    position: new Vec3(150, 0, 10),
+    velocity: new Vec3(0, 30, 0),
+  });
 
   return stack;
 }

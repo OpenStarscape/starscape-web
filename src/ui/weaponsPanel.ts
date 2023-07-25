@@ -29,16 +29,20 @@ export function weaponsPanel(lt: Lifetime, game: Game): HTMLElement {
     if (target === null) {
       return;
     }
+    const missileName = 'missile ' + Math.floor(Math.random() * 10000).toString().padStart(4, '0');
     game.root.signal('ship_created', SsObject).subscribe(shipCreatedLt, obj => {
-      shipCreatedLt.kill(); // only handle this callback once
       const missile = game.getBody(obj);
-      missile.name.set('missile');
-      if (target !== null) {
-        Nav.applyState(missile, {
-          scheme: Nav.Scheme.Dock,
-          target: target,
-        });
-      }
+      missile.name.getThen(shipCreatedLt, name => {
+        if (name === missileName) {
+          shipCreatedLt.kill(); // only handle this callback once
+          if (target !== null) {
+            Nav.applyState(missile, {
+              scheme: Nav.Scheme.Dock,
+              target: target,
+            });
+          }
+        }
+      })
     });
     const currentSpatial = currentShip.spatial(shipCreatedLt);
     currentSpatial.onReady(() => {
@@ -47,10 +51,11 @@ export function weaponsPanel(lt: Lifetime, game: Game): HTMLElement {
       currentSpatial.copyPositionInto(pos);
       currentSpatial.copyVelocityInto(vel);
       pos.add(vel.clone().multiplyScalar(0.03));
-      game.root.action('create_ship', [Vec3, Vec3]).fire([
-        new Vec3(pos),
-        new Vec3(vel),
-      ]);
+      game.root.action('create_ship', undefined).fire({
+        name: missileName,
+        position: new Vec3(pos),
+        velocity: new Vec3(vel),
+      });
     });
   });
   div.appendChild(fireButton);
