@@ -4,6 +4,7 @@ import { Scene } from '../graphics';
 import { errorMessage } from '../ui';
 import { SpaceScene } from '../graphics';
 import './orbitIntegrationTests';
+import './autopilotIntegrationTests';
 
 export enum TestStatus {
   Idle,
@@ -71,7 +72,13 @@ function runTest(parentLt: Lifetime, test: TestData, game: Game, scene: Scene) {
     }
   });
   test.status.set(TestStatus.Running);
-  test.func(lt, game, scene, test.status);
+  game.root.action('reset', null).fire(null);
+  game.root.property('time_per_time', Number).set(0);
+  setTimeout(() => {
+    if (lt.alive()) {
+      test.func(lt, game, scene, test.status);
+    }
+  }, 200);
 }
 
 function runAllTests(lt: Lifetime, game: Game, scene: Scene) {

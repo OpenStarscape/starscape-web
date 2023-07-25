@@ -19,8 +19,6 @@ const suiteName = 'Orbit';
 
 orbitTestData.forEach(params => {
   integrationTest(suiteName, params.name, (lt, game, scene, status) => {
-    game.root.action('reset', null).fire(null);
-    game.root.property('time_per_time', Number).set(0);
     let pause_time = Infinity;
     game.root.property('time', Number).getThen(lt, time => {
       pause_time = time + params.orbit[6];
