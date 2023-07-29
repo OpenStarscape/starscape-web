@@ -12,8 +12,8 @@ function simpleMissileCase(
   lt: Lifetime, game: Game, scene: Scene, status: LocalProperty<TestStatus>,
   targetPos: Vec3, targetVel: Vec3,
   subjectPos: Vec3, subjectVel: Vec3,
-  pauseTime: number
 ) {
+  let pauseTime = 120;
   game.root.property('time', Number).getThen(lt, time => {
     pauseTime += time;
     game.root.property('pause_at', {nullable: Number}).set(pauseTime);
@@ -47,6 +47,12 @@ function simpleMissileCase(
 
   withSpatialWithName(lt, game, 'Ship', ship => {
     withSpatialWithName(lt, game, 'Target', target => {
+      game.root.action('pause_on_proximity', undefined).fire({
+        a: ship.body.obj,
+        b: target.body.obj,
+        distance: 0.05,
+        velocity: 0.05,
+      });
       Nav.applyState(ship.body, {
         scheme: Nav.Scheme.Dock,
         target: target.body,
@@ -89,7 +95,6 @@ integrationTest(suiteName, 'catches up quarter turn on flat circular', (lt, game
     lt, game, scene, status,
     new Vec3(1, 0, 0), new Vec3(0, 1, 0),
     new Vec3(0, -1, 0), new Vec3(1, 0, 0),
-    20
   );
 });
 
@@ -99,6 +104,5 @@ integrationTest(suiteName, 'catches up quarter turn on tilted circular', (lt, ga
     lt, game, scene, status,
     new Vec3(1, 0, 0), new Vec3(0, 1, 0),
     new Vec3(0, -1, 0), new Vec3(Math.cos(angle), 0, Math.sin(angle)),
-    20
   );
 });
