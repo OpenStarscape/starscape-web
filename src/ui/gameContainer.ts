@@ -37,6 +37,7 @@ export function gameContainer(lt: Lifetime, game: Game): HTMLElement {
   game.root.action('create_ship', undefined).fire({
     position: new Vec3(150, 0, 10),
     velocity: new Vec3(0, 30, 0),
+    max_accel: 1.0,
   });
 
   return stack;

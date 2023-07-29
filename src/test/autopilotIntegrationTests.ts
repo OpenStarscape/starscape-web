@@ -30,11 +30,14 @@ function simpleMissileCase(
     name: 'Target',
     position: targetPos,
     velocity: targetVel,
+    radius: 0,
   });
   createShip.fire({
-    name: 'Ship',
+    name: 'Missile',
     position: subjectPos,
     velocity: subjectVel,
+    radius: 0,
+    max_accel: 0.1,
   });
 
   const errorLine = new ConnectingLine(lt, 10);
@@ -42,7 +45,7 @@ function simpleMissileCase(
   scene.addObject(lt, errorLine);
   errorLine.visible = false;
 
-  withSpatialWithName(lt, game, 'Ship', ship => {
+  withSpatialWithName(lt, game, 'Missile', ship => {
     withSpatialWithName(lt, game, 'Target', target => {
       game.root.action('pause_on_proximity', undefined).fire({
         a: ship.body.obj,
