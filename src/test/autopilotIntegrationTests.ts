@@ -9,15 +9,12 @@ const suiteName = 'Autopilot';
 const TAU = 2 * Math.PI;
 
 function simpleMissileCase(
-  lt: Lifetime, game: Game, scene: Scene, status: LocalProperty<TestStatus>,
+  lt: Lifetime, game: Game, scene: Scene,
+  result: (status: TestStatus, score: null | number) => void,
   targetPos: Vec3, targetVel: Vec3,
   subjectPos: Vec3, subjectVel: Vec3,
 ) {
   let pauseTime = 120;
-  game.root.property('time', Number).getThen(lt, time => {
-    pauseTime += time;
-    game.root.property('pause_at', {nullable: Number}).set(pauseTime);
-  });
 
   const createCelestial = game.root.action('create_celestial', undefined);
   const createShip = game.root.action('create_ship', undefined);
@@ -69,39 +66,28 @@ function simpleMissileCase(
 
   game.root.signal('paused', Number).subscribe(lt, t => {
     if (t >= pauseTime) {
-      withBodyWithName(lt, game, 'Ship', ship => {
-        withBodyWithName(lt, game, 'Target', target => {
-          ship.obj.property('position', Vec3).getThen(lt, shipPos => {
-            target.obj.property('position', Vec3).getThen(lt, targetPos => {
-              const distance = shipPos.newThreeVector3().distanceTo(targetPos.newThreeVector3());
-              if (distance < 0.1) {
-                errorLine.mat.color.set('#00FF00');
-                status.set(TestStatus.Passed);
-              } else {
-                errorLine.mat.color.set('#FF0000');
-                console.error('ship ended up ' + distance + ' away from target, which is too much');
-                status.set(TestStatus.Failed);
-              }
-            });
-          });
-        });
-      });
+      errorLine.mat.color.set('#FF0000');
+      console.error('ship failed to approach target');
+      result(TestStatus.Failed, null);
+    } else {
+      errorLine.mat.color.set('#00FF00');
+      result(TestStatus.Passed, t);
     }
   });
 }
 
-integrationTest(suiteName, 'catches up quarter turn on flat circular', (lt, game, scene, status) => {
+integrationTest(suiteName, 'catches up quarter turn on flat circular', (lt, game, scene, result) => {
   simpleMissileCase(
-    lt, game, scene, status,
+    lt, game, scene, result,
     new Vec3(1, 0, 0), new Vec3(0, 1, 0),
     new Vec3(0, -1, 0), new Vec3(1, 0, 0),
   );
 });
 
-integrationTest(suiteName, 'catches up quarter turn on tilted circular', (lt, game, scene, status) => {
+integrationTest(suiteName, 'catches up quarter turn on tilted circular', (lt, game, scene, result) => {
   const angle = 0.1 * TAU;
   simpleMissileCase(
-    lt, game, scene, status,
+    lt, game, scene, result,
     new Vec3(1, 0, 0), new Vec3(0, 1, 0),
     new Vec3(0, -1, 0), new Vec3(Math.cos(angle), 0, Math.sin(angle)),
   );

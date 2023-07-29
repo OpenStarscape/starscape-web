@@ -13,12 +13,18 @@ export enum TestStatus {
   Failed,
 }
 
-type TestFunc = (lt: Lifetime, game: Game, scene: Scene, status: LocalProperty<TestStatus>) => void;
+type TestFunc = (
+  lt: Lifetime,
+  game: Game,
+  scene: Scene,
+  result: (status: TestStatus, score: null | number) => void
+) => void;
 type TestData = {
   suite: string,
   name: string,
   func: TestFunc,
   status: LocalProperty<TestStatus>,
+  score: null | number,
 };
 let currentRunningTestLt: DependentLifetime | null = null;
 let suitesEnabled: Map<string, boolean>;
@@ -34,6 +40,7 @@ export function integrationTest(suite: string, name: string, func: TestFunc) {
     name: name,
     func: func,
     status: new LocalProperty<TestStatus>(TestStatus.Idle),
+    score: null,
   });
   if (!suitesEnabled.has(suite)) {
     suitesEnabled.set(suite, false);
@@ -72,12 +79,15 @@ function runTest(parentLt: Lifetime, test: TestData, game: Game, scene: Scene) {
     }
   });
   test.status.set(TestStatus.Running);
-  game.root.action('reset', null).fire(null);
   setPaused(game, true);
+  game.root.action('reset', null).fire(null);
   // TODO: wait for reset to actually complete instead of waiting for a timeout
   setTimeout(() => {
     if (lt.alive()) {
-      test.func(lt, game, scene, test.status);
+      test.func(lt, game, scene, (status: TestStatus, score: null | number) => {
+        test.score = score;
+        test.status.set(status);
+      });
     }
   }, 200);
 }

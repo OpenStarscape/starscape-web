@@ -12,18 +12,15 @@ type OrbitTestCase = {
   velocity: [number, number, number],
 };
 
-const orbitTestData: OrbitTestCase[] = require('./orbit-test-data.json')
+const orbitTestData: OrbitTestCase[] = require('./orbit-test-data.json');
 
 const gravConstant = 6.67430e-17;
 const suiteName = 'Orbit';
 
 orbitTestData.forEach(params => {
-  integrationTest(suiteName, params.name, (lt, game, scene, status) => {
-    let pause_time = Infinity;
-    game.root.property('time', Number).getThen(lt, time => {
-      pause_time = time + params.orbit[6];
-      game.root.property('pause_at', {nullable: Number}).set(pause_time);
-    });
+  integrationTest(suiteName, params.name, (lt, game, scene, result) => {
+    const pauseTime = params.orbit[6];
+    game.root.property('pause_at', {nullable: Number}).set(pauseTime);
 
     const startPos = new Vec3(params.position);
     const createCelestial = game.root
@@ -58,7 +55,7 @@ orbitTestData.forEach(params => {
     });
 
     game.root.signal('paused', Number).subscribe(lt, t => {
-      if (t >= pause_time) {
+      if (t >= pauseTime) {
         withBodyWithName(lt, game, 'Satellite', body => {
           body.obj.property('position', Vec3).getThen(lt, position => {
             const distance = position.newThreeVector3().distanceTo(startPos.newThreeVector3());
@@ -66,13 +63,13 @@ orbitTestData.forEach(params => {
             const proportional = distance / semiMajor;
             if (proportional < 0.1) {
               errorLine.mat.color.set('#00FF00');
-              status.set(TestStatus.Passed);
+              result(TestStatus.Passed, null);
             } else {
               errorLine.mat.color.set('#FF0000');
               console.error(
                 'body ended up ' + distance + ' away from expected (' +
                 proportional + ' length of semi-major), which is too much');
-              status.set(TestStatus.Failed);
+              result(TestStatus.Failed, null);
             }
           });
         });
