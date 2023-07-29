@@ -112,7 +112,7 @@ export function newBodyVisual(scene: Scene, game: Game, obj: SsObject) {
   const thrust = new THREE.Vector3();
   scene.subscribe(lt, () => {
     spatial.copyPositionInto(mesh.position);
-    const displaySize = Math.max(getSize() || 0, 1) * 0.75;
+    const displaySize = Math.max(getSize() || 0, 0.001) * 0.75;
     scaleMeshToView(scene, mesh, displaySize, farMat, nearMat);
     if (getAccel) {
       thrust.set(0, 0, 0);
@@ -128,14 +128,14 @@ export function newBodyVisual(scene: Scene, game: Game, obj: SsObject) {
   obj.property('class', String).getThen(lt, cls => {
     if (cls === 'celestial') {
       body.size.getThen(lt, s => {
-        createCelestialGeom(lt, mesh, Math.max(s, 1));
+        createCelestialGeom(lt, mesh, Math.max(s, 0.001));
         mesh.visible = true;
       });
     } else if (cls === 'ship') {
       getAccel = spatial.body.obj.property('accel', Vec3).getter(lt);
       createThrustIndicator(lt, scene, spatial);
       body.size.getThen(lt, s => {
-        createShipGeom(lt, mesh, Math.max(s, 1));
+        createShipGeom(lt, mesh, Math.max(s, 0.001));
         mesh.visible = true;
       });
     } else {

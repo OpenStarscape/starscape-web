@@ -72,7 +72,7 @@ function simpleMissileCase(
     if (t >= pauseTime) {
       errorLine.mat.color.set('#FF0000');
       console.error('ship failed to approach target');
-      result({time: Infinity});
+      result({passed: 0});
     } else {
       errorLine.mat.color.set('#00FF00');
       result({time: t});
