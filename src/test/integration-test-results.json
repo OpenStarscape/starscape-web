@@ -194,16 +194,134 @@
     },
     "Autopilot: quarter turn on flat circular": {
       "passed": 1,
-      "time": 4.259999999999997
+      "time": 3.940000000000003
     },
     "Autopilot: quarter turn on tilted circular": {
       "passed": 1,
-      "time": 4.2399999999999975
+      "time": 4.060000000000001
+    },
+    "Autopilot: half turn on elliptical": {
+      "passed": 1,
+      "time": 3.4400000000000026
     },
     "Autopilot: far away from central body": {
       "passed": 1,
-      "time": 3.3400000000000025
+      "time": 2.540000000000002
     },
-    "recorded_at": 1690667388
+    "Autopilot: target orbiting planet orbiting sun": {
+      "passed": 1,
+      "time": 5.019999999999981
+    },
+    "recorded_at": 1690667724
+  },
+  {
+    "Orbit: start of default orbit": {
+      "passed": 1
+    },
+    "Orbit: quarter past default orbit": {
+      "passed": 1
+    },
+    "Orbit: half past default orbit": {
+      "passed": 1
+    },
+    "Orbit: three quarters past default orbit": {
+      "passed": 1
+    },
+    "Orbit: full rotation default orbit": {
+      "passed": 1
+    },
+    "Orbit: half past orbit with grav param": {
+      "passed": 1
+    },
+    "Orbit: start of inclined orbit": {
+      "passed": 1
+    },
+    "Orbit: quarter past inclined orbit": {
+      "passed": 1
+    },
+    "Orbit: half past inclined orbit": {
+      "passed": 1
+    },
+    "Orbit: start of 90deg ascending node": {
+      "passed": 1
+    },
+    "Orbit: quarter past 90deg ascending node": {
+      "passed": 1
+    },
+    "Orbit: half past 90deg ascending node": {
+      "passed": 1
+    },
+    "Orbit: start of flat eliptical": {
+      "passed": 1
+    },
+    "Orbit: start of flat eliptical with start time": {
+      "passed": 1
+    },
+    "Orbit: half past flat eliptical": {
+      "passed": 1
+    },
+    "Orbit: half past flat eliptical with negative base time": {
+      "passed": 1
+    },
+    "Orbit: half past flat eliptical with base time after current time": {
+      "passed": 1
+    },
+    "Orbit: start of inclined eliptical": {
+      "passed": 1
+    },
+    "Orbit: start of eliptical with 90deg ascending node": {
+      "passed": 1
+    },
+    "Orbit: start of eliptical with 90deg periapsis": {
+      "passed": 1
+    },
+    "Orbit: half past eliptical with 90deg periapsis": {
+      "passed": 1
+    },
+    "Orbit: start of eliptical with 90deg periapsis and 90deg ascending node": {
+      "passed": 1
+    },
+    "Orbit: half past eliptical with 90deg periapsis and 90deg ascending node": {
+      "passed": 1
+    },
+    "Orbit: half past eliptical with 90deg periapsis and grav param": {
+      "passed": 1
+    },
+    "Orbit: quarter past flat eliptical": {
+      "passed": 1
+    },
+    "Orbit: quarter past eliptical with 90deg periapsis and 90deg ascending node": {
+      "passed": 1
+    },
+    "Orbit: quarter past eliptical with 90deg periapsis and grav param": {
+      "passed": 1
+    },
+    "Orbit: quarter past flat eliptical with negative base time": {
+      "passed": 1
+    },
+    "Orbit: quarter past flat eliptical with base time after current time": {
+      "passed": 1
+    },
+    "Autopilot: quarter turn on flat circular": {
+      "passed": 1,
+      "time": 3.920000000000003
+    },
+    "Autopilot: quarter turn on tilted circular": {
+      "passed": 1,
+      "time": 4.040000000000002
+    },
+    "Autopilot: half turn on elliptical": {
+      "passed": 1,
+      "time": 3.3600000000000025
+    },
+    "Autopilot: far away from central body": {
+      "passed": 1,
+      "time": 2.540000000000002
+    },
+    "Autopilot: target orbiting planet orbiting sun": {
+      "passed": 1,
+      "time": 4.8999999999999835
+    },
+    "recorded_at": 1690668779
   }
 ]
