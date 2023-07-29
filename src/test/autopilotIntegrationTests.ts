@@ -96,3 +96,12 @@ integrationTest(suiteName, 'AP quarter turn on tilted circular', (lt, game, scen
     new Vec3(0, -1, 0), new Vec3(Math.cos(angle), 0, Math.sin(angle)),
   );
 });
+
+integrationTest(suiteName, 'AP far away from central body', (lt, game, scene, result) => {
+  const angle = 0.1 * TAU;
+  simpleMissileCase(
+    lt, game, scene, result,
+    new Vec3(10, 0, 0), new Vec3(2, 3, 1),
+    new Vec3(9, -1, 0), new Vec3(2, 0, 0),
+  );
+});
