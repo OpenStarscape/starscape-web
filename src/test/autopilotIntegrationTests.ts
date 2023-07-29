@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { integrationTest, setPaused, TestStatus, withBodyWithName, withSpatialWithName } from './integrationTests';
+import { integrationTest, setPaused, withBodyWithName, withSpatialWithName } from './integrationTests';
 import { Lifetime, Vec3, LocalProperty } from '../core';
 import { Game, Nav } from '../game';
 import { Scene, ConnectingLine } from '../graphics';
@@ -10,7 +10,7 @@ const TAU = 2 * Math.PI;
 
 function simpleMissileCase(
   lt: Lifetime, game: Game, scene: Scene,
-  result: (status: TestStatus, score: null | number) => void,
+  result: (result: {[k: string]: number}) => void,
   targetPos: Vec3, targetVel: Vec3,
   subjectPos: Vec3, subjectVel: Vec3,
 ) {
@@ -68,10 +68,10 @@ function simpleMissileCase(
     if (t >= pauseTime) {
       errorLine.mat.color.set('#FF0000');
       console.error('ship failed to approach target');
-      result(TestStatus.Failed, null);
+      result({time: Infinity});
     } else {
       errorLine.mat.color.set('#00FF00');
-      result(TestStatus.Passed, t);
+      result({time: t});
     }
   });
 }

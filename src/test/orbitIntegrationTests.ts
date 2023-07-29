@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { integrationTest, setPaused, TestStatus, withBodyWithName, withSpatialWithName } from './integrationTests';
+import { integrationTest, setPaused, withBodyWithName, withSpatialWithName } from './integrationTests';
 import { Vec3 } from '../core';
 import { ConnectingLine } from '../graphics';
 
@@ -63,13 +63,13 @@ orbitTestData.forEach(params => {
             const proportional = distance / semiMajor;
             if (proportional < 0.1) {
               errorLine.mat.color.set('#00FF00');
-              result(TestStatus.Passed, null);
+              result({passed: 1});
             } else {
               errorLine.mat.color.set('#FF0000');
               console.error(
                 'body ended up ' + distance + ' away from expected (' +
                 proportional + ' length of semi-major), which is too much');
-              result(TestStatus.Failed, null);
+              result({passed: 0});
             }
           });
         });

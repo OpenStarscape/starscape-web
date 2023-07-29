@@ -30,15 +30,19 @@ body {
 }
 
 .good {
-  background-color: green;
+  background-color: #00FF00;
+}
+
+.exceptional {
+  background-color: #00FFFF;
 }
 
 .bad {
-  background-color: red;
+  background-color: #FF0000;
 }
 
 .important {
-  background-color: blue;
+  background-color: #FFFFFF;
 }
 
 .body-label {
