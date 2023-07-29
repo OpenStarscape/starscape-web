@@ -14,7 +14,8 @@ function simpleMissileCase(
   targetPos: Vec3, targetVel: Vec3,
   subjectPos: Vec3, subjectVel: Vec3,
 ) {
-  let pauseTime = 120;
+  let pauseTime = 300;
+  game.root.property('pause_at', {nullable: Number}).set(pauseTime);
 
   const createCelestial = game.root.action('create_celestial', undefined);
   const createShip = game.root.action('create_ship', undefined);
@@ -79,7 +80,7 @@ function simpleMissileCase(
   });
 }
 
-integrationTest(suiteName, 'catches up quarter turn on flat circular', (lt, game, scene, result) => {
+integrationTest(suiteName, 'AP quarter turn on flat circular', (lt, game, scene, result) => {
   simpleMissileCase(
     lt, game, scene, result,
     new Vec3(1, 0, 0), new Vec3(0, 1, 0),
@@ -87,7 +88,7 @@ integrationTest(suiteName, 'catches up quarter turn on flat circular', (lt, game
   );
 });
 
-integrationTest(suiteName, 'catches up quarter turn on tilted circular', (lt, game, scene, result) => {
+integrationTest(suiteName, 'AP quarter turn on tilted circular', (lt, game, scene, result) => {
   const angle = 0.1 * TAU;
   simpleMissileCase(
     lt, game, scene, result,

@@ -212,9 +212,11 @@ function testListDiv(lt: Lifetime, game: Game, scene: Scene): HTMLElement {
             prevResults[test.name][key] :
             undefined;
           const p = document.createElement('p');
+          const prevStr = prev !== undefined ? prev.toFixed(4) : '';
+          const resultStr = test.result[key].toFixed(4);
           p.textContent = key + ': ' +
-            (prev !== undefined ? prev.toFixed(4) + ' -> ' : '') +
-            test.result[key].toFixed(4);
+            ((prevStr && prevStr !== resultStr) ? prevStr + ' -> ' : '') +
+            resultStr;
           testResultsDiv.appendChild(p);
         };
       }
