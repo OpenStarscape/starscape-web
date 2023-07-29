@@ -164,6 +164,12 @@ function testListDiv(lt: Lifetime, game: Game, scene: Scene): HTMLElement {
   const suiteListDiv = document.createElement('div');
   suiteListDiv.classList.add('scroll-box');
   suiteListDiv.style.width = '300px';
+  const testResultsDiv = document.createElement('div');
+  testResultsDiv.classList.add('v-box');
+  testResultsDiv.style.position = 'absolute';
+  testResultsDiv.style.background = 'gray';
+  testResultsDiv.style.bottom = '0';
+  scene.div.appendChild(testResultsDiv);
   testList.forEach(test => {
     const suite = testSuites.get(test.suite);
     if (suite === undefined) {
@@ -193,6 +199,25 @@ function testListDiv(lt: Lifetime, game: Game, scene: Scene): HTMLElement {
     labelDiv.append(labelP);
     suite.div.append(labelDiv);
     test.status.subscribe(lt, status => {
+      while (testResultsDiv.firstChild) {
+        testResultsDiv.removeChild(testResultsDiv.firstChild);
+      }
+      if (test.result !== null && (
+          status === TestStatus.Failed ||
+          status === TestStatus.Passed ||
+          status === TestStatus.Exceeded
+      )) {
+        for (const key of Object.keys(test.result)) {
+          const prev = prevResults[test.name] ?
+            prevResults[test.name][key] :
+            undefined;
+          const p = document.createElement('p');
+          p.textContent = key + ': ' +
+            (prev !== undefined ? prev.toFixed(4) + ' -> ' : '') +
+            test.result[key].toFixed(4);
+          testResultsDiv.appendChild(p);
+        };
+      }
       labelDiv.classList.toggle('exceptional', status === TestStatus.Exceeded);
       labelDiv.classList.toggle('good', status === TestStatus.Passed);
       labelDiv.classList.toggle('bad', status === TestStatus.Failed);
