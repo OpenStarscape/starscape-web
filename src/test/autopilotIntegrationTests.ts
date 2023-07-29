@@ -5,6 +5,7 @@ import { Game, Nav } from '../game';
 import { Scene, ConnectingLine } from '../graphics';
 
 const gravConstant = 6.67430e-17;
+const planetMass = 1 / gravConstant;
 const suiteName = 'Autopilot';
 const TAU = 2 * Math.PI;
 
@@ -17,16 +18,7 @@ function simpleMissileCase(
   let pauseTime = 300;
   game.root.property('pause_at', {nullable: Number}).set(pauseTime);
 
-  const createCelestial = game.root.action('create_celestial', undefined);
   const createShip = game.root.action('create_ship', undefined);
-
-  const planetMass = 1 / gravConstant;
-  createCelestial.fire({
-    name: 'Planet',
-    color: '#0040A0',
-    radius: 0.1,
-    mass: planetMass,
-  });
   createShip.fire({
     name: 'Target',
     position: targetPos,
@@ -38,7 +30,7 @@ function simpleMissileCase(
     position: subjectPos,
     velocity: subjectVel,
     radius: 0,
-    max_accel: 0.1,
+    max_accel: 10.0,
   });
 
   const errorLine = new ConnectingLine(lt, 10);
@@ -75,7 +67,7 @@ function simpleMissileCase(
       result({passed: 0});
     } else {
       errorLine.mat.color.set('#00FF00');
-      result({time: t});
+      result({passed: 1, time: t});
     }
   });
 }
@@ -86,6 +78,12 @@ integrationTest(suiteName, 'quarter turn on flat circular', (lt, game, scene, re
     new Vec3(1, 0, 0), new Vec3(0, 1, 0),
     new Vec3(0, -1, 0), new Vec3(1, 0, 0),
   );
+  game.root.action('create_celestial', undefined).fire({
+    name: 'Planet',
+    color: '#0040A0',
+    radius: 0.1,
+    mass: planetMass,
+  });
 });
 
 integrationTest(suiteName, 'quarter turn on tilted circular', (lt, game, scene, result) => {
@@ -95,6 +93,27 @@ integrationTest(suiteName, 'quarter turn on tilted circular', (lt, game, scene, 
     new Vec3(1, 0, 0), new Vec3(0, 1, 0),
     new Vec3(0, -1, 0), new Vec3(Math.cos(angle), 0, Math.sin(angle)),
   );
+  game.root.action('create_celestial', undefined).fire({
+    name: 'Planet',
+    color: '#0040A0',
+    radius: 0.1,
+    mass: planetMass,
+  });
+});
+
+integrationTest(suiteName, 'half turn on elliptical', (lt, game, scene, result) => {
+  const angle = 0.2 * TAU;
+  simpleMissileCase(
+    lt, game, scene, result,
+    new Vec3(2, 0, 0), new Vec3(0, 1, -0.2),
+    new Vec3(-1, 0.5, 0), new Vec3(Math.cos(angle), 0, Math.sin(angle)),
+  );
+  game.root.action('create_celestial', undefined).fire({
+    name: 'Planet',
+    color: '#0040A0',
+    radius: 0.1,
+    mass: planetMass,
+  });
 });
 
 integrationTest(suiteName, 'far away from central body', (lt, game, scene, result) => {
@@ -103,4 +122,33 @@ integrationTest(suiteName, 'far away from central body', (lt, game, scene, resul
     new Vec3(10, 0, 0), new Vec3(2, 3, 1),
     new Vec3(9, -1, 0), new Vec3(2, 0, 0),
   );
+  game.root.action('create_celestial', undefined).fire({
+    name: 'Planet',
+    color: '#0040A0',
+    radius: 0.1,
+    mass: planetMass,
+  });
+});
+
+integrationTest(suiteName, 'target orbiting planet orbiting sun', (lt, game, scene, result) => {
+  const angle = 0.15 * TAU;
+  simpleMissileCase(
+    lt, game, scene, result,
+    new Vec3(11, 0, 0), new Vec3(0, 1 + Math.cos(angle), Math.sin(angle)),
+    new Vec3(0, -10, 0), new Vec3(3, 0, 0),
+  );
+  game.root.action('create_celestial', undefined).fire({
+    name: 'Sun',
+    color: '#FFA000',
+    radius: 0.1,
+    mass: planetMass * 10,
+  });
+  game.root.action('create_celestial', undefined).fire({
+    name: 'Planet',
+    color: '#0040A0',
+    radius: 0.1,
+    mass: planetMass,
+    position: new Vec3(10, 0, 0),
+    velocity: new Vec3(0, 1, 0),
+  });
 });
