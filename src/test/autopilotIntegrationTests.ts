@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { integrationTest, TestStatus, withBodyWithName, withSpatialWithName } from './integrationTests';
+import { integrationTest, setPaused, TestStatus, withBodyWithName, withSpatialWithName } from './integrationTests';
 import { Lifetime, Vec3, LocalProperty } from '../core';
 import { Game, Nav } from '../game';
 import { Scene, ConnectingLine } from '../graphics';
@@ -57,7 +57,7 @@ function simpleMissileCase(
         errorLine.visible = true;
         errorLine.update();
       });
-      game.root.property('time_per_time', Number).set(100);
+      setPaused(game, false);
     });
   });
 

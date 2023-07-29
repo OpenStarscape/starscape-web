@@ -73,7 +73,8 @@ function runTest(parentLt: Lifetime, test: TestData, game: Game, scene: Scene) {
   });
   test.status.set(TestStatus.Running);
   game.root.action('reset', null).fire(null);
-  game.root.property('time_per_time', Number).set(0);
+  setPaused(game, true);
+  // TODO: wait for reset to actually complete instead of waiting for a timeout
   setTimeout(() => {
     if (lt.alive()) {
       test.func(lt, game, scene, test.status);
@@ -148,6 +149,34 @@ function testListDiv(lt: Lifetime, game: Game, scene: Scene): HTMLElement {
   return suiteListDiv;
 }
 
+export function setPaused(game: Game, paused: boolean) {
+  const tpt = game.root.property('time_per_time', Number);
+  if (paused) {
+    tpt.set(0);
+  } else {
+    tpt.set((game as any).testGameSpeed);
+  }
+}
+
+function realTimeToggle(game: Game): HTMLElement {
+  const div = document.createElement('div');
+  div.classList.add('h-box');
+  const p = document.createElement('p');
+  p.textContent = 'Real time';
+  p.style.flexGrow = '1';
+  const toggle = document.createElement('input');
+  toggle.type = 'checkbox';
+  const fastGameSpeed = 100;
+  (game as any).testGameSpeed = fastGameSpeed;
+  toggle.checked = false;
+  toggle.addEventListener('change', () => {
+    (game as any).testGameSpeed = toggle.checked ? 1 : fastGameSpeed;
+  })
+  div.append(p);
+  div.append(toggle);
+  return div;
+}
+
 function testContainer(lt: Lifetime, game: Game): HTMLElement {
   const scene = new SpaceScene(lt, game);
   const sidebarDiv = document.createElement('div');
@@ -158,7 +187,8 @@ function testContainer(lt: Lifetime, game: Game): HTMLElement {
   const paddingDiv = document.createElement('div');
   paddingDiv.style.flexGrow = '1';
   sidebarDiv.append(paddingDiv);
-  let runAllButton = document.createElement('button');
+  sidebarDiv.append(realTimeToggle(game));
+  const runAllButton = document.createElement('button');
   runAllButton.textContent = 'Run all';
   runAllButton.classList.add('action-button');
   runAllButton.addEventListener('click', () => runAllTests(lt, game, scene));

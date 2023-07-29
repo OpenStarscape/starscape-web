@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { integrationTest, TestStatus, withBodyWithName, withSpatialWithName } from './integrationTests';
+import { integrationTest, setPaused, TestStatus, withBodyWithName, withSpatialWithName } from './integrationTests';
 import { Vec3 } from '../core';
 import { ConnectingLine } from '../graphics';
 
@@ -79,6 +79,6 @@ orbitTestData.forEach(params => {
       }
     });
 
-    game.root.property('time_per_time', Number).set(100);
+    setPaused(game, false);
   });
 });
