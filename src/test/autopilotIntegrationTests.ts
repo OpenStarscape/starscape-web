@@ -20,12 +20,12 @@ function simpleMissileCase(
   const createCelestial = game.root.action('create_celestial', undefined);
   const createShip = game.root.action('create_ship', undefined);
 
-  const centralMass = 1 / gravConstant;
+  const planetMass = 1 / gravConstant;
   createCelestial.fire({
-    name: 'Central',
-    color: '#FF8000',
+    name: 'Planet',
+    color: '#0040A0',
     radius: 0.1,
-    mass: centralMass,
+    mass: planetMass,
   });
   createShip.fire({
     name: 'Target',
@@ -51,8 +51,8 @@ function simpleMissileCase(
       game.root.action('pause_on_proximity', undefined).fire({
         a: ship.body.obj,
         b: target.body.obj,
-        distance: 0.05,
-        velocity: 0.05,
+        distance: 0.01,
+        velocity: 0.01,
       });
       Nav.applyState(ship.body, {
         scheme: Nav.Scheme.Dock,
@@ -80,7 +80,7 @@ function simpleMissileCase(
   });
 }
 
-integrationTest(suiteName, 'AP quarter turn on flat circular', (lt, game, scene, result) => {
+integrationTest(suiteName, 'quarter turn on flat circular', (lt, game, scene, result) => {
   simpleMissileCase(
     lt, game, scene, result,
     new Vec3(1, 0, 0), new Vec3(0, 1, 0),
@@ -88,7 +88,7 @@ integrationTest(suiteName, 'AP quarter turn on flat circular', (lt, game, scene,
   );
 });
 
-integrationTest(suiteName, 'AP quarter turn on tilted circular', (lt, game, scene, result) => {
+integrationTest(suiteName, 'quarter turn on tilted circular', (lt, game, scene, result) => {
   const angle = 0.1 * TAU;
   simpleMissileCase(
     lt, game, scene, result,
@@ -97,8 +97,7 @@ integrationTest(suiteName, 'AP quarter turn on tilted circular', (lt, game, scen
   );
 });
 
-integrationTest(suiteName, 'AP far away from central body', (lt, game, scene, result) => {
-  const angle = 0.1 * TAU;
+integrationTest(suiteName, 'far away from central body', (lt, game, scene, result) => {
   simpleMissileCase(
     lt, game, scene, result,
     new Vec3(10, 0, 0), new Vec3(2, 3, 1),

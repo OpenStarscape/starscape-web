@@ -1,98 +1,101 @@
 [
   {
-    "start of default orbit": {
+    "Orbit: start of default orbit": {
       "passed": 1
     },
-    "quarter past default orbit": {
+    "Orbit: quarter past default orbit": {
       "passed": 1
     },
-    "half past default orbit": {
+    "Orbit: half past default orbit": {
       "passed": 1
     },
-    "three quarters past default orbit": {
+    "Orbit: three quarters past default orbit": {
       "passed": 1
     },
-    "full rotation default orbit": {
+    "Orbit: full rotation default orbit": {
       "passed": 1
     },
-    "half past orbit with grav param": {
+    "Orbit: half past orbit with grav param": {
       "passed": 1
     },
-    "start of inclined orbit": {
+    "Orbit: start of inclined orbit": {
       "passed": 1
     },
-    "quarter past inclined orbit": {
+    "Orbit: quarter past inclined orbit": {
       "passed": 1
     },
-    "half past inclined orbit": {
+    "Orbit: half past inclined orbit": {
       "passed": 1
     },
-    "start of 90deg ascending node": {
+    "Orbit: start of 90deg ascending node": {
       "passed": 1
     },
-    "quarter past 90deg ascending node": {
+    "Orbit: quarter past 90deg ascending node": {
       "passed": 1
     },
-    "half past 90deg ascending node": {
+    "Orbit: half past 90deg ascending node": {
       "passed": 1
     },
-    "start of flat eliptical": {
+    "Orbit: start of flat eliptical": {
       "passed": 1
     },
-    "start of flat eliptical with start time": {
+    "Orbit: start of flat eliptical with start time": {
       "passed": 1
     },
-    "half past flat eliptical": {
+    "Orbit: half past flat eliptical": {
       "passed": 1
     },
-    "half past flat eliptical with negative base time": {
+    "Orbit: half past flat eliptical with negative base time": {
       "passed": 1
     },
-    "half past flat eliptical with base time after current time": {
+    "Orbit: half past flat eliptical with base time after current time": {
       "passed": 1
     },
-    "start of inclined eliptical": {
+    "Orbit: start of inclined eliptical": {
       "passed": 1
     },
-    "start of eliptical with 90deg ascending node": {
+    "Orbit: start of eliptical with 90deg ascending node": {
       "passed": 1
     },
-    "start of eliptical with 90deg periapsis": {
+    "Orbit: start of eliptical with 90deg periapsis": {
       "passed": 1
     },
-    "half past eliptical with 90deg periapsis": {
+    "Orbit: half past eliptical with 90deg periapsis": {
       "passed": 1
     },
-    "start of eliptical with 90deg periapsis and 90deg ascending node": {
+    "Orbit: start of eliptical with 90deg periapsis and 90deg ascending node": {
       "passed": 1
     },
-    "half past eliptical with 90deg periapsis and 90deg ascending node": {
+    "Orbit: half past eliptical with 90deg periapsis and 90deg ascending node": {
       "passed": 1
     },
-    "half past eliptical with 90deg periapsis and grav param": {
+    "Orbit: half past eliptical with 90deg periapsis and grav param": {
       "passed": 1
     },
-    "quarter past flat eliptical": {
+    "Orbit: quarter past flat eliptical": {
       "passed": 1
     },
-    "quarter past eliptical with 90deg periapsis and 90deg ascending node": {
+    "Orbit: quarter past eliptical with 90deg periapsis and 90deg ascending node": {
       "passed": 1
     },
-    "quarter past eliptical with 90deg periapsis and grav param": {
+    "Orbit: quarter past eliptical with 90deg periapsis and grav param": {
       "passed": 1
     },
-    "quarter past flat eliptical with negative base time": {
+    "Orbit: quarter past flat eliptical with negative base time": {
       "passed": 1
     },
-    "quarter past flat eliptical with base time after current time": {
+    "Orbit: quarter past flat eliptical with base time after current time": {
       "passed": 1
     },
-    "catches up quarter turn on flat circular": {
-      "time": 16.219999999999743
+    "Autopilot: quarter turn on flat circular": {
+      "time": 4.259999999999997
     },
-    "catches up quarter turn on tilted circular": {
-      "time": 15.819999999999752
+    "Autopilot: quarter turn on tilted circular": {
+      "time": 4.2399999999999975
     },
-    "recorded_at": 1690630914
+    "Autopilot: far away from central body": {
+      "time": 3.3400000000000025
+    },
+    "recorded_at": 1690658912
   }
 ]

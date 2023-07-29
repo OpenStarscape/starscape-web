@@ -27,6 +27,7 @@ type TestFunc = (
 type TestData = {
   suite: string,
   name: string,
+  qualifiedName: string,
   func: TestFunc,
   status: LocalProperty<TestStatus>,
   result: {[k: string]: number} | null,
@@ -46,6 +47,7 @@ export function integrationTest(suite: string, name: string, func: TestFunc) {
   testList.push({
     suite: suite,
     name: name,
+    qualifiedName: suite + ': ' + name,
     func: func,
     status: new LocalProperty<TestStatus>(TestStatus.Idle),
     result: null,
@@ -93,8 +95,8 @@ function runTest(parentLt: Lifetime, test: TestData, game: Game, scene: Scene) {
   setTimeout(() => {
     if (lt.alive()) {
       test.func(lt, game, scene, (result: {[k: string]: number}) => {
-        const prevResult = prevResults[test.name] ?
-          prevResults[test.name] :
+        const prevResult = prevResults[test.qualifiedName] ?
+          prevResults[test.qualifiedName] :
           {};
         test.result = result;
         let status = TestStatus.Passed;
@@ -111,7 +113,7 @@ function runTest(parentLt: Lifetime, test: TestData, game: Game, scene: Scene) {
               resultStatus = TestStatus.Passed;
             }
           } else {
-            const epsilon = Math.max(0.00001, Math.abs(prevScore * 0.01));
+            const epsilon = Math.max(0.00001, Math.abs(prevScore * 0.001));
             const delta = (score - prevScore) * (higherBetter ? 1 : -1);
             if (delta > epsilon) {
               resultStatus = TestStatus.Exceeded;
@@ -150,7 +152,10 @@ function runAllTests(lt: Lifetime, game: Game, scene: Scene) {
     const testLt = lt.newDependent();
     runTest(testLt, testList[i], game, scene);
     testList[i].status.subscribe(testLt, status => {
-      if (status == TestStatus.Passed || status == TestStatus.Failed) {
+      if (status == TestStatus.Passed ||
+          status == TestStatus.Exceeded ||
+          status == TestStatus.Failed
+      ) {
         testLt.kill();
         i++;
         runNext();
@@ -208,8 +213,8 @@ function testListDiv(lt: Lifetime, game: Game, scene: Scene): HTMLElement {
           status === TestStatus.Exceeded
       )) {
         for (const key of Object.keys(test.result)) {
-          const prev = prevResults[test.name] ?
-            prevResults[test.name][key] :
+          const prev = prevResults[test.qualifiedName] ?
+            prevResults[test.qualifiedName][key] :
             undefined;
           const p = document.createElement('p');
           const prevStr = prev !== undefined ? prev.toFixed(4) : '';
@@ -307,7 +312,7 @@ function testContainer(lt: Lifetime, game: Game): HTMLElement {
       if (!test.result) {
         throw Error('not all tests have completed');
       }
-      newResult[test.name] = test.result;
+      newResult[test.qualifiedName] = test.result;
     }
     (newResult as any).recorded_at = Math.floor(Date.now() / 1000);
     results.push(newResult);
