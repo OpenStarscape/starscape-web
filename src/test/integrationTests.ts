@@ -178,6 +178,7 @@ function init() {
     const game = new Game();
     game.root.action('reset', null).fire(null);
     game.root.property('quit_at', {nullable: Number}).set(null);
+    game.root.property('min_roundtrip_time', Number).set(0);
     const lt = new DependentLifetime();
     const elem = testContainer(lt, game);
     root!.appendChild(elem);

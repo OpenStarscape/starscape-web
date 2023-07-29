@@ -79,7 +79,6 @@ orbitTestData.forEach(params => {
       }
     });
 
-    game.root.property('min_roundtrip_time', Number).set(0);
     game.root.property('time_per_time', Number).set(100);
   });
 });

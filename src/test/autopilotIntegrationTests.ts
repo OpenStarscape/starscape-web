@@ -1,17 +1,22 @@
 import * as THREE from 'three';
 import { integrationTest, TestStatus, withBodyWithName, withSpatialWithName } from './integrationTests';
-import { Vec3 } from '../core';
-import { Nav } from '../game';
-import { ConnectingLine } from '../graphics';
+import { Lifetime, Vec3, LocalProperty } from '../core';
+import { Game, Nav } from '../game';
+import { Scene, ConnectingLine } from '../graphics';
 
 const gravConstant = 6.67430e-17;
 const suiteName = 'Autopilot';
+const TAU = 2 * Math.PI;
 
-integrationTest(suiteName, 'catches up quarter turn on flat circular', (lt, game, scene, status) => {
-  let pause_time = 20;
+function simpleMissileCase(
+  lt: Lifetime, game: Game, scene: Scene, status: LocalProperty<TestStatus>,
+  targetPos: Vec3, targetVel: Vec3,
+  subjectPos: Vec3, subjectVel: Vec3,
+  pauseTime: number
+) {
   game.root.property('time', Number).getThen(lt, time => {
-    pause_time += time;
-    game.root.property('pause_at', {nullable: Number}).set(pause_time);
+    pauseTime += time;
+    game.root.property('pause_at', {nullable: Number}).set(pauseTime);
   });
 
   const createCelestial = game.root.action('create_celestial', undefined);
@@ -26,13 +31,13 @@ integrationTest(suiteName, 'catches up quarter turn on flat circular', (lt, game
   });
   createShip.fire({
     name: 'Target',
-    position: new Vec3(1, 0, 0),
-    velocity: new Vec3(0, 1, 0),
+    position: targetPos,
+    velocity: targetVel,
   });
   createShip.fire({
     name: 'Ship',
-    position: new Vec3(0, -1, 0),
-    velocity: new Vec3(1, 0, 0),
+    position: subjectPos,
+    velocity: subjectVel,
   });
 
   const errorLine = new ConnectingLine(lt, 10);
@@ -52,13 +57,12 @@ integrationTest(suiteName, 'catches up quarter turn on flat circular', (lt, game
         errorLine.visible = true;
         errorLine.update();
       });
-      game.root.property('min_roundtrip_time', Number).set(0);
       game.root.property('time_per_time', Number).set(100);
     });
   });
 
   game.root.signal('paused', Number).subscribe(lt, t => {
-    if (t >= pause_time) {
+    if (t >= pauseTime) {
       withBodyWithName(lt, game, 'Ship', ship => {
         withBodyWithName(lt, game, 'Target', target => {
           ship.obj.property('position', Vec3).getThen(lt, shipPos => {
@@ -78,4 +82,23 @@ integrationTest(suiteName, 'catches up quarter turn on flat circular', (lt, game
       });
     }
   });
+}
+
+integrationTest(suiteName, 'catches up quarter turn on flat circular', (lt, game, scene, status) => {
+  simpleMissileCase(
+    lt, game, scene, status,
+    new Vec3(1, 0, 0), new Vec3(0, 1, 0),
+    new Vec3(0, -1, 0), new Vec3(1, 0, 0),
+    20
+  );
+});
+
+integrationTest(suiteName, 'catches up quarter turn on tilted circular', (lt, game, scene, status) => {
+  const angle = 0.1 * TAU;
+  simpleMissileCase(
+    lt, game, scene, status,
+    new Vec3(1, 0, 0), new Vec3(0, 1, 0),
+    new Vec3(0, -1, 0), new Vec3(Math.cos(angle), 0, Math.sin(angle)),
+    20
+  );
 });
