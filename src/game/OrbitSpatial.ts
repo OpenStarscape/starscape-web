@@ -40,7 +40,6 @@ export class OrbitSpatial implements Spatial {
       'orbit',
       {nullable: [Number, Number, Number, Number, Number, Number, Number, SsObject]}
     ).subscribe(lt, params => {
-      this.paramsValid = false; // will be re-set to true if setParams is called and succeeds
       if (params === null) {
         this.useFallback();
       } else {
@@ -114,14 +113,16 @@ export class OrbitSpatial implements Spatial {
   }
 
   private useFallback(): void {
-    if (this.fallback === null) {
+    if (this.fallbackLt === null) {
       this.fallbackLt = this.lt.newDependent();
-      this.fallback = new CartesianSpatial(this.game, this.fallbackLt, this.body);
+      const spatial = new CartesianSpatial(this.game, this.fallbackLt, this.body);
       this.fallbackLt.addCallback(() => {
         this.fallback = null;
         this.fallbackLt = null;
       });
-      this.fallback.onReady(() => {
+      spatial.onReady(() => {
+        this.fallback = spatial;
+        this.paramsValid = false;
         this.maybeReady();
       });
     }
