@@ -17,5 +17,6 @@ export interface Spatial {
   /// Returns the "gravity parent" of the body (body this body is orbiting around)
   parent(): Body | null;
   /// Sets the transform for an orbit loop, asumes the orbit is a circle on the unit X/Y plane
-  copyOrbitMatrixInto(mat: THREE.Matrix4): void;
+  /// Returns true if it succeeded, or doesn't copy anything and returns false if there is no orbit
+  copyOrbitMatrixInto(mat: THREE.Matrix4): boolean;
 }

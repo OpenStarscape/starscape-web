@@ -104,6 +104,7 @@ export function newBodyVisual(scene: Scene, game: Game, obj: SsObject) {
       body.size.getThen(lt, s => {
         displaySize = Math.max(s, displaySize);
         const celestialGeom = lt.own(new THREE.SphereGeometry(displaySize, 16, 16));
+        celestialGeom.rotateX(Math.PI / 2);
         mesh.geometry = celestialGeom;
         mesh.visible = true;
       });

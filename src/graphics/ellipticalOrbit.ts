@@ -38,8 +38,7 @@ export function ellipticalOrbit(
   scene.addObject(lt, orbitLine);
   scene.subscribe(lt, () => {
     if (spatial.isReady() && spatial.parent() !== null) {
-      orbitLine.visible = true;
-      spatial.copyOrbitMatrixInto(orbitLine.matrixWorld);
+      orbitLine.visible = spatial.copyOrbitMatrixInto(orbitLine.matrixWorld);
     } else {
       orbitLine.visible = false;
     }

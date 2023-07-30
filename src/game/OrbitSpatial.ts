@@ -256,17 +256,20 @@ export class OrbitSpatial implements Spatial {
     }
   }
 
-  copyOrbitMatrixInto(mat: THREE.Matrix4): void {
+  copyOrbitMatrixInto(mat: THREE.Matrix4): boolean {
     if (this.fallback !== null) {
-      this.fallback.copyOrbitMatrixInto(mat);
+      return this.fallback.copyOrbitMatrixInto(mat);
+    } else if (this.eccentricity > 0.95) {
+      return false;
     } else {
       mat.copy(this.transform);
       // Apply parent's position
       if (this.parentSpatial) {
         this.parentSpatial.copyPositionInto(vecTempA);
-        matTemp.makeTranslation(vecTempA.x, vecTempA.y, vecTempA.z);
+        matTemp.makeTranslation(vecTempA);
         mat.premultiply(matTemp);
       }
+      return true;
     }
   }
 }
