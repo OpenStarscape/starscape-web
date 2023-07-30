@@ -312,7 +312,9 @@ function testContainer(lt: Lifetime, game: Game): HTMLElement {
       if (!test.result) {
         throw Error('not all tests have completed');
       }
-      newResult[test.qualifiedName] = test.result;
+      if (Object.keys(test.result).length != 1 || test.result.passed != 1) {
+        newResult[test.qualifiedName] = test.result;
+      }
     }
     (newResult as any).recorded_at = Math.floor(Date.now() / 1000);
     results.push(newResult);
