@@ -23,14 +23,6 @@ function createColorMaterialPair(
   return [solidMat, wireMat];
 }
 
-function createCelestialGeom(lt: Lifetime, mesh: THREE.Mesh, size: number) {
-  mesh.geometry = lt.own(new THREE.SphereGeometry(size, 16, 16));
-}
-
-function createShipGeom(lt: Lifetime, mesh: THREE.Mesh, size: number) {
-  mesh.geometry = lt.own(new THREE.ConeGeometry(1 * size, 3 * size, 16));
-}
-
 function object3DAddChild(lt: Lifetime, parent: THREE.Object3D, child: THREE.Object3D) {
   parent.add(child);
   // The mesh is removed from the scene when the lifetime dies, unclear why that doesn't remove
@@ -67,38 +59,11 @@ function pointObject3DInDirection(object: THREE.Object3D, direction: THREE.Vecto
   object.quaternion.setFromUnitVectors(yVec, direction);
 }
 
-function createThrustIndicator(lt: Lifetime, scene: Scene, spatial: Spatial) {
-  const mat = lt.own(new THREE.MeshBasicMaterial({color: 0xFFA000}));
-  const geom = lt.own(new THREE.ConeGeometry(0.0007, 0.01, 5));
-  geom.translate(0, 0.007, 0);
-  const mesh = new THREE.Mesh(geom, mat);
-  scene.addObject(lt, mesh);
-  const getAccel = spatial.body.obj.property('accel', Vec3).getter(lt);
-  const thrust = new THREE.Vector3();
-  scene.subscribe(lt, () => {
-    thrust.set(0, 0, 0);
-    const accel = getAccel();
-    if (accel) { accel.copyInto(thrust); }
-    const magnitude = thrust.length();
-    if (thrust.lengthSq() > 0.0005 && spatial.isReady()) {
-      spatial.copyPositionInto(mesh.position);
-      scaleMeshToView(scene, mesh, 0.001, null, null);
-      mesh.scale.y *= -magnitude;
-      pointObject3DInDirection(mesh, thrust);
-      mesh.updateMatrix();
-      mesh.updateMatrixWorld();
-      mesh.visible = true;
-    } else {
-      mesh.visible = false;
-    }
-  });
-}
-
 export function newBodyVisual(scene: Scene, game: Game, obj: SsObject) {
   const lt = scene.lt.addDependent(obj.newDependent());
   const body = game.getBody(obj);
   const spatial = body.spatial(lt);
-  let getSize = body.size.getter(lt);
+  let displaySize = 0.001;
 
   const [farMat, nearMat] = createColorMaterialPair(lt, body.color);
   const hudElement = new CSS2DObject(bodyHUD(lt, spatial));
@@ -109,16 +74,25 @@ export function newBodyVisual(scene: Scene, game: Game, obj: SsObject) {
   ellipticalOrbit(lt, scene, spatial);
 
   let getAccel: (() => Vec3 | undefined) | null = null;
+  let thrusterMesh: THREE.Mesh | null = null;
   const thrust = new THREE.Vector3();
   scene.subscribe(lt, () => {
     spatial.copyPositionInto(mesh.position);
-    const displaySize = Math.max(getSize() || 0, 0.001) * 0.75;
-    scaleMeshToView(scene, mesh, displaySize, farMat, nearMat);
-    if (getAccel) {
+    scaleMeshToView(scene, mesh, displaySize * 0.75, farMat, nearMat);
+    if (getAccel && thrusterMesh) {
       thrust.set(0, 0, 0);
       const accel = getAccel();
       if (accel) { accel.copyInto(thrust); }
-      if (thrust.lengthSq() < 0.0005) { spatial.copyVelocityInto(thrust); }
+      if (thrust.lengthSq() < 0.0005) {
+        spatial.copyVelocityInto(thrust);
+        thrusterMesh!.visible = false;
+      } else {
+        thrusterMesh!.visible = true;
+        const thrustSize = thrust.length();
+        thrusterMesh!.scale.y = -thrustSize;
+        thrusterMesh!.position.y = -displaySize;
+        thrusterMesh!.updateMatrix();
+      }
       pointObject3DInDirection(mesh, thrust)
     }
     mesh.updateMatrix();
@@ -128,15 +102,24 @@ export function newBodyVisual(scene: Scene, game: Game, obj: SsObject) {
   obj.property('class', String).getThen(lt, cls => {
     if (cls === 'celestial') {
       body.size.getThen(lt, s => {
-        createCelestialGeom(lt, mesh, Math.max(s, 0.001));
+        displaySize = Math.max(s, displaySize);
+        const celestialGeom = lt.own(new THREE.SphereGeometry(displaySize, 16, 16));
+        mesh.geometry = celestialGeom;
         mesh.visible = true;
       });
     } else if (cls === 'ship') {
       getAccel = spatial.body.obj.property('accel', Vec3).getter(lt);
-      createThrustIndicator(lt, scene, spatial);
       body.size.getThen(lt, s => {
-        createShipGeom(lt, mesh, Math.max(s, 0.001));
+        displaySize = Math.max(s, displaySize);
+        const shipGeom = lt.own(new THREE.ConeGeometry(1 * displaySize, 3 * displaySize, 16));
+        shipGeom.translate(0, 0.5 * displaySize, 0);
+        mesh.geometry = shipGeom;
         mesh.visible = true;
+        const thrusterMat = lt.own(new THREE.MeshBasicMaterial({color: 0xFFA000}));
+        const thrusterGeom = lt.own(new THREE.ConeGeometry(displaySize * 0.5, displaySize, 5));
+        thrusterGeom.translate(0, 0.5 * displaySize, 0);
+        thrusterMesh = new THREE.Mesh(thrusterGeom, thrusterMat);
+        mesh.add(thrusterMesh);
       });
     } else {
       console.error('unknown body class ', cls);
