@@ -20,6 +20,7 @@ export class OrbitSpatial implements Spatial {
   private fallback: Spatial | null = null;
   private fallbackLt: DependentLifetime | null = null;
   private bodyMass: number | undefined;
+  private paramsValid = false;
   private baseTime = 0;
   private periodTime = 0;
   private semiMajor = 0; // Needed for velocity calculation
@@ -39,6 +40,7 @@ export class OrbitSpatial implements Spatial {
       'orbit',
       {nullable: [Number, Number, Number, Number, Number, Number, Number, SsObject]}
     ).subscribe(lt, params => {
+      this.paramsValid = false; // will be re-set to true if setParams is called and succeeds
       if (params === null) {
         this.useFallback();
       } else {
@@ -85,9 +87,6 @@ export class OrbitSpatial implements Spatial {
       this.useFallback();
       return;
     }
-    if (this.fallbackLt !== null) {
-      this.fallbackLt.kill();
-    }
 
     this.baseTime = baseTime;
     this.periodTime = periodTime;
@@ -107,6 +106,11 @@ export class OrbitSpatial implements Spatial {
     this.transform.premultiply(matTemp);
     matTemp.makeRotationZ(ascendingNode);
     this.transform.premultiply(matTemp);
+
+    this.paramsValid = true;
+    if (this.fallbackLt !== null) {
+      this.fallbackLt.kill();
+    }
   }
 
   private useFallback(): void {
@@ -125,7 +129,7 @@ export class OrbitSpatial implements Spatial {
 
   isReady(): boolean {
     return (
-      (!!this.parentSpatial && this.mass !== undefined) ||
+      (this.paramsValid && !!this.parentSpatial && this.mass !== undefined) ||
       (this.fallback !== null && this.fallback.isReady())
     );
   }
@@ -223,53 +227,61 @@ export class OrbitSpatial implements Spatial {
   }
 
   copyPositionInto(vec: THREE.Vector3): void {
-    if (this.fallback !== null) {
-      this.fallback.copyPositionInto(vec);
-    } else {
+    if (this.paramsValid) {
       this.ensureCache();
       vec.copy(this.cachedPosition);
+    } else if (this.fallback !== null) {
+      this.fallback.copyPositionInto(vec);
     }
   }
 
   copyVelocityInto(vec: THREE.Vector3): void {
-    if (this.fallback !== null) {
-      this.fallback.copyVelocityInto(vec);
-    } else {
+    if (this.paramsValid) {
       this.ensureCache();
       vec.copy(this.cachedVelocity);
+    } else if (this.fallback !== null) {
+      this.fallback.copyVelocityInto(vec);
     }
   }
 
   mass(): number {
-    if (this.fallback !== null) {
+    if (this.bodyMass !== undefined) {
+      return this.bodyMass;
+    } else if (this.fallback !== null) {
       return this.fallback.mass();
     } else {
-      return this.bodyMass ?? 0;
+      return 0;
     }
   }
 
   parent(): Body | null {
-    if (this.fallback !== null) {
+    if (this.parentSpatial !== undefined) {
+      return this.parentSpatial ? this.parentSpatial.body : null;
+    } else if (this.fallback !== null) {
       return this.fallback.parent();
     } else {
-      return this.parentSpatial ? this.parentSpatial.body : null;
+      return null;
     }
   }
 
   copyOrbitMatrixInto(mat: THREE.Matrix4): boolean {
-    if (this.fallback !== null) {
-      return this.fallback.copyOrbitMatrixInto(mat);
-    } else if (this.eccentricity > 0.95) {
-      return false;
-    } else {
-      mat.copy(this.transform);
-      // Apply parent's position
-      if (this.parentSpatial) {
-        this.parentSpatial.copyPositionInto(vecTempA);
-        matTemp.makeTranslation(vecTempA);
-        mat.premultiply(matTemp);
+    if (this.paramsValid) {
+      if (this.eccentricity > 0.95) {
+        return false;
+      } else {
+        mat.copy(this.transform);
+        // Apply parent's position
+        if (this.parentSpatial) {
+          this.parentSpatial.copyPositionInto(vecTempA);
+          matTemp.makeTranslation(vecTempA);
+          mat.premultiply(matTemp);
+        }
+        return true;
       }
-      return true;
+    } else if (this.fallback !== null) {
+      return this.fallback.copyOrbitMatrixInto(mat);
+    } else {
+      return false;
     }
   }
 }
