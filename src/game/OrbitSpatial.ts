@@ -154,7 +154,7 @@ export class OrbitSpatial implements Spatial {
 
   ensureCache() {
     // Do nothing if the cache is already up to date
-    const time = this.game.animation.gameTime() ?? 0;
+    const time = this.game.animation.gameTime();
     if (this.cachedTime === time) {
       return;
     }

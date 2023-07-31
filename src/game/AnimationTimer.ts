@@ -8,6 +8,7 @@ export class AnimationTimer extends Conduit<null> {
   private animationFrameTime: number | null = null;
   private animationFrameRequested = false;
   private recordedTimes = new RingBuffer<[number, number]>();
+  private lastReceivedGameTime = 0;
   private browserTimeBase: number | null = null;
   private gameTimeBase: number | null = null;
   private gameTimePerBrowserTime: number = 1;
@@ -31,16 +32,20 @@ export class AnimationTimer extends Conduit<null> {
     return this.animationFrameTime !== null ? this.animationFrameTime : this.getBrowserTime();
   }
 
-  gameTime(): number | null {
+  gameTime(): number {
     if (this.browserTimeBase === null ||
         this.gameTimeBase === null
     ) {
-      return null;
+      return 0;
     } else {
       return (this.browserTime() - this.browserTimeBase) *
         this.gameTimePerBrowserTime +
         this.gameTimeBase;
     }
+  }
+
+  lastGameTime(): number {
+    return this.lastReceivedGameTime;
   }
 
   protected handleAnimFrame(ms: number) {
@@ -75,6 +80,7 @@ export class AnimationTimer extends Conduit<null> {
     });
     this.timeProp.subscribe(hasSubscribersLt, gameTime => {
       const browserTime = this.browserTime();
+      this.lastReceivedGameTime = gameTime;
       // Set to the previous effective game time so we don't jump around
       this.gameTimeBase = this.gameTime() || gameTime;
       this.browserTimeBase = browserTime;
