@@ -57,6 +57,10 @@
       "passed": 1,
       "time": 2.540000000000002
     },
+    "Autopilot: far away from central body and target": {
+      "passed": 1,
+      "time": 22.9999999999996
+    },
     "Autopilot: target orbiting planet orbiting sun": {
       "passed": 1,
       "time": 4.8999999999999835

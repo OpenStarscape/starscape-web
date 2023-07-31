@@ -105,8 +105,8 @@ integrationTest(suiteName, 'half turn on elliptical', (lt, game, scene, result) 
   const angle = 0.2 * TAU;
   simpleMissileCase(
     lt, game, scene, result,
-    new Vec3(2, 0, 0), new Vec3(0, 1, -0.2),
-    new Vec3(-1, 0.5, 0), new Vec3(Math.cos(angle), 0, Math.sin(angle)),
+    new Vec3(2, 0, 0), new Vec3(0, 0.8, -0.5),
+    new Vec3(-1.1, 0.5, 0), new Vec3(Math.cos(angle), 0, Math.sin(angle)),
   );
   game.root.action('create_celestial', undefined).fire({
     name: 'Planet',
@@ -121,6 +121,20 @@ integrationTest(suiteName, 'far away from central body', (lt, game, scene, resul
     lt, game, scene, result,
     new Vec3(10, 0, 0), new Vec3(2, 3, 1),
     new Vec3(9, -1, 0), new Vec3(2, 0, 0),
+  );
+  game.root.action('create_celestial', undefined).fire({
+    name: 'Planet',
+    color: '#0040A0',
+    radius: 0.1,
+    mass: planetMass,
+  });
+});
+
+integrationTest(suiteName, 'far away from central body and target', (lt, game, scene, result) => {
+  simpleMissileCase(
+    lt, game, scene, result,
+    new Vec3(100, 0, 0), new Vec3(0, 3, 1),
+    new Vec3(-30, -10, 0), new Vec3(0, 0, 0),
   );
   game.root.action('create_celestial', undefined).fire({
     name: 'Planet',
