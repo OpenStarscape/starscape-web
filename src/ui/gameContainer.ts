@@ -2,10 +2,11 @@ import { Lifetime, Vec3 } from '../core';
 import { SsObject } from '../protocol';
 import { Game } from '../game';
 import { SpaceScene } from '../graphics';
-import { shipNameField, gameStats, navPanel, weaponsPanel } from '.';
+import { godControls, shipNameField, gameStats, navPanel, weaponsPanel } from '.';
 
 export function overlay(lt: Lifetime, game: Game): HTMLElement {
   const div = document.createElement('div');
+  div.appendChild(godControls(lt, game));
   div.appendChild(shipNameField(lt, game));
   div.appendChild(gameStats(lt, game));
   div.appendChild(navPanel(lt, game));
