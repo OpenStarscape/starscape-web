@@ -14,8 +14,8 @@ export class OrbitParams {
   protected eccentricity = 1;
   protected cachedTime: number | null = null; // The game time (if any) for which the cache is valid
   protected transform = new THREE.Matrix4();
-  protected cachedPosition = new THREE.Vector3();
-  protected cachedVelocity = new THREE.Vector3();
+  readonly cachedPosition = new THREE.Vector3();
+  readonly cachedVelocity = new THREE.Vector3();
 
   setParams(
     semiMajor: number,
