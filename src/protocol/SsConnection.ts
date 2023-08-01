@@ -76,12 +76,25 @@ export class SsConnection extends Lifetime {
           throw Error('array-wrapped value is not a number or array');
         }
       } else if (value.length === 3) {
-        return new Vec3(value[0], value[1], value[2]);
+        if (typeof value[0] === 'number' &&
+            typeof value[1] === 'number' &&
+            typeof value[2] === 'number'
+        ) {
+          return new Vec3(value[0], value[1], value[2]);
+        } else {
+          throw Error('vector3 contains invalid value(s): ' + JSON.stringify(value));
+        }
       } else {
         throw Error('array-wrapped value has invalid length ' + value.length);
       }
-    } else {
+    } else if (value === null ||
+        typeof value === 'number' ||
+        typeof value === 'boolean' ||
+        typeof value === 'string'
+    ) {
       return value;
+    } else {
+      throw Error('invalid value: ' + value);
     }
   }
 
