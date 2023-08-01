@@ -1,0 +1,27 @@
+{
+  "comment": "data pulled from the various fact sheets linked from https://nssdc.gsfc.nasa.gov/planetary/planetfact.html (it's on wayback machine if that link ever goes away)",
+  "bodies": [
+    {
+      "name": "Sol",
+      "color": "#ffe461",
+      "radius": 695700,
+      "mass": 1.9885e27,
+      "position": [0, 0, 0],
+      "velocity": [0, 0, 0],
+      "children": [
+        {
+          "name": "Earth",
+          "color": "#1d55f0",
+          "radius": 6371,
+          "mass": 5.9722e21,
+          "semi_major_axis": 149.598e6,
+          "semi_minor_axis": 149.577e6,
+          "inclination_angle": 0,
+          "ascending_node_angle": 0,
+          "periapsis_angle": 0,
+          "base_time": 0
+        }
+      ]
+    }
+  ]
+}
