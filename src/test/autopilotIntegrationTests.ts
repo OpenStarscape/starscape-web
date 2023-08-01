@@ -72,6 +72,14 @@ function simpleMissileCase(
   });
 }
 
+integrationTest(suiteName, 'straight shot', (lt, game, scene, result) => {
+  simpleMissileCase(
+    lt, game, scene, result,
+    new Vec3(0, 0, 0), new Vec3(0, 0, 0),
+    new Vec3(20, 0, 0), new Vec3(0, 0, 0),
+  );
+});
+
 integrationTest(suiteName, 'quarter turn on flat circular', (lt, game, scene, result) => {
   simpleMissileCase(
     lt, game, scene, result,
