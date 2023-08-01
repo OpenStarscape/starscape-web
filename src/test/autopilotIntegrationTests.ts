@@ -1,8 +1,7 @@
-import * as THREE from 'three';
-import { integrationTest, setPaused, withBodyWithName, withSpatialWithName } from './integrationTests';
-import { Lifetime, Vec3, LocalProperty } from '../core';
+import { integrationTest, setPaused, withSpatialWithName } from './integrationTests';
+import { Lifetime, Vec3 } from '../core';
 import { Game, Nav } from '../game';
-import { Scene, ConnectingLine } from '../graphics';
+import { SpaceScene, ConnectingLine } from '../graphics';
 
 const gravConstant = 6.67430e-17;
 const planetMass = 1 / gravConstant;
@@ -10,7 +9,7 @@ const suiteName = 'Autopilot';
 const TAU = 2 * Math.PI;
 
 function simpleMissileCase(
-  lt: Lifetime, game: Game, scene: Scene,
+  lt: Lifetime, game: Game, scene: SpaceScene,
   result: (result: {[k: string]: number}) => void,
   targetPos: Vec3, targetVel: Vec3,
   subjectPos: Vec3, subjectVel: Vec3,
@@ -39,6 +38,7 @@ function simpleMissileCase(
   errorLine.visible = false;
 
   withSpatialWithName(lt, game, 'Missile', ship => {
+    scene.cameraFocusBody.set(ship.body);
     withSpatialWithName(lt, game, 'Target', target => {
       game.root.action('pause_on_proximity', undefined).fire({
         a: ship.body.obj,

@@ -1,6 +1,5 @@
 import { Game, Body, Spatial } from '../game'
 import { DependentLifetime, Lifetime, LocalProperty } from '../core';
-import { Scene } from '../graphics';
 import { errorMessage } from '../ui';
 import { SpaceScene } from '../graphics';
 import './orbitIntegrationTests';
@@ -21,7 +20,7 @@ const testResultHigherBetter = {
 type TestFunc = (
   lt: Lifetime,
   game: Game,
-  scene: Scene,
+  scene: SpaceScene,
   result: (result: {[k: string]: number}) => void
 ) => void;
 type TestData = {
@@ -76,7 +75,7 @@ export function withSpatialWithName(lt: Lifetime, game: Game, name: string, call
   });
 }
 
-function runTest(parentLt: Lifetime, test: TestData, game: Game, scene: Scene) {
+function runTest(parentLt: Lifetime, test: TestData, game: Game, scene: SpaceScene) {
   if (currentRunningTestLt) {
     currentRunningTestLt.kill();
   }
@@ -133,7 +132,7 @@ function runTest(parentLt: Lifetime, test: TestData, game: Game, scene: Scene) {
   }, 200);
 }
 
-function runAllTests(lt: Lifetime, game: Game, scene: Scene) {
+function runAllTests(lt: Lifetime, game: Game, scene: SpaceScene) {
   let i = 0;
   let runNext = () => {
     while (i < testList.length && !testSuites.get(testList[i].suite)!.enabled) {
@@ -165,7 +164,7 @@ function runAllTests(lt: Lifetime, game: Game, scene: Scene) {
   runNext();
 }
 
-function testListDiv(lt: Lifetime, game: Game, scene: Scene): HTMLElement {
+function testListDiv(lt: Lifetime, game: Game, scene: SpaceScene): HTMLElement {
   const suiteListDiv = document.createElement('div');
   suiteListDiv.classList.add('scroll-box');
   suiteListDiv.style.width = '300px';
@@ -266,7 +265,7 @@ function realTimeToggle(game: Game): HTMLElement {
   return div;
 }
 
-function runButtons(lt: Lifetime, game: Game, scene: Scene): HTMLElement {
+function runButtons(lt: Lifetime, game: Game, scene: SpaceScene): HTMLElement {
   const div = document.createElement('div');
   div.classList.add('h-box');
   const runAllButton = document.createElement('button');

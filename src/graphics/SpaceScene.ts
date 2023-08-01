@@ -1,5 +1,5 @@
-import { Lifetime } from '../core';
-import { Game } from '../game';
+import { Lifetime, LocalProperty } from '../core';
+import { Game, Body } from '../game';
 import { Scene } from './Scene';
 import { Starfield } from './Starfield';
 import { CameraManager } from './CameraManager';
@@ -9,6 +9,7 @@ import { newBodyVisual } from './BodyVisual';
 export class SpaceScene extends Scene {
   readonly starfield: Starfield;
   readonly cameraManager;
+  readonly cameraFocusBody = new LocalProperty<Body | null>(null);
 
   constructor(
     lt: Lifetime,
@@ -26,7 +27,6 @@ export class SpaceScene extends Scene {
         this.lt,
         this,
         this.overlayRenderer.domElement,
-        this.game,
         this.camera,
     );
 

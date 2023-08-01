@@ -30,7 +30,9 @@ export function gameContainer(lt: Lifetime, game: Game): HTMLElement {
 
   const shipCreatedLt = lt.newDependent();
   game.root.signal('ship_created', SsObject).subscribe(shipCreatedLt, obj => {
-    game.currentShip.set(game.getBody(obj));
+    const body = game.getBody(obj);
+    game.currentShip.set(body);
+    scene.cameraFocusBody.set(body);
     shipCreatedLt.kill(); // only handle this callback once
   });
 

@@ -1,4 +1,3 @@
-import * as THREE from 'three';
 import { integrationTest, setPaused, withBodyWithName, withSpatialWithName } from './integrationTests';
 import { Vec3 } from '../core';
 import { ConnectingLine } from '../graphics';

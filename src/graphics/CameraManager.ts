@@ -1,8 +1,8 @@
 import * as THREE from "three";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { Lifetime } from '../core';
-import { Game, Spatial } from '../game';
-import { Scene } from './Scene';
+import { Spatial } from '../game';
+import { SpaceScene } from './SpaceScene';
 
 /// Keeps track of creating and destroying bodies in the 3D scene.
 export class CameraManager {
@@ -13,15 +13,14 @@ export class CameraManager {
 
   constructor(
     readonly lt: Lifetime,
-    scene: Scene,
+    scene: SpaceScene,
     domElement: HTMLElement,
-    game: Game,
     private readonly camera: THREE.Camera,
   ) {
     this.cameraController = new OrbitControls(this.camera, domElement);
     this.cameraController.target.set(-20, -20, -10);
-    game.currentShip.subscribeWithValueLifetime(lt, (valueLt, ship) => {
-      this.currentSpatial = ship ? ship.spatial(valueLt) : null;
+    scene.cameraFocusBody.subscribeWithValueLifetime(lt, (valueLt, body) => {
+      this.currentSpatial = body ? body.spatial(valueLt) : null;
     });
     // Manually updating the matrices isn't smooth, idk why
     camera.matrixAutoUpdate = true;

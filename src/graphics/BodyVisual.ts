@@ -4,7 +4,7 @@ import { Lifetime, Vec3, Conduit } from '../core';
 import { SsObject } from "../protocol";
 import { bodyHUD } from "../ui";
 import { ellipticalOrbit } from './ellipticalOrbit'
-import type { Game, Spatial } from '../game'
+import type { Game } from '../game'
 import type { Scene } from './Scene'
 
 const yVec = new THREE.Vector3(0, 1, 0);
