@@ -66,5 +66,36 @@
       "time": 4.8999999999999835
     },
     "recorded_at": 1690668779
+  },
+  {
+    "Autopilot: straight shot": {
+      "passed": 1,
+      "time": 2.980000000000002
+    },
+    "Autopilot: quarter turn on flat circular": {
+      "passed": 1,
+      "time": 1.7800000000000011
+    },
+    "Autopilot: quarter turn on tilted circular": {
+      "passed": 1,
+      "time": 1.8000000000000012
+    },
+    "Autopilot: half turn on elliptical": {
+      "passed": 1,
+      "time": 2.0400000000000014
+    },
+    "Autopilot: far away from central body": {
+      "passed": 1,
+      "time": 2.0800000000000014
+    },
+    "Autopilot: far away from central body and target": {
+      "passed": 1,
+      "time": 8.679999999999904
+    },
+    "Autopilot: target orbiting planet orbiting sun": {
+      "passed": 1,
+      "time": 4.040000000000002
+    },
+    "recorded_at": 1690870091
   }
 ]
