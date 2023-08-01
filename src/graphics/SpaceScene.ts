@@ -30,8 +30,12 @@ export class SpaceScene extends Scene {
         this.camera,
     );
 
-    game.bodies.subscribe(this.lt, ([_temLt, body]) => {
+    game.bodies.subscribe(lt, ([_temLt, body]) => {
       newBodyVisual(this, this.game, body);
     });
+
+    game.currentShip.subscribe(lt, ship => {
+      this.cameraFocusBody.set(ship);
+    })
   }
 }

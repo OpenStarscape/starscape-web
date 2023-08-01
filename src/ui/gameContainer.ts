@@ -29,19 +29,5 @@ export function gameContainer(lt: Lifetime, game: Game): HTMLElement {
     (stack.children[i] as HTMLElement).style.position = 'absolute';
   }
 
-  const shipCreatedLt = lt.newDependent();
-  game.root.signal('ship_created', SsObject).subscribe(shipCreatedLt, obj => {
-    const body = game.getBody(obj);
-    game.currentShip.set(body);
-    scene.cameraFocusBody.set(body);
-    shipCreatedLt.kill(); // only handle this callback once
-  });
-
-  game.root.action('create_ship', undefined).fire({
-    position: new Vec3(150, 0, 10),
-    velocity: new Vec3(0, 30, 0),
-    max_accel: 10.0,
-  });
-
   return stack;
 }
