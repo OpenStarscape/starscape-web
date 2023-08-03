@@ -64,12 +64,12 @@ function spawnBody(game: Game, data: any, parent: any, scale: number, timeOffset
   tmpVecA.add(tmpVecB);
   props.velocity = new Vec3(tmpVecA);
 
-  const propsCopy = {...props};
   game.root.action('create_celestial', undefined).fire(props);
 
+  console.log(props.position);
   if (data.children) {
     data.children.forEach((body: any) => {
-      spawnBody(game, body, propsCopy, scale, 0);
+      spawnBody(game, body, props, scale, 0);
     });
   }
 }
