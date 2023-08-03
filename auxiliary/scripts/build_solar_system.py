@@ -5,12 +5,28 @@ import pathlib
 import json
 import re
 
-timestamp = '2134-01-01'
+timestamp = '2060-01-01'
 output_path = str(
   pathlib.Path(__file__).resolve().parent.parent.parent / 'public' / 'solar-system.json')
 name_replacements = {
   'Sun': 'Sol',
   'Moon': 'Luna',
+}
+color_table = {
+  'Sol': 'fff548',
+  'Mercury': 'bfa47d',
+  'Venus': 'd98a3c',
+  'Earth': '124faa',
+  'Luna': '9f9f9f',
+  'Mars': 'cc6241',
+  'Phobos': '937662',
+  'Deimos': '807c6b',
+  'Jupiter': 'd8b099',
+  'Saturn': 'd4c79e',
+  'Uranus': '5dbcdd',
+  'Neptune': '3b63ad',
+  'Pluto': '8b856d',
+  'Charon': '756561',
 }
 
 regex_number_group = r'~?([+-]?[\d\.]+(?:e[+-]?\d+)?)'
@@ -43,7 +59,7 @@ def fetch_ephem(body: int, timestamp, center: str, ephem_type: str) -> str:
   return fetch(url)
 
 def re_get(pattern: str, text: str) -> tuple[str, ...]:
-  pattern = r'(?:^|\n| )' + pattern
+  pattern = r'(?:^\s*|\n\s*|  |\d )' + pattern
   matches = re.findall(pattern, text, re.IGNORECASE)
   assert len(matches), pattern + ' did not appear within text:\n\n' + text
   if isinstance(matches[0], str):
@@ -62,8 +78,10 @@ def get_body_data(body: int, timestamp: str) -> dict:
   data['name'] = re_get(r'target body name:\s(.*) \(' + str(body) + r'\)', result)[0]
   if data['name'] in name_replacements:
     data['name'] = name_replacements[data['name']]
-  data['radius'] = re_get_float(r'vol\. mean radius,? \(?km\)?', result)
-  mass_groups = re_get(r'mass,? x? ?10\^(\d+) \(?(k?)g\)?\s*=\s*' + regex_number_group, result)
+  if data['name'] in color_table:
+    data['color'] = '#' + color_table[data['name']]
+  data['radius'] = re_get_float(r'(?:vol\. mean )?radius,? \(?km\)?', result)
+  mass_groups = re_get(r'mass,? x? ?\(?10\^(\d+) \(?(k?)g ?\)?\s*=\s*' + regex_number_group, result)
   mass_power = int(mass_groups[0])
   mass_is_kg = mass_groups[1] == 'k'
   mass_value = float(mass_groups[2])
@@ -102,6 +120,8 @@ def get_system_data(timestamp: str) -> dict:
     699, # Saturn
     799, # Uranus
     899, # Neptune
+    999, # Pluto
+    901, # Charon
   ]
   data: dict = {'bodies': []}
   for body_id in body_ids:
