@@ -170,7 +170,9 @@ export class OrbitSpatial extends OrbitParams implements Spatial {
       if (this.eccentricity > 0.95) {
         return false;
       } else {
-        mat.copy(this.transform);
+        this.ensureCache(this.game.animation.gameTime());
+        mat.makeRotationZ(this.cachedEccentricAnomaly);
+        mat.premultiply(this.transform);
         // Apply parent's position
         if (this.parentSpatial) {
           this.parentSpatial.copyPositionInto(tmpVecA);

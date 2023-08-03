@@ -3,36 +3,48 @@ import { Lifetime, TAU } from '../core';
 import { Spatial } from '../game'
 import { Scene } from './Scene'
 
-function makeRingGeom(verts: number): THREE.BufferGeometry {
-  const circleGeom = new THREE.CircleGeometry(1, verts);
-  const attrib = circleGeom.getAttribute('position');
-  const array = Array.from(attrib.array);
-  const itemSize = attrib.itemSize;
-  circleGeom.dispose();
-  for (let i = 0; i < itemSize; i++) {
-    array.shift(); // Shift off the center vertex
+function makeOrbitGeom(lt: Lifetime, color: string): THREE.BufferGeometry {
+  if (color.length !== 7 || color[0] !== '#') {
+    throw Error('Invalid color: ' + color);
   }
-  const result = new THREE.BufferGeometry();
-  result.setAttribute('position', new THREE.BufferAttribute(new Float32Array(array as any), itemSize));
-  return result;
+  const r = parseInt(color.slice(1, 3), 16) / 255;
+  const g = parseInt(color.slice(3, 5), 16) / 255;
+  const b = parseInt(color.slice(5, 7), 16) / 255;
+  console.log(r, g, b);
+  const points = 48;
+  const positions = new Float32Array(points * 3);
+  const colors = new Float32Array(points * 4);
+  for (let i = 0; i < points; i++) {
+    const distance = i ** 2 / (points - 1) ** 2;
+    const theta = -distance * TAU * 0.5;
+    positions[i * 3 + 0] = Math.cos(theta);
+    positions[i * 3 + 1] = Math.sin(theta);
+    positions[i * 3 + 2] = 0;
+    colors[i * 4 + 0] = r + (1 - r) * distance;
+    colors[i * 4 + 1] = g + (1 - g) * distance;
+    colors[i * 4 + 2] = b + (1 - b) * distance;
+    colors[i * 4 + 3] = 1 - distance;
+  }
+  const geom = lt.own(new THREE.BufferGeometry());
+  geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geom.setAttribute('color', new THREE.BufferAttribute(colors, 4));
+  return geom;
 }
 
-// NOTE: these would need to be disposed of/added to a lifetime if they were not global
-const circleGeom = makeRingGeom(120);
+// this would need to be disposed of/added to a lifetime if they were not global
+const lineMaterial = new THREE.LineBasicMaterial({vertexColors: true, transparent: true});
+const emptyGeom = new THREE.BufferGeometry();
 
 export function ellipticalOrbit(
   lt: Lifetime,
   scene: Scene,
   spatial: Spatial,
 ) {
-  const lineMat = lt.own(new THREE.LineBasicMaterial({color: 'white'}));
-
-  // This is probs a better way: https://stackoverflow.com/a/21742175
-  const orbitLine = new THREE.LineLoop(circleGeom, lineMat);
+  const orbitLine = new THREE.Line(emptyGeom, lineMaterial);
   orbitLine.visible = false;
 
-  spatial.body.color.subscribe(lt, color => {
-    lineMat.color.setStyle(color);
+  spatial.body.color.subscribeWithValueLifetime(lt, (valueLt, color) => {
+    orbitLine.geometry = makeOrbitGeom(valueLt, color);
   });
 
   scene.addObject(lt, orbitLine);

@@ -14,6 +14,7 @@ export class OrbitParams {
   protected eccentricity = 1;
   protected cachedTime: number | null = null; // The game time (if any) for which the cache is valid
   protected transform = new THREE.Matrix4();
+  protected cachedEccentricAnomaly = 0;
   readonly cachedPosition = new THREE.Vector3();
   readonly cachedVelocity = new THREE.Vector3();
 
@@ -71,6 +72,7 @@ export class OrbitParams {
         (1 - this.eccentricity * Math.cos(eccentricAnomaly))
       );
     }
+    this.cachedEccentricAnomaly = eccentricAnomaly;
     // eccentricAnomaly is the angle if the body's orbit was circular, so we use that to get an XY
     // position on the unit circle and then use the transform matrix to turn that into a position
     // in space

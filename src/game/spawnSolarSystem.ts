@@ -32,7 +32,6 @@ function spawnBody(game: Game, data: any, parent: any, scale: number, timeOffset
     const periapsis = data.periapsis_angle ?? 0;
     const baseTime = data.base_time ?? 0;
     const periodTime = TAU * Math.sqrt((semiMajor ** 3) / (parent.mass * G));
-    console.log('periodTime', periodTime);
     const params = new OrbitParams();
     params.setParams(semiMajor, semiMinor, inclination, ascendingNode, periapsis, baseTime, periodTime);
     params.ensureCache(timeOffset);
@@ -64,7 +63,6 @@ function spawnBody(game: Game, data: any, parent: any, scale: number, timeOffset
 
   game.root.action('create_celestial', undefined).fire(props);
 
-  console.log(props.position);
   if (data.children) {
     data.children.forEach((body: any) => {
       spawnBody(game, body, props, scale, 0);
