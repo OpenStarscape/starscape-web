@@ -1,7 +1,7 @@
 {
   "bodies": [
     {
-      "name": "Sun",
+      "name": "Sol",
       "radius": 695700.0,
       "mass": 1.9885e+27,
       "position": [
@@ -61,7 +61,7 @@
       ]
     },
     {
-      "name": "Moon",
+      "name": "Luna",
       "radius": 1737.53,
       "mass": 7.349e+19,
       "position": [

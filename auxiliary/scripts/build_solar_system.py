@@ -8,6 +8,10 @@ import re
 timestamp = '2134-01-01'
 output_path = str(
   pathlib.Path(__file__).resolve().parent.parent.parent / 'public' / 'solar-system.json')
+name_replacements = {
+  'Sun': 'Sol',
+  'Moon': 'Luna',
+}
 
 regex_number_group = r'~?([+-]?[\d\.]+(?:e[+-]?\d+)?)'
 
@@ -56,6 +60,8 @@ def get_body_data(body: int, timestamp: str) -> dict:
   result = fetch_ephem(body, timestamp, center, ephem_type)
   data: dict = {}
   data['name'] = re_get(r'target body name:\s(.*) \(' + str(body) + r'\)', result)[0]
+  if data['name'] in name_replacements:
+    data['name'] = name_replacements[data['name']]
   data['radius'] = re_get_float(r'vol\. mean radius,? \(?km\)?', result)
   mass_groups = re_get(r'mass,? x? ?10\^(\d+) \(?(k?)g\)?\s*=\s*' + regex_number_group, result)
   mass_power = int(mass_groups[0])
