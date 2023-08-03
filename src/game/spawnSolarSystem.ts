@@ -86,7 +86,7 @@ export function spawnSolarSystem(game: Game) {
   fetch('solar-system.json')
   .then(response => response.json())
   .then(json => {
-    spawnFromJson(game, json, 0.000001);
+    spawnFromJson(game, json, 1e-5);
   }).catch(e => {
     console.error('problem fetching solar system: ' + e.message);
   });
