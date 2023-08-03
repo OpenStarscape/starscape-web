@@ -1,6 +1,6 @@
 # OpenStarscape web app
 
-This is the primary OpenStarscape frontend. Sometimes available at [https://starscape.wmww.sh/](starscape.wmww.sh).
+The primary OpenStarscape client.
 
 ## Uses
 - [Typescript](https://www.typescriptlang.org/)
