@@ -1,10 +1,8 @@
 import * as THREE from 'three';
 import { Game } from '.';
-import { Vec3 } from '../core';
+import { Vec3, TAU, G } from '../core';
 import { OrbitParams } from './OrbitParams';
 
-const gravConstant = 6.67430e-17;
-const TAU = 2 * Math.PI;
 const tmpVecA = new THREE.Vector3();
 const tmpVecB = new THREE.Vector3();
 
@@ -33,7 +31,7 @@ function spawnBody(game: Game, data: any, parent: any, scale: number, timeOffset
     const ascendingNode = data.ascending_node_angle ?? 0;
     const periapsis = data.periapsis_angle ?? 0;
     const baseTime = data.base_time ?? 0;
-    const periodTime = TAU * Math.sqrt((semiMajor ** 3) / (parent.mass * gravConstant));
+    const periodTime = TAU * Math.sqrt((semiMajor ** 3) / (parent.mass * G));
     console.log('periodTime', periodTime);
     const params = new OrbitParams();
     params.setParams(semiMajor, semiMinor, inclination, ascendingNode, periapsis, baseTime, periodTime);

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
+import { TAU } from '../core';
 
-const TAU = 2 * Math.PI;
 const matTemp = new THREE.Matrix4();
 const tmpVecA = new THREE.Vector3();
 const tmpVecB = new THREE.Vector3();

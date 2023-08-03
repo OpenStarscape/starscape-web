@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
-import { Lifetime, Vec3, Conduit } from '../core';
+import { Lifetime, Vec3, Conduit, TAU } from '../core';
 import { SsObject } from "../protocol";
 import { bodyHUD } from "../ui";
 import { ellipticalOrbit } from './ellipticalOrbit'
@@ -104,7 +104,7 @@ export function newBodyVisual(scene: Scene, game: Game, obj: SsObject) {
       body.size.getThen(lt, s => {
         displaySize = Math.max(s, displaySize);
         const celestialGeom = lt.own(new THREE.SphereGeometry(displaySize, 16, 16));
-        celestialGeom.rotateX(Math.PI / 2);
+        celestialGeom.rotateX(TAU / 4);
         mesh.geometry = celestialGeom;
         mesh.visible = true;
       });

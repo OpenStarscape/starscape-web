@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Lifetime } from '../core';
+import { Lifetime, TAU } from '../core';
 import { Spatial } from '../game'
 import { Scene } from './Scene'
 

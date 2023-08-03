@@ -1,5 +1,5 @@
 import { integrationTest, setPaused, withBodyWithName, withSpatialWithName } from './integrationTests';
-import { Vec3 } from '../core';
+import { Vec3, G } from '../core';
 import { ConnectingLine } from '../graphics';
 
 type OrbitTestCase = {
@@ -13,7 +13,6 @@ type OrbitTestCase = {
 
 const orbitTestData: OrbitTestCase[] = require('./orbit-test-data.json');
 
-const gravConstant = 6.67430e-17;
 const suiteName = 'Orbit';
 
 orbitTestData.forEach(params => {
@@ -24,7 +23,7 @@ orbitTestData.forEach(params => {
     const startPos = new Vec3(params.position);
     const createCelestial = game.root
       .action('create_celestial', undefined);
-    const centralMass = params.grav_param / gravConstant;
+    const centralMass = params.grav_param / G;
     createCelestial.fire({
       name: 'Central',
       color: '#FF8000',

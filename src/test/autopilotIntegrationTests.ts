@@ -1,12 +1,10 @@
 import { integrationTest, setPaused, withSpatialWithName } from './integrationTests';
-import { Lifetime, Vec3 } from '../core';
+import { Lifetime, Vec3, TAU, G } from '../core';
 import { Game, Nav } from '../game';
 import { SpaceScene, ConnectingLine } from '../graphics';
 
-const gravConstant = 6.67430e-17;
-const planetMass = 1 / gravConstant;
+const planetMass = 1 / G;
 const suiteName = 'Autopilot';
-const TAU = 2 * Math.PI;
 
 function simpleMissileCase(
   lt: Lifetime, game: Game, scene: SpaceScene,

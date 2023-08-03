@@ -13,3 +13,6 @@ export * from './RuntimeType'
 export * from './Vec3'
 export * from './applyMixin'
 export * from './RingBuffer'
+
+export const G = 6.67430e-17;
+export const TAU = 2 * Math.PI;

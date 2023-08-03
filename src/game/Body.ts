@@ -20,7 +20,6 @@ export class Body {
     this.color = new MappingConduit((lt: Lifetime, setter: (value: string) => void) => {
       setter('#ffffff');
       obj.property('color', {nullable: String}).subscribe(lt, color => {
-        // Set color using a Starscape protocol color (starts with 0x...)
         setter(color || '#ffffff');
       });
     })

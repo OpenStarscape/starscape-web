@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { Lifetime, DependentLifetime } from '../core';
+import { Lifetime, DependentLifetime, TAU } from '../core';
 import { Scene } from './Scene';
 
 // lets go logarithmicDepthBuffer
@@ -17,8 +17,6 @@ const galaxyPointSize = 1;
 const minSparseOpacity = 0.2;
 const galaxyDimDist = 10 ** (Math.log10(galaxyDiameter) * 0.8);
 const galaxyBrightDist = galaxyDiameter * 2;
-
-const TAU = 2 * Math.PI;
 
 function lerpClamp(input: number, inLow: number, inHigh: number, outLow: number, outHigh: number): number {
   return Math.min(Math.max(((input - inLow) / (inHigh - inLow)) * (outHigh - outLow) + outLow, outLow), outHigh);
