@@ -48,14 +48,14 @@ body {
 .body-label {
   color: #FFFFFF;
   font-family: sans-serif;
-  font-weight: bold;
+  font-weight: light;
   padding: 0.2em;
-  background: rgba(0, 0, 0, 0.5);
+  /*background: rgba(0, 0, 0, 0.5);*/
 }
 
 .body-label.selected {
   color: #FFFFFF;
-  background: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .action-button {
