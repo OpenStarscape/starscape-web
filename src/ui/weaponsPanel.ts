@@ -55,6 +55,7 @@ export function weaponsPanel(lt: Lifetime, game: Game): HTMLElement {
         name: missileName,
         position: new Vec3(pos),
         velocity: new Vec3(vel),
+        max_accel: 20.0,
       });
     });
   });
