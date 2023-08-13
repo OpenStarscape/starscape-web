@@ -1,174 +1,193 @@
 import { integrationTest, setPaused, withSpatialWithName } from './integrationTests';
 import { Lifetime, Vec3, TAU, G } from '../core';
-import { Game, Nav } from '../game';
+import { Game, Nav, Spatial, Body } from '../game';
 import { SpaceScene, ConnectingLine } from '../graphics';
 
-const planetMass = 1 / G;
+const maxAccel = 10;
 const suiteName = 'Autopilot';
+const seekerName = 'Seeker';
+const targetName = 'Target';
 
-function simpleMissileCase(
-  lt: Lifetime, game: Game, scene: SpaceScene,
-  result: (result: {[k: string]: number}) => void,
-  targetPos: Vec3, targetVel: Vec3,
-  subjectPos: Vec3, subjectVel: Vec3,
-) {
-  let pauseTime = 300;
-  game.root.property('pause_at', {nullable: Number}).set(pauseTime);
-
-  const createShip = game.root.action('create_ship', undefined);
-  createShip.fire({
-    name: 'Target',
-    position: targetPos,
-    velocity: targetVel,
+function createShip(game: Game, name: string, pos: Vec3, vel: Vec3) {
+  game.root.action('create_ship', undefined).fire({
+    name: name,
+    position: pos,
+    velocity: vel,
     radius: 0,
+    max_accel: maxAccel,
   });
-  createShip.fire({
-    name: 'Missile',
-    position: subjectPos,
-    velocity: subjectVel,
-    radius: 0,
-    max_accel: 10.0,
-  });
+}
 
+type CelesialParams = {
+  name: string,
+  color: string,
+  mass: number,
+}
+const planetParams = {
+  name: 'Planet',
+  color: '#0040A0',
+  mass: 1 / G,
+}
+const sunParams = {
+  name: 'Sun',
+  color: '#FFA000',
+  mass: planetParams.mass * 10,
+}
+function createCelestial(game: Game, params: CelesialParams, pos?: Vec3, vel?: Vec3) {
+  game.root.action('create_celestial', undefined).fire({
+    name: params.name,
+    color: params.color,
+    mass: params.mass,
+    radius: 0.1,
+    position: pos ?? new Vec3(),
+    velocity: vel ?? new Vec3(),
+  });
+}
+
+function pauseOnProximity(game: Game, a: Body, b: Body) {
+  game.root.action('pause_on_proximity', undefined).fire({
+    a: a.obj,
+    b: b.obj,
+    distance: 0.01,
+    velocity: 0.01,
+  });
+}
+
+function createErrorLine(lt: Lifetime, scene: SpaceScene, a: Spatial, b: Spatial) {
   const errorLine = new ConnectingLine(lt, 10);
   errorLine.mat.color.set('#808080');
   scene.addObject(lt, errorLine);
   errorLine.visible = false;
-
-  withSpatialWithName(lt, game, 'Missile', ship => {
-    scene.cameraFocusBody.set(ship.body);
-    withSpatialWithName(lt, game, 'Target', target => {
-      game.root.action('pause_on_proximity', undefined).fire({
-        a: ship.body.obj,
-        b: target.body.obj,
-        distance: 0.01,
-        velocity: 0.01,
-      });
-      Nav.applyState(ship.body, {
-        scheme: Nav.Scheme.Dock,
-        target: target.body,
-      });
-      scene.subscribe(lt, () => {
-        ship.copyPositionInto(errorLine.a);
-        target.copyPositionInto(errorLine.b);
-        errorLine.visible = true;
-        errorLine.update();
-      });
-      setPaused(game, false);
-    });
+  scene.subscribe(lt, () => {
+    a.copyPositionInto(errorLine.a);
+    b.copyPositionInto(errorLine.b);
+    errorLine.visible = true;
+    errorLine.update();
   });
+}
 
+function passIfPausedBeforeTimeout(lt: Lifetime, game: Game, result: (result: {[k: string]: number}) => void) {
+  let pauseTime = 300;
+  game.root.property('pause_at', {nullable: Number}).set(pauseTime);
   game.root.signal('paused', Number).subscribe(lt, t => {
     if (t >= pauseTime) {
-      errorLine.mat.color.set('#FF0000');
       console.error('ship failed to approach target');
       result({passed: 0});
     } else {
-      errorLine.mat.color.set('#00FF00');
       result({passed: 1, time: t});
     }
   });
 }
 
+function setupApproach(
+  lt: Lifetime,
+  game: Game,
+  scene: SpaceScene,
+  subjectName: string,
+  objectName: string,
+  onDetected: (subjectSpatial: Spatial, objectSpatial: Spatial) => void
+) {
+  withSpatialWithName(lt, game, subjectName, subjectSpatial => {
+    scene.cameraFocusBody.set(subjectSpatial.body);
+    withSpatialWithName(lt, game, objectName, objectSpatial => {
+      onDetected(subjectSpatial, objectSpatial);
+      pauseOnProximity(game, subjectSpatial.body, objectSpatial.body);
+      createErrorLine(lt, scene, subjectSpatial, objectSpatial)
+      setPaused(game, false);
+    });
+  });
+}
+
 integrationTest(suiteName, 'straight shot', (lt, game, scene, result) => {
-  simpleMissileCase(
-    lt, game, scene, result,
-    new Vec3(0, 0, 0), new Vec3(0, 0, 0),
-    new Vec3(20, 0, 0), new Vec3(0, 0, 0),
-  );
+  createShip(game, seekerName, new Vec3(0, 0, 0), new Vec3(0, 0, 0));
+  createShip(game, targetName, new Vec3(20, 0, 0), new Vec3(0, 0, 0));
+  setupApproach(lt, game, scene, seekerName, targetName, (seeker, target) => {
+    Nav.applyState(seeker.body, {
+      scheme: Nav.Scheme.Dock,
+      target: target.body,
+    });
+  });
+  passIfPausedBeforeTimeout(lt, game, result);
 });
 
 integrationTest(suiteName, 'quarter turn on flat circular', (lt, game, scene, result) => {
-  simpleMissileCase(
-    lt, game, scene, result,
-    new Vec3(1, 0, 0), new Vec3(0, 1, 0),
-    new Vec3(0, -1, 0), new Vec3(1, 0, 0),
-  );
-  game.root.action('create_celestial', undefined).fire({
-    name: 'Planet',
-    color: '#0040A0',
-    radius: 0.1,
-    mass: planetMass,
+  createShip(game, seekerName, new Vec3(0, -1, 0), new Vec3(1, 0, 0));
+  createShip(game, targetName, new Vec3(1, 0, 0), new Vec3(0, 1, 0));
+  createCelestial(game, planetParams);
+  setupApproach(lt, game, scene, seekerName, targetName, (seeker, target) => {
+    Nav.applyState(seeker.body, {
+      scheme: Nav.Scheme.Dock,
+      target: target.body,
+    });
   });
+  passIfPausedBeforeTimeout(lt, game, result);
 });
 
 integrationTest(suiteName, 'quarter turn on tilted circular', (lt, game, scene, result) => {
   const angle = 0.1 * TAU;
-  simpleMissileCase(
-    lt, game, scene, result,
-    new Vec3(1, 0, 0), new Vec3(0, 1, 0),
-    new Vec3(0, -1, 0), new Vec3(Math.cos(angle), 0, Math.sin(angle)),
-  );
-  game.root.action('create_celestial', undefined).fire({
-    name: 'Planet',
-    color: '#0040A0',
-    radius: 0.1,
-    mass: planetMass,
+  createShip(game, seekerName, new Vec3(0, -1, 0), new Vec3(Math.cos(angle), 0, Math.sin(angle)));
+  createShip(game, targetName, new Vec3(1, 0, 0), new Vec3(0, 1, 0));
+  createCelestial(game, planetParams);
+  setupApproach(lt, game, scene, seekerName, targetName, (seeker, target) => {
+    Nav.applyState(seeker.body, {
+      scheme: Nav.Scheme.Dock,
+      target: target.body,
+    });
   });
+  passIfPausedBeforeTimeout(lt, game, result);
 });
 
 integrationTest(suiteName, 'half turn on elliptical', (lt, game, scene, result) => {
   const angle = 0.2 * TAU;
-  simpleMissileCase(
-    lt, game, scene, result,
-    new Vec3(2, 0, 0), new Vec3(0, 0.8, -0.5),
-    new Vec3(-1.1, 0.5, 0), new Vec3(Math.cos(angle), 0, Math.sin(angle)),
-  );
-  game.root.action('create_celestial', undefined).fire({
-    name: 'Planet',
-    color: '#0040A0',
-    radius: 0.1,
-    mass: planetMass,
+  createShip(game, seekerName, new Vec3(-1.1, 0.5, 0), new Vec3(Math.cos(angle), 0, Math.sin(angle)));
+  createShip(game, targetName, new Vec3(2, 0, 0), new Vec3(0, 0.8, -0.5));
+  createCelestial(game, planetParams);
+  setupApproach(lt, game, scene, seekerName, targetName, (seeker, target) => {
+    Nav.applyState(seeker.body, {
+      scheme: Nav.Scheme.Dock,
+      target: target.body,
+    });
   });
+  passIfPausedBeforeTimeout(lt, game, result);
 });
 
 integrationTest(suiteName, 'far away from central body', (lt, game, scene, result) => {
-  simpleMissileCase(
-    lt, game, scene, result,
-    new Vec3(10, 0, 0), new Vec3(2, 3, 1),
-    new Vec3(9, -1, 0), new Vec3(2, 0, 0),
-  );
-  game.root.action('create_celestial', undefined).fire({
-    name: 'Planet',
-    color: '#0040A0',
-    radius: 0.1,
-    mass: planetMass,
+  createShip(game, seekerName, new Vec3(9, -1, 0), new Vec3(2, 0, 0));
+  createShip(game, targetName, new Vec3(10, 0, 0), new Vec3(2, 3, 1));
+  createCelestial(game, planetParams);
+  setupApproach(lt, game, scene, seekerName, targetName, (seeker, target) => {
+    Nav.applyState(seeker.body, {
+      scheme: Nav.Scheme.Dock,
+      target: target.body,
+    });
   });
+  passIfPausedBeforeTimeout(lt, game, result);
 });
 
 integrationTest(suiteName, 'far away from central body and target', (lt, game, scene, result) => {
-  simpleMissileCase(
-    lt, game, scene, result,
-    new Vec3(100, 0, 0), new Vec3(0, 3, 1),
-    new Vec3(-30, -10, 0), new Vec3(0, 0, 0),
-  );
-  game.root.action('create_celestial', undefined).fire({
-    name: 'Planet',
-    color: '#0040A0',
-    radius: 0.1,
-    mass: planetMass,
+  createShip(game, seekerName, new Vec3(-30, -10, 0), new Vec3(0, 0, 0));
+  createShip(game, targetName, new Vec3(100, 0, 0), new Vec3(0, 3, 1));
+  createCelestial(game, planetParams);
+  setupApproach(lt, game, scene, seekerName, targetName, (seeker, target) => {
+    Nav.applyState(seeker.body, {
+      scheme: Nav.Scheme.Dock,
+      target: target.body,
+    });
   });
+  passIfPausedBeforeTimeout(lt, game, result);
 });
 
 integrationTest(suiteName, 'target orbiting planet orbiting sun', (lt, game, scene, result) => {
   const angle = 0.15 * TAU;
-  simpleMissileCase(
-    lt, game, scene, result,
-    new Vec3(11, 0, 0), new Vec3(0, 1 + Math.cos(angle), Math.sin(angle)),
-    new Vec3(0, -10, 0), new Vec3(3, 0, 0),
-  );
-  game.root.action('create_celestial', undefined).fire({
-    name: 'Sun',
-    color: '#FFA000',
-    radius: 0.1,
-    mass: planetMass * 10,
+  createShip(game, seekerName, new Vec3(0, -10, 0), new Vec3(3, 0, 0));
+  createShip(game, targetName, new Vec3(11, 0, 0), new Vec3(0, 1 + Math.cos(angle), Math.sin(angle)));
+  createCelestial(game, sunParams);
+  createCelestial(game, planetParams, new Vec3(10, 0, 0), new Vec3(0, 1, 0));
+  setupApproach(lt, game, scene, seekerName, targetName, (seeker, target) => {
+    Nav.applyState(seeker.body, {
+      scheme: Nav.Scheme.Dock,
+      target: target.body,
+    });
   });
-  game.root.action('create_celestial', undefined).fire({
-    name: 'Planet',
-    color: '#0040A0',
-    radius: 0.1,
-    mass: planetMass,
-    position: new Vec3(10, 0, 0),
-    velocity: new Vec3(0, 1, 0),
-  });
+  passIfPausedBeforeTimeout(lt, game, result);
 });
