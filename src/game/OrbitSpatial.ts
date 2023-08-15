@@ -155,9 +155,9 @@ export class OrbitSpatial extends OrbitParams implements Spatial {
     }
   }
 
-  parent(): Body | null {
+  parent(): Spatial | null {
     if (this.parentSpatial !== undefined) {
-      return this.parentSpatial ? this.parentSpatial.body : null;
+      return this.parentSpatial;
     } else if (this.fallback !== null) {
       return this.fallback.parent();
     } else {

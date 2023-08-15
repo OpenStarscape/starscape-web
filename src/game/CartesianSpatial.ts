@@ -89,8 +89,8 @@ export class CartesianSpatial implements Spatial {
     return this.bodyMass ?? 0;
   }
 
-  parent(): Body | null {
-    return this.parentSpatial ? this.parentSpatial.body : null;
+  parent(): Spatial | null {
+    return this.parentSpatial ?? null;
   }
 
   copyOrbitMatrixInto(_: THREE.Matrix4): boolean {

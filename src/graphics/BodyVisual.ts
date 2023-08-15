@@ -6,8 +6,10 @@ import { bodyHUD } from "../ui";
 import { ellipticalOrbit } from './ellipticalOrbit'
 import type { Game } from '../game'
 import type { Scene } from './Scene'
+import { SpaceScene } from './SpaceScene';
 
 const yVec = new THREE.Vector3(0, 1, 0);
+const tmpVecA = new THREE.Vector3();
 const emptyGeom = new THREE.BufferGeometry();
 
 function createColorMaterialPair(
@@ -59,7 +61,7 @@ function pointObject3DInDirection(object: THREE.Object3D, direction: THREE.Vecto
   object.quaternion.setFromUnitVectors(yVec, direction);
 }
 
-export function newBodyVisual(scene: Scene, game: Game, obj: SsObject) {
+export function newBodyVisual(scene: SpaceScene, game: Game, obj: SsObject) {
   const lt = scene.lt.addDependent(obj.newDependent());
   const body = game.getBody(obj);
   const spatial = body.spatial(lt);
@@ -78,6 +80,20 @@ export function newBodyVisual(scene: Scene, game: Game, obj: SsObject) {
   const thrust = new THREE.Vector3();
   scene.subscribe(lt, () => {
     spatial.copyPositionInto(mesh.position);
+    const distToCam = mesh.position.distanceTo(scene.cameraManager.bodyPos);
+    const parent = spatial.parent();
+    let distToParent = Infinity;
+    if (parent) {
+      parent.copyPositionInto(tmpVecA);
+      distToParent = mesh.position.distanceTo(tmpVecA);
+    }
+    if (distToParent * 40 < distToCam) {
+      mesh.visible = false;
+      hudElement.visible = false;
+      return;
+    }
+    mesh.visible = true;
+    hudElement.visible = true;
     scaleMeshToView(scene, mesh, displaySize * 0.75, farMat, nearMat);
     if (getAccel && thrusterMesh) {
       thrust.set(0, 0, 0);

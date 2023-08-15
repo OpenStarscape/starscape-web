@@ -7,7 +7,7 @@ import { SpaceScene } from './SpaceScene';
 /// Keeps track of creating and destroying bodies in the 3D scene.
 export class CameraManager {
   readonly cameraController: OrbitControls;
-  private readonly bodyPos = new THREE.Vector3();
+  readonly bodyPos = new THREE.Vector3();
   private readonly posDelta = new THREE.Vector3();
   private currentSpatial: Spatial | null = null;
 
