@@ -5,7 +5,7 @@ import { Spatial, Nav } from '../game';
 export function bodyHUD(lt: Lifetime, spatial: Spatial): HTMLElement {
   const body = spatial.body;
   const div = document.createElement('div');
-  div.style.marginTop = '1.5em';
+  div.className = 'body-div';
   const p = document.createElement('p');
   div.appendChild(p);
   p.className = 'body-label';
@@ -18,11 +18,8 @@ export function bodyHUD(lt: Lifetime, spatial: Spatial): HTMLElement {
       p.style.display = 'none';
     }
   });
-  body.color.subscribe(lt, color => {
-    //p.style.color = color;
-  });
   body.isSelected.subscribe(lt, selected => {
-    p.classList.toggle('selected', selected);
+    div.classList.toggle('selected', selected);
   });
   div.addEventListener('click', () => {
     body.game.selectedBody.set(body);

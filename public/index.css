@@ -45,17 +45,22 @@ body {
   background-color: #FFFFFF;
 }
 
+.body-div {
+  width: 30px;
+  height: 30px;
+  position: relative;
+}
+
 .body-label {
   color: #FFFFFF;
   font-family: sans-serif;
   font-weight: light;
   padding: 0.2em;
-  /*background: rgba(0, 0, 0, 0.5);*/
-}
-
-.body-label.selected {
-  color: #FFFFFF;
-  background: rgba(255, 255, 255, 0.2);
+  position: absolute;
+  top: 100%;
+  margin: 0;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .action-button {
