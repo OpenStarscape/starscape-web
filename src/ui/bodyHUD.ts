@@ -5,6 +5,9 @@ import { Spatial, Nav } from '../game';
 export function bodyHUD(lt: Lifetime, spatial: Spatial): HTMLElement {
   const body = spatial.body;
   const div = document.createElement('div');
+  const selectionIndicator = document.createElement('div');
+  selectionIndicator.className = 'body-selection-indicator';
+  div.appendChild(selectionIndicator);
   div.className = 'body-div';
   const p = document.createElement('p');
   div.appendChild(p);
@@ -17,6 +20,9 @@ export function bodyHUD(lt: Lifetime, spatial: Spatial): HTMLElement {
     } else {
       p.style.display = 'none';
     }
+  });
+  body.color.subscribe(lt, color => {
+    selectionIndicator.style.borderColor = color;
   });
   body.isSelected.subscribe(lt, selected => {
     div.classList.toggle('selected', selected);

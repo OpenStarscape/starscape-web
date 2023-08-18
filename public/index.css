@@ -46,20 +46,44 @@ body {
 }
 
 .body-div {
-  width: 30px;
-  height: 30px;
+  width: 40px;
+  height: 40px;
   position: relative;
+}
+
+.body-selection-indicator {
+  position: absolute;
+  width: 80%;
+  height: 80%;
+  top: 10%;
+  left: 10%;
+  box-sizing: border-box;
+  pointer-events: none;
+  border: solid;
+  border-color: #FFFFFF;
+  border-width: 1px;
+  opacity: 0%;
+  transform: scale(2);
+  transition: opacity 0.15s ease-in, transform 0.15s ease-in;
+
+}
+
+.body-div.selected > .body-selection-indicator {
+  transform: none;
+  opacity: 100%;
 }
 
 .body-label {
   color: #FFFFFF;
   font-family: sans-serif;
   font-weight: light;
-  padding: 0.2em;
   position: absolute;
-  top: 100%;
+  top: 90%;
   margin: 0;
   left: 50%;
+  text-align: center;
+  max-width: 100px;
+  white-space: nowrap;
   transform: translateX(-50%);
 }
 
