@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
-import { Lifetime, Vec3, Conduit, TAU } from '../core';
+import { Lifetime, DependentLifetime, Vec3, Conduit, TAU } from '../core';
 import { SsObject } from "../protocol";
 import { bodyHUD } from "../ui";
 import { ellipticalOrbit } from './ellipticalOrbit'
@@ -63,17 +63,18 @@ function pointObject3DInDirection(object: THREE.Object3D, direction: THREE.Vecto
 
 export function newBodyVisual(scene: SpaceScene, game: Game, obj: SsObject) {
   const lt = scene.lt.addDependent(obj.newDependent());
+  let visibleLt: DependentLifetime | null = null;
   const body = game.getBody(obj);
   const spatial = body.spatial(lt);
   let displaySize = 0.001;
 
   const [farMat, nearMat] = createColorMaterialPair(lt, body.color);
   const hudElement = new CSS2DObject(bodyHUD(lt, spatial));
+  hudElement.visible = false;
   const mesh = new THREE.Mesh(emptyGeom, farMat);
   mesh.visible = false; // Shouldn't be needed because geom is empty, but see https://github.com/mrdoob/three.js/issues/26464
   scene.addObject(lt, mesh);
   object3DAddChild(lt, mesh, hudElement);
-  ellipticalOrbit(lt, scene, spatial);
 
   let getAccel: (() => Vec3 | undefined) | null = null;
   let thrusterMesh: THREE.Mesh | null = null;
@@ -87,13 +88,26 @@ export function newBodyVisual(scene: SpaceScene, game: Game, obj: SsObject) {
       parent.copyPositionInto(tmpVecA);
       distToParent = mesh.position.distanceTo(tmpVecA);
     }
-    if (distToParent * 40 < distToCam) {
-      mesh.visible = false;
-      hudElement.visible = false;
+    if (!spatial.isReady() ||  distToParent * 40 < distToCam) {
+      if (visibleLt) {
+        visibleLt.kill();
+        visibleLt = null;
+      }
       return;
     }
-    mesh.visible = true;
-    hudElement.visible = true;
+    if (!visibleLt) {
+      visibleLt = lt.newDependent();
+      mesh.visible = true;
+      hudElement.visible = true;
+      ellipticalOrbit(visibleLt, scene, spatial);
+      visibleLt.addCallback(() => {
+        mesh.visible = false;
+        hudElement.visible = false;
+        if (thrusterMesh) {
+          thrusterMesh.visible = false;
+        }
+      });
+    }
     scaleMeshToView(scene, mesh, displaySize * 0.75, farMat, nearMat);
     if (getAccel && thrusterMesh) {
       thrust.set(0, 0, 0);
@@ -140,6 +154,7 @@ export function newBodyVisual(scene: SpaceScene, game: Game, obj: SsObject) {
         const thrusterGeom = lt.own(new THREE.ConeGeometry(displaySize * 0.5, displaySize, 5));
         thrusterGeom.translate(0, 0.5 * displaySize, 0);
         thrusterMesh = new THREE.Mesh(thrusterGeom, thrusterMat);
+        thrusterMesh.visible = false;
         mesh.add(thrusterMesh);
       });
     } else {
