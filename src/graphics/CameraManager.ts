@@ -7,32 +7,38 @@ import { SpaceScene } from './SpaceScene';
 /// Keeps track of creating and destroying bodies in the 3D scene.
 export class CameraManager {
   readonly cameraController: OrbitControls;
-  readonly bodyPos = new THREE.Vector3();
-  private readonly posDelta = new THREE.Vector3();
-  private currentSpatial: Spatial | null = null;
+  readonly viewTarget = new THREE.Object3D();
+  private targetSpatial: Spatial | null = null;
+  private readonly fakeCam;
 
   constructor(
     readonly lt: Lifetime,
     scene: SpaceScene,
     domElement: HTMLElement,
-    private readonly camera: THREE.Camera,
+    readonly camera: THREE.Camera,
   ) {
-    this.cameraController = new OrbitControls(this.camera, domElement);
-    this.cameraController.target.set(-20, -20, -10);
+    scene.addObject(lt, this.viewTarget);
+    this.fakeCam = camera.clone();
+    this.fakeCam.matrixAutoUpdate = true; // Needed to make things smooth for some reason
+    this.cameraController = new OrbitControls(this.fakeCam, domElement);
+    this.fakeCam.position.set(20, 20, 10);
     scene.cameraFocusBody.subscribeWithValueLifetime(lt, (valueLt, body) => {
-      this.currentSpatial = body ? body.spatial(valueLt) : null;
+      this.targetSpatial = body ? body.spatial(valueLt) : null;
     });
-    // Manually updating the matrices isn't smooth, idk why
-    camera.matrixAutoUpdate = true;
-    camera.matrixWorldAutoUpdate = true;
-    scene.subscribe(lt, () => {
-      if (this.currentSpatial !== null) {
-        this.currentSpatial.copyPositionInto(this.bodyPos);
-      }
-      this.posDelta.subVectors(this.bodyPos, this.cameraController.target);
-      this.camera.position.add(this.posDelta);
-      this.cameraController.target.copy(this.bodyPos);
-      this.cameraController.update();
-    });
+  }
+
+  update() {
+    if (this.targetSpatial !== null) {
+      this.targetSpatial.copyPositionInto(this.viewTarget.position);
+    }
+    this.cameraController.update();
+    this.viewTarget.updateMatrix();
+    this.viewTarget.updateMatrixWorld();
+    this.camera.position.copy(this.fakeCam.position);
+    this.camera.quaternion.copy(this.fakeCam.quaternion);
+    this.camera.position.applyMatrix4(this.viewTarget.matrix);
+    this.camera.quaternion.premultiply(this.viewTarget.quaternion);
+    this.camera.updateMatrix();
+    this.camera.updateMatrixWorld();
   }
 }

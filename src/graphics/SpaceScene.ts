@@ -38,4 +38,13 @@ export class SpaceScene extends Scene {
       this.cameraFocusBody.set(ship);
     })
   }
+
+  render() {
+    if (!this.cameraManager) {
+      // Sometimes this is called during initialization for some reason
+      return;
+    }
+    this.cameraManager.update();
+    super.render();
+  }
 }

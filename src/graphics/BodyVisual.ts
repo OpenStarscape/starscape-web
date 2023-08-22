@@ -80,7 +80,7 @@ export function newBodyVisual(scene: SpaceScene, game: Game, obj: SsObject) {
   const thrust = new THREE.Vector3();
   scene.subscribe(lt, () => {
     spatial.copyPositionInto(mesh.position);
-    const distToCam = mesh.position.distanceTo(scene.cameraManager.bodyPos);
+    const distToCam = mesh.position.distanceTo(scene.cameraManager.camera.position);
     const parent = spatial.parent();
     let distToParent = Infinity;
     if (parent) {
