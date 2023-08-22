@@ -10,7 +10,6 @@ function makeOrbitGeom(lt: Lifetime, color: string): THREE.BufferGeometry {
   const r = parseInt(color.slice(1, 3), 16) / 255;
   const g = parseInt(color.slice(3, 5), 16) / 255;
   const b = parseInt(color.slice(5, 7), 16) / 255;
-  console.log(r, g, b);
   const points = 48;
   const positions = new Float32Array(points * 3);
   const colors = new Float32Array(points * 4);
