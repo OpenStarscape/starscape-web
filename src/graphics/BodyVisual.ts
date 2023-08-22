@@ -102,6 +102,10 @@ export function newBodyVisual(scene: SpaceScene, game: Game, obj: SsObject) {
       if (thrust.lengthSq() < 0.0005) {
         spatial.copyVelocityInto(thrust);
         thrusterMesh!.visible = false;
+        if (parent) {
+          parent.copyVelocityInto(tmpVecA);
+          thrust.sub(tmpVecA);
+        }
       } else {
         thrusterMesh!.visible = true;
         const thrustSize = thrust.length();
