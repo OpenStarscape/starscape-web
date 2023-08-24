@@ -140,7 +140,6 @@ export function newBodyVisual(scene: SpaceScene, game: Game, obj: SsObject) {
         const celestialGeom = lt.own(new THREE.SphereGeometry(displaySize, 16, 16));
         celestialGeom.rotateX(TAU / 4);
         mesh.geometry = celestialGeom;
-        mesh.visible = true;
       });
     } else if (cls === 'ship') {
       getAccel = spatial.body.obj.property('accel', Vec3).getter(lt);
@@ -149,7 +148,6 @@ export function newBodyVisual(scene: SpaceScene, game: Game, obj: SsObject) {
         const shipGeom = lt.own(new THREE.ConeGeometry(1 * displaySize, 3 * displaySize, 16));
         shipGeom.translate(0, 0.5 * displaySize, 0);
         mesh.geometry = shipGeom;
-        mesh.visible = true;
         const thrusterMat = lt.own(new THREE.MeshBasicMaterial({color: 0xFFA000}));
         const thrusterGeom = lt.own(new THREE.ConeGeometry(displaySize * 0.5, displaySize, 5));
         thrusterGeom.translate(0, 0.5 * displaySize, 0);

@@ -4,6 +4,10 @@ import { Lifetime } from '../core';
 import { Spatial } from '../game';
 import { SpaceScene } from './SpaceScene';
 
+const tmpVecA = new THREE.Vector3();
+const tmpVecB = new THREE.Vector3();
+const tmpVecC = new THREE.Vector3();
+
 /// Keeps track of creating and destroying bodies in the 3D scene.
 export class CameraManager {
   readonly cameraController: OrbitControls;
@@ -30,7 +34,35 @@ export class CameraManager {
   update() {
     if (this.targetSpatial !== null) {
       this.targetSpatial.copyPositionInto(this.viewTarget.position);
+      tmpVecA.setScalar(0);
+      tmpVecB.setScalar(0);
+      tmpVecC.setScalar(0);
+      const parentSpatial = this.targetSpatial.parent();
+      if (parentSpatial) {
+        parentSpatial.copyPositionInto(tmpVecA);
+        parentSpatial.copyVelocityInto(tmpVecB);
+      }
+      tmpVecA.sub(this.viewTarget.position);
+      // tmpVecA is now relative position of parent
+      this.targetSpatial.copyVelocityInto(tmpVecC);
+      tmpVecC.sub(tmpVecB);
+      // tmpVecC is now relative velocity of target
+      tmpVecB.copy(tmpVecC);
+      tmpVecB.cross(tmpVecA);
+      // tmpVecB is now direction perpendicular to these
+      tmpVecC.copy(tmpVecB);
+      tmpVecC.cross(tmpVecA);
+      // tmpVecC is now perpendicular to A and B
+      tmpVecA.normalize();
+      tmpVecB.normalize();
+      tmpVecC.normalize();
+      this.viewTarget.matrix.makeBasis(tmpVecA, tmpVecC, tmpVecB);
+      this.viewTarget.quaternion.setFromRotationMatrix(this.viewTarget.matrix);
+      this.viewTarget.quaternion.normalize();
+      this.viewTarget.updateMatrix();
     }
+    // TODO: allow panning by slowely moving target back to origin
+    this.cameraController.target.set(0, 0, 0);
     this.cameraController.update();
     this.viewTarget.updateMatrix();
     this.viewTarget.updateMatrixWorld();
