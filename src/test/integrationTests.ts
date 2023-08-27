@@ -1,6 +1,6 @@
 import { Game, Body, Spatial } from '../game'
 import { DependentLifetime, Lifetime, LocalProperty } from '../core';
-import { errorMessage } from '../ui';
+import { errorMessage, create } from '../ui';
 import { SpaceScene } from '../graphics';
 import './orbitIntegrationTests';
 import './autopilotIntegrationTests';
@@ -165,11 +165,9 @@ function runAllTests(lt: Lifetime, game: Game, scene: SpaceScene) {
 }
 
 function testListDiv(lt: Lifetime, game: Game, scene: SpaceScene): HTMLElement {
-  const suiteListDiv = document.createElement('div');
-  suiteListDiv.classList.add('scroll-box');
+  const suiteListDiv = create.scrollBox([]);
   suiteListDiv.style.width = '300px';
-  const testResultsDiv = document.createElement('div');
-  testResultsDiv.classList.add('v-box');
+  const testResultsDiv = create.vBox([]);
   testResultsDiv.style.position = 'absolute';
   testResultsDiv.style.background = 'gray';
   testResultsDiv.style.bottom = '0';
@@ -180,27 +178,17 @@ function testListDiv(lt: Lifetime, game: Game, scene: SpaceScene): HTMLElement {
       throw Error('unkown suite ' + test.suite);
     }
     if (!suite.div) {
-      const toggleSuiteButton = document.createElement('button');
-      toggleSuiteButton.textContent = test.suite;
-      toggleSuiteButton.classList.add('action-button');
-      suiteListDiv.append(toggleSuiteButton);
-      suite.div = document.createElement('div');
-      suiteListDiv.append(suite.div);
-      suite.div.style.display = 'none';
-      suite.div.style.marginLeft = '10px';
-      suite.div.classList.add('v-box');
-      toggleSuiteButton.addEventListener('click', () => {
+      suiteListDiv.append(create.button(test.suite, {click: () => {
         suite.enabled = !suite.enabled;
         suite.div!.style.display = suite.enabled ? 'flex' : 'none';
-      });
+      }}));
+      suite.div = create.vBox([], {display: 'none'});
+      suite.div.style.marginLeft = '10px';
+      suiteListDiv.append(suite.div);
     }
-    const labelDiv = document.createElement('div');
-    suite.div.append(labelDiv);
-    labelDiv.style.cursor = 'pointer';
-    labelDiv.classList.add('h-box');
-    const labelP = document.createElement('p');
-    labelP.textContent = test.name;
-    labelDiv.append(labelP);
+    const labelDiv = create.hBox([create.p(test.name)], {cursor: 'pointer', click: () => {
+      runTest(lt, test, game, scene);
+    }});
     suite.div.append(labelDiv);
     test.status.subscribe(lt, status => {
       while (testResultsDiv.firstChild) {
@@ -215,13 +203,12 @@ function testListDiv(lt: Lifetime, game: Game, scene: SpaceScene): HTMLElement {
           const prev = prevResults[test.qualifiedName] ?
             prevResults[test.qualifiedName][key] :
             undefined;
-          const p = document.createElement('p');
           const prevStr = prev !== undefined ? prev.toFixed(4) : '';
           const resultStr = test.result[key].toFixed(4);
-          p.textContent = key + ': ' +
+          testResultsDiv.appendChild(create.p(key + ': ' +
             ((prevStr && prevStr !== resultStr) ? prevStr + ' -> ' : '') +
-            resultStr;
-          testResultsDiv.appendChild(p);
+            resultStr
+          ));
         };
       }
       labelDiv.classList.toggle('exceptional', status === TestStatus.Exceeded);
@@ -229,9 +216,6 @@ function testListDiv(lt: Lifetime, game: Game, scene: SpaceScene): HTMLElement {
       labelDiv.classList.toggle('bad', status === TestStatus.Failed);
       labelDiv.classList.toggle('important', status === TestStatus.Running);
       labelDiv.scrollIntoView({behavior: "smooth", block: "nearest"});
-    })
-    labelDiv.addEventListener('click', () => {
-      runTest(lt, test, game, scene);
     });
   });
   return suiteListDiv;
@@ -247,87 +231,60 @@ export function setPaused(game: Game, paused: boolean) {
 }
 
 function realTimeToggle(game: Game): HTMLElement {
-  const div = document.createElement('div');
-  div.classList.add('h-box');
-  const p = document.createElement('p');
-  p.textContent = 'Real time';
-  p.style.flexGrow = '1';
-  const toggle = document.createElement('input');
-  toggle.type = 'checkbox';
+  const toggle = create.input('checkbox', {change: () => {
+    (game as any).testGameSpeed = toggle.checked ? 1 : fastGameSpeed;
+  }});
+  toggle.checked = false;
+  const div = create.hBox([
+    create.p('Real time', {flexGrow: '1'}),
+    toggle,
+  ])
   const fastGameSpeed = 100;
   (game as any).testGameSpeed = fastGameSpeed;
-  toggle.checked = false;
-  toggle.addEventListener('change', () => {
-    (game as any).testGameSpeed = toggle.checked ? 1 : fastGameSpeed;
-  })
-  div.append(p);
-  div.append(toggle);
   return div;
 }
 
 function runButtons(lt: Lifetime, game: Game, scene: SpaceScene): HTMLElement {
-  const div = document.createElement('div');
-  div.classList.add('h-box');
-  const runAllButton = document.createElement('button');
-  runAllButton.textContent = 'Run all';
-  runAllButton.classList.add('action-button');
-  runAllButton.addEventListener('click', () => {
-    for (let suite of testSuites.values()){
-      suite.enabled = true;
-      suite.div!.style.display = 'flex';
+  return create.hBox([
+    create.button('Run all', {click: () => {
+      for (let suite of testSuites.values()){
+        suite.enabled = true;
+        suite.div!.style.display = 'flex';
+      }
+      runAllTests(lt, game, scene);
+    }}),
+    create.button('Run shown', {click: () => runAllTests(lt, game, scene)}),
+  ]);
+}
+
+function copyTestData() {
+  const results = integrationTestResults.slice();
+  const newResult: {[k: string]: {[k: string]: number}} = {};
+  for (const test of testList) {
+    if (!test.result) {
+      throw Error('not all tests have completed');
     }
-    runAllTests(lt, game, scene);
-  });
-  div.append(runAllButton);
-  const runShownButton = document.createElement('button');
-  runShownButton.textContent = 'Run shown';
-  runShownButton.classList.add('action-button');
-  runShownButton.addEventListener('click', () => runAllTests(lt, game, scene));
-  div.append(runShownButton);
-  return div;
+    if (Object.keys(test.result).length != 1 || test.result.passed != 1) {
+      newResult[test.qualifiedName] = test.result;
+    }
+  }
+  (newResult as any).recorded_at = Math.floor(Date.now() / 1000);
+  results.push(newResult);
+  const resultStr = JSON.stringify(results, null, 2);
+  navigator.clipboard.writeText(resultStr);
 }
 
 function testContainer(lt: Lifetime, game: Game): HTMLElement {
   const scene = new SpaceScene(lt, game);
-  const sidebarDiv = document.createElement('div');
-  sidebarDiv.classList.add('v-box');
-  sidebarDiv.style.flexGrow = '0';
-  sidebarDiv.style.height = '100%';
-  sidebarDiv.append(testListDiv(lt, game, scene));
-  const paddingDiv = document.createElement('div');
-  paddingDiv.style.flexGrow = '1';
-  sidebarDiv.append(paddingDiv);
-  sidebarDiv.append(realTimeToggle(game));
-  sidebarDiv.append(runButtons(lt, game, scene));
-  const copyDataButton = document.createElement('button');
-  copyDataButton.textContent = 'Copy data';
-  copyDataButton.classList.add('action-button');
-  copyDataButton.id = 'copy-data-button';
-  copyDataButton.disabled = true;
-  copyDataButton.addEventListener('click', () => {
-    const results = integrationTestResults.slice();
-    const newResult: {[k: string]: {[k: string]: number}} = {};
-    for (const test of testList) {
-      if (!test.result) {
-        throw Error('not all tests have completed');
-      }
-      if (Object.keys(test.result).length != 1 || test.result.passed != 1) {
-        newResult[test.qualifiedName] = test.result;
-      }
-    }
-    (newResult as any).recorded_at = Math.floor(Date.now() / 1000);
-    results.push(newResult);
-    const resultStr = JSON.stringify(results, null, 2);
-    navigator.clipboard.writeText(resultStr);
-  });
-  sidebarDiv.append(copyDataButton);
-  const containerDiv = document.createElement('div');
-  containerDiv.classList.add('h-box');
-  containerDiv.append(sidebarDiv);
+  const sidebarDiv = create.vBox([
+    testListDiv(lt, game, scene),
+    create.div([], {flexGrow: '1'}),
+    realTimeToggle(game),
+    runButtons(lt, game, scene),
+    create.button('Copy data', {id: 'copy-data-button', disabled: true, click: copyTestData})
+  ], {height: '100%', flexGrow: '0'});
   scene.div.style.flexGrow = '1';
-  containerDiv.append(scene.div);
-  containerDiv.style.height = '100vh';
-  return containerDiv;
+  return create.hBox([sidebarDiv, scene.div], {height: '100vh'});
 }
 
 function init() {
