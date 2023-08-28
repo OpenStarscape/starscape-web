@@ -16,6 +16,14 @@ function mockGame() {
         }
       }
     },
+    animation: {
+      lastGameTime: () => {
+        return 0;
+      },
+      gameTime: () => {
+        return 0;
+      },
+    },
   } as any;
 }
 
