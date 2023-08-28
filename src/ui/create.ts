@@ -100,31 +100,7 @@ type InputProps = null | ElemProps & {
   change?: EventListenerOrEventListenerObject,
 };
 
-type InputType =
-  'text' |
-  'password' |
-  'search' |
-  'email' |
-  'url' |
-  'tel' |
-  'number' |
-  'range' |
-  'date' |
-  'datetime-local' |
-  'month' |
-  'week' |
-  'time' |
-  'file' |
-  'button' |
-  'submit' |
-  'reset' |
-  'checkbox' |
-  'radio' |
-  'image' |
-  'color' |
-  'hidden';
-
-export function input(inputType: InputType, props?: InputProps): HTMLInputElement {
+export function input(inputType: string, props?: InputProps): HTMLInputElement {
   const i = elem(document.createElement('input'), props);
   i.type = inputType;
   if (props) {
