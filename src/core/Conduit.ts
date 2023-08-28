@@ -6,7 +6,7 @@ export class Subscriber<T> {
   constructor(
     readonly lifetime: Lifetime,
     protected callback: ((value: T) => void) | null,
-    private readonly onDispose: (self: Subscriber<T>) => void,
+    private readonly onDispose: () => void,
   ) {
     this.lifetime.own(this);
   }
@@ -23,7 +23,7 @@ export class Subscriber<T> {
   dispose() {
     this.callback = null;
     this.lifetime.disown(this);
-    this.onDispose(this);
+    this.onDispose();
   }
 }
 
@@ -48,7 +48,7 @@ export abstract class Conduit<T> {
   /// The callback stops fireing as soon as the lifetime dies. It does NOT kill the lifetime
   /// when the property or it's owning object dies.
   subscribe(lt: Lifetime, callback: (value: T) => void) {
-    const subscriber = new Subscriber(lt, callback, (subscriber) => {
+    const subscriber = new Subscriber(lt, callback, () => {
       this.subscribers.delete(subscriber);
       if (this.subscribers.size === 0 && this.hasSubscribersLt !== null) {
         this.hasSubscribersLt.kill();

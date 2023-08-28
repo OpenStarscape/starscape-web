@@ -1,5 +1,5 @@
 import { SsObject } from '../protocol'
-import { Lifetime, MappingConduit, LocalProperty } from '../core'
+import { Lifetime, DependentLifetime, MappingConduit, LocalProperty } from '../core'
 import { Game } from '../game'
 import { Spatial } from './Spatial'
 import { OrbitSpatial } from './OrbitSpatial'
@@ -9,7 +9,8 @@ export class Body {
   readonly color;
   readonly size;
   readonly isSelected = new LocalProperty(false);
-  private readonly spatialUserTracker;
+  private readonly spatialUsers = new Set<Lifetime>();
+  private hasSpatialLt: DependentLifetime | null = null;
   private cachedSpatial: Spatial | null = null;
 
   constructor(
@@ -24,18 +25,26 @@ export class Body {
       });
     })
     this.size = obj.property('size', Number);
-    // Create the spatial when it is needed, clear it when all users are dead
-    this.spatialUserTracker = new MappingConduit<void>((lt, _setter) => {
-      this.cachedSpatial = new OrbitSpatial(this.game, lt, this);
-      lt.addCallback(() => {
-        this.cachedSpatial = null;
-      });
-    });
   }
 
   spatial(lt: Lifetime): Spatial {
-    this.spatialUserTracker.subscribe(lt, () => {});
-    // cache.spatial will always have a value when spatialUserTracker has subscribers
+    if (!this.spatialUsers.has(lt)) {
+      this.spatialUsers.add(lt);
+      lt.addCallback(() => {
+        this.spatialUsers.delete(lt);
+        if (!this.spatialUsers.size && this.hasSpatialLt) {
+          this.hasSpatialLt.kill();
+        }
+      });
+    }
+    if (!this.hasSpatialLt) {
+      this.hasSpatialLt = new DependentLifetime();
+      this.hasSpatialLt.addCallback(() => {
+        this.hasSpatialLt = null;
+        this.cachedSpatial = null;
+      });
+      this.cachedSpatial = new OrbitSpatial(this.game, this.hasSpatialLt, this);
+    }
     return this.cachedSpatial!;
   }
 }

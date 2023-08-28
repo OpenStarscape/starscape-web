@@ -35,7 +35,7 @@ export class SsProperty<T extends SsValue> extends SsConduit<T> {
   /// completes, the callback may never be called.
   getThen(lifetime: Lifetime, callback: (value: T) => void) {
     if (this.value === undefined) {
-      const getSubscriber = new Subscriber(lifetime, callback, (getSubscriber) => {
+      const getSubscriber = new Subscriber(lifetime, callback, () => {
         if (this.pendingGets !== null) {
           this.pendingGets.delete(getSubscriber);
         }
