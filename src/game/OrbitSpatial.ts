@@ -13,8 +13,10 @@ const tmpVecA = new THREE.Vector3();
 /// Subscribes to the body's orbit and determines position from that
 /// A lot of the math was figured out using https://space.stackexchange.com/a/8915
 export class OrbitSpatial extends OrbitParams implements Spatial {
-  private cachedParent: SsObject | null = null;
-  private parentSpatial: Spatial | null | undefined;
+  private pendingParent: SsObject | null = null;
+  private pendingParentSpatialLt: DependentLifetime | null = null;
+  private activeParent: SsObject | null = null;
+  private parentSpatial: Spatial | null = null;
   private parentSpatialLt: DependentLifetime | null = null;
   private fallback: Spatial | null = null;
   private fallbackLt: DependentLifetime | null = null;
@@ -35,12 +37,8 @@ export class OrbitSpatial extends OrbitParams implements Spatial {
       if (params === null) {
         this.useFallback();
       } else {
-        this.setParentSpatial(params[7]);
-        // Orbital parameters only work if we're orbiting something. If there is no parent, use the
-        // fallback
-        if (this.parentSpatial === null) {
-          this.useFallback();
-        } else {
+        const parent = params[7];
+        if (this.activeParent === parent) {
           this.setParams(
             params[0],
             params[1],
@@ -50,11 +48,51 @@ export class OrbitSpatial extends OrbitParams implements Spatial {
             params[5],
             params[6],
           );
-          this.paramsValid = true;
-          if (this.fallbackLt !== null) {
-            this.fallbackLt.kill();
+        } else if (this.pendingParent !== parent) {
+          if (this.pendingParentSpatialLt) {
+            this.pendingParentSpatialLt.kill();
           }
-          this.maybeReady();
+          this.pendingParent = parent;
+          const parentSpatialLt = this.lt.newDependent();
+          this.pendingParentSpatialLt = parentSpatialLt
+          const parentSpatial = this.game.getBody(parent).spatial(parentSpatialLt);
+          parentSpatialLt.addCallback(() => {
+            if (this.pendingParentSpatialLt === parentSpatialLt) {
+              this.pendingParent = null;
+              this.pendingParentSpatialLt = null;
+            }
+            if (this.parentSpatialLt === parentSpatialLt) {
+              this.activeParent = null;
+              this.parentSpatialLt = null;
+              this.parentSpatial = null;
+            }
+          });
+          const localParams = params.slice() as typeof params;
+          parentSpatial.onReady(() => {
+            if (this.pendingParentSpatialLt !== parentSpatialLt) {
+              parentSpatialLt.kill();
+              return;
+            }
+            if (this.parentSpatialLt !== null) {
+              this.parentSpatialLt.kill();
+            }
+            this.pendingParent = null;
+            this.pendingParentSpatialLt = null;
+            this.activeParent = parent;
+            this.parentSpatialLt = parentSpatialLt;
+            this.parentSpatial = parentSpatial;
+            this.setParams(
+              localParams[0],
+              localParams[1],
+              localParams[2],
+              localParams[3],
+              localParams[4],
+              localParams[5],
+              localParams[6],
+            );
+            this.paramsValid = true;
+            this.maybeReady();
+          });
         }
       }
     });
@@ -64,41 +102,34 @@ export class OrbitSpatial extends OrbitParams implements Spatial {
     });
   }
 
-  private setParentSpatial(parent: SsObject | null) {
-    if (this.cachedParent !== parent) {
-      if (this.parentSpatialLt !== null) {
-        this.parentSpatialLt.kill();
-      }
-      this.cachedParent = parent;
-      if (parent !== null) {
-        this.parentSpatialLt = this.lt.newDependent();
-        this.parentSpatial = this.game.getBody(parent).spatial(this.parentSpatialLt);
-      } else {
-        this.parentSpatialLt = null;
-        this.parentSpatial = null;
-      }
-    }
-  }
-
   private useFallback(): void {
     if (this.fallbackLt === null) {
-      this.fallbackLt = this.lt.newDependent();
-      const spatial = new CartesianSpatial(this.game, this.fallbackLt, this.body);
+      const fallbackLt = this.lt.newDependent();
+      this.fallbackLt = fallbackLt;
+      const spatial = new CartesianSpatial(this.game, fallbackLt, this.body);
       this.fallbackLt.addCallback(() => {
         this.fallback = null;
         this.fallbackLt = null;
       });
+      if (this.pendingParentSpatialLt) {
+        this.pendingParentSpatialLt.kill();
+      }
       spatial.onReady(() => {
-        this.fallback = spatial;
-        this.paramsValid = false;
-        this.maybeReady();
+        if (this.fallbackLt === fallbackLt) {
+          this.fallback = spatial;
+          this.paramsValid = false;
+          if (this.parentSpatialLt) {
+            this.parentSpatialLt.kill();
+          }
+          this.maybeReady();
+        }
       });
     }
   }
 
   isReady(): boolean {
     return (
-      (this.paramsValid && !!this.parentSpatial && this.mass !== undefined) ||
+      (this.paramsValid && this.mass !== undefined) ||
       (this.fallback !== null && this.fallback.isReady())
     );
   }

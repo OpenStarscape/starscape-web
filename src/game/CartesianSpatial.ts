@@ -37,7 +37,13 @@ export class CartesianSpatial implements Spatial {
     });
     body.obj.property('grav_parent', {nullable: SsObject}).subscribe(lt, parent => {
       this.parentSpatial = parent ? game.getBody(parent).spatial(lt) : null;
-      this.maybeReady();
+      if (this.parentSpatial) {
+        this.parentSpatial.onReady(() => {
+          this.maybeReady();
+        });
+      } else {
+        this.maybeReady();
+      }
     });
   }
 
@@ -46,8 +52,8 @@ export class CartesianSpatial implements Spatial {
       this.position !== undefined &&
       this.velocity !== undefined &&
       this.bodyMass !== undefined &&
-      this.parentSpatial !== undefined
-    )
+      (this.parentSpatial === null || (!!this.parentSpatial && this.parentSpatial.isReady()))
+    );
   }
 
   maybeReady(): void {
