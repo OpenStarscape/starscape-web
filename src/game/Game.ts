@@ -52,6 +52,7 @@ export class Game extends Lifetime {
       }
       prevSelected = selected;
     });
+    (window as any)['game'] = this;
   }
 
   getBody(obj: SsObject): Body {
