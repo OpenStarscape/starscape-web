@@ -70,6 +70,7 @@ export class Scene extends Conduit<null> {
     if (animation !== null) {
       animation.subscribe(this.lt, () => this.render());
     }
+    (window as any)['scene'] = this;
   }
 
   addObject(lt: Lifetime, obj3D: THREE.Object3D) {
