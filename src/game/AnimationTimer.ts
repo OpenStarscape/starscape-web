@@ -11,7 +11,8 @@ export class AnimationTimer extends Conduit<null> {
   private lastReceivedGameTime = 0;
   private browserTimeBase: number | null = null;
   private gameTimeBase: number | null = null;
-  private gameTimePerBrowserTime: number = 1;
+  private lastReceivedTimePerTime = 1;
+  private gameTimePerBrowserTime = 1;
   private readonly timeProp;
   private readonly timePerTimeProp;
 
@@ -36,7 +37,7 @@ export class AnimationTimer extends Conduit<null> {
     if (this.browserTimeBase === null ||
         this.gameTimeBase === null
     ) {
-      return 0;
+      return this.lastReceivedGameTime;
     } else {
       return (this.browserTime() - this.browserTimeBase) *
         this.gameTimePerBrowserTime +
@@ -69,21 +70,35 @@ export class AnimationTimer extends Conduit<null> {
       this.gameTimePerBrowserTime = 0;
     });
     this.timePerTimeProp.subscribe(hasSubscribersLt, tpt => {
-      if (this.recordedTimes.length()) {
-        // Reset back to known correct times to keep things getting weird (tolorate a jump)
-        this.browserTimeBase = this.recordedTimes.at(-1)[0];
-        this.gameTimeBase = this.recordedTimes.at(-1)[1];
-        // Clear history as this was based on a different game state
-        this.recordedTimes.clear();
+      // Clear history as this was based on a different tpt
+      this.recordedTimes.clear();
+      if (tpt === 0) {
+        // If we are not moving forward at all then the time prop will not get updates, so stop doing anything fancy
+        this.gameTimeBase = this.lastReceivedGameTime;
+      } else {
+        this.gameTimeBase = this.gameTime();
+        this.browserTimeBase = this.browserTime();
       }
+      this.lastReceivedTimePerTime = tpt;
       this.gameTimePerBrowserTime = tpt;
     });
     this.timeProp.subscribe(hasSubscribersLt, gameTime => {
       const browserTime = this.browserTime();
+      const previousGameTime = this.lastReceivedGameTime;
       this.lastReceivedGameTime = gameTime;
       // Set to the previous effective game time so we don't jump around
-      this.gameTimeBase = this.gameTime() || gameTime;
+      this.gameTimeBase = this.gameTime();
       this.browserTimeBase = browserTime;
+      if (gameTime < previousGameTime ||
+          this.lastReceivedTimePerTime === 0 ||
+          Math.abs(gameTime - this.gameTimeBase) > 1
+      ) {
+        // If game time moved backwards *on the server*, time changes while paused or we're off by more than a second
+        // jump to correct time
+        this.gameTimeBase = gameTime;
+        this.gameTimePerBrowserTime = this.lastReceivedTimePerTime;
+        this.recordedTimes.clear();
+      }
       while (this.recordedTimes.length() > 1 &&
         this.recordedTimes.at(0)[0] < browserTime - lookBack
       ) {
