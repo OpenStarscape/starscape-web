@@ -10,11 +10,14 @@ import type { Body } from './Body';
 const tmpMatA = new THREE.Matrix4();
 const tmpVecA = new THREE.Vector3();
 
+type OrbitDataT = [number, number, number, number, number, number, number, SsObject];
+
 /// Subscribes to the body's orbit and determines position from that
 /// A lot of the math was figured out using https://space.stackexchange.com/a/8915
 export class OrbitSpatial extends OrbitParams implements Spatial {
   private pendingParent: SsObject | null = null;
   private pendingParentSpatialLt: DependentLifetime | null = null;
+  private pendingParams: OrbitDataT | null = null;
   private activeParent: SsObject | null = null;
   private parentSpatial: Spatial | null = null;
   private parentSpatialLt: DependentLifetime | null = null;
@@ -48,56 +51,67 @@ export class OrbitSpatial extends OrbitParams implements Spatial {
             params[5],
             params[6],
           );
-        } else if (this.pendingParent !== parent) {
-          if (this.pendingParentSpatialLt) {
-            this.pendingParentSpatialLt.kill();
+        } else {
+          const paramsCopy = params.slice() as typeof params;
+          if (this.pendingParent === parent) {
+            this.pendingParams = paramsCopy;
+          } else {
+            this.setPendingParent(parent, paramsCopy);
           }
-          this.pendingParent = parent;
-          const parentSpatialLt = this.lt.newDependent();
-          this.pendingParentSpatialLt = parentSpatialLt
-          const parentSpatial = this.game.getBody(parent).spatial(parentSpatialLt);
-          parentSpatialLt.addCallback(() => {
-            if (this.pendingParentSpatialLt === parentSpatialLt) {
-              this.pendingParent = null;
-              this.pendingParentSpatialLt = null;
-            }
-            if (this.parentSpatialLt === parentSpatialLt) {
-              this.activeParent = null;
-              this.parentSpatialLt = null;
-              this.parentSpatial = null;
-            }
-          });
-          const localParams = params.slice() as typeof params;
-          parentSpatial.onReady(() => {
-            if (this.pendingParentSpatialLt !== parentSpatialLt) {
-              parentSpatialLt.kill();
-              return;
-            }
-            if (this.parentSpatialLt !== null) {
-              this.parentSpatialLt.kill();
-            }
-            this.pendingParent = null;
-            this.pendingParentSpatialLt = null;
-            this.activeParent = parent;
-            this.parentSpatialLt = parentSpatialLt;
-            this.parentSpatial = parentSpatial;
-            this.setParams(
-              localParams[0],
-              localParams[1],
-              localParams[2],
-              localParams[3],
-              localParams[4],
-              localParams[5],
-              localParams[6],
-            );
-            this.paramsValid = true;
-            this.maybeReady();
-          });
         }
       }
     });
     body.obj.property('mass', Number).subscribe(lt, mass => {
       this.bodyMass = mass;
+      this.maybeReady();
+    });
+  }
+
+  private setPendingParent(parent: SsObject, params: OrbitDataT): void {
+    if (this.pendingParentSpatialLt) {
+      this.pendingParentSpatialLt.kill();
+    }
+    this.pendingParent = parent;
+    const parentSpatialLt = this.lt.newDependent();
+    this.pendingParentSpatialLt = parentSpatialLt
+    const parentSpatial = this.game.getBody(parent).spatial(parentSpatialLt);
+    this.pendingParams = params;
+    parentSpatialLt.addCallback(() => {
+      if (this.pendingParentSpatialLt === parentSpatialLt) {
+        this.pendingParent = null;
+        this.pendingParentSpatialLt = null;
+        this.pendingParams = null;
+      }
+      if (this.parentSpatialLt === parentSpatialLt) {
+        this.activeParent = null;
+        this.parentSpatialLt = null;
+        this.parentSpatial = null;
+      }
+    });
+    parentSpatial.onReady(() => {
+      if (this.pendingParentSpatialLt !== parentSpatialLt) {
+        parentSpatialLt.kill();
+        return;
+      }
+      if (this.parentSpatialLt !== null) {
+        this.parentSpatialLt.kill();
+      }
+      this.pendingParent = null;
+      this.pendingParentSpatialLt = null;
+      this.activeParent = parent;
+      this.parentSpatialLt = parentSpatialLt;
+      this.parentSpatial = parentSpatial;
+      this.setParams(
+        this.pendingParams![0],
+        this.pendingParams![1],
+        this.pendingParams![2],
+        this.pendingParams![3],
+        this.pendingParams![4],
+        this.pendingParams![5],
+        this.pendingParams![6],
+      );
+      this.pendingParams = null;
+      this.paramsValid = true;
       this.maybeReady();
     });
   }
