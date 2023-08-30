@@ -96,6 +96,8 @@ export function button(text: string, props?: ButtonProps): HTMLButtonElement {
 }
 
 type InputProps = null | ElemProps & {
+  placeholder?: string,
+  disabled?: boolean,
   input?: EventListenerOrEventListenerObject,
   change?: EventListenerOrEventListenerObject,
 };
@@ -104,6 +106,12 @@ export function input(inputType: string, props?: InputProps): HTMLInputElement {
   const i = elem(document.createElement('input'), props);
   i.type = inputType;
   if (props) {
+    if (props.placeholder) {
+      i.placeholder = props.placeholder;
+    }
+    if (props.disabled) {
+      i.disabled = props.disabled;
+    }
     if (props.input) {
       i.addEventListener('input', props.input);
     }

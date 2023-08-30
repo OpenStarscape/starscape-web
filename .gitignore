@@ -4,8 +4,10 @@ auxiliary/starscape-server
 # Typescript
 tsconfig.tsbuildinfo
 
-# Built by SWC
+# Built by esbuild
 public/code.js
 public/code.js.map
 public/test.js
 public/test.js.map
+public/tasks.js
+public/tasks.js.map
