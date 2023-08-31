@@ -48,7 +48,7 @@ export function interceptDragClicks(elem: HTMLElement) {
         event.screenY === ignoreScreenY &&
         event.timeStamp === ignoreTimestamp
     ) {
-      event.stopPropagation();
+      event.stopImmediatePropagation();
     }
   }, {capture: true});
 }
