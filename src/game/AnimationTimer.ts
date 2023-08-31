@@ -107,11 +107,13 @@ export class AnimationTimer extends Conduit<null> {
       this.recordedTimes.pushBack([browserTime, gameTime]);
       if (this.recordedTimes.length() > 1) {
         const [oldBrowserTime, oldGameTime] = this.recordedTimes.at(0);
-        const empiricalGameTimePerBrowserTime = (gameTime - oldGameTime) /
-          (browserTime - oldBrowserTime);
-        const predictedFutureGameTime = gameTime + empiricalGameTimePerBrowserTime * lookAhead;
-        const timeRateForConvergence = (predictedFutureGameTime - this.gameTimeBase) / lookAhead;
-        this.gameTimePerBrowserTime = timeRateForConvergence;
+        if (browserTime > oldBrowserTime) {
+          const empiricalGameTimePerBrowserTime = (gameTime - oldGameTime) /
+            (browserTime - oldBrowserTime);
+          const predictedFutureGameTime = gameTime + empiricalGameTimePerBrowserTime * lookAhead;
+          const timeRateForConvergence = (predictedFutureGameTime - this.gameTimeBase) / lookAhead;
+          this.gameTimePerBrowserTime = timeRateForConvergence;
+        }
       }
     });
   }
