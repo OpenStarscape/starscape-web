@@ -83,7 +83,6 @@ export function newBodyVisual(scene: SpaceScene, game: Game, obj: SsObject) {
   const hudElement = new CSS2DObject(bodyHUD(lt, spatial));
   hudElement.visible = false;
   const mesh = new THREE.Mesh(emptyGeom, farMat);
-  mesh.visible = false; // Shouldn't be needed because geom is empty, but see https://github.com/mrdoob/three.js/issues/26464
   scene.addObject(lt, mesh);
   object3DAddChild(lt, mesh, hudElement);
 
