@@ -10,15 +10,18 @@ const tmpVecA = new THREE.Vector3();
 const tmpVecB = new THREE.Vector3();
 const tmpVecC = new THREE.Vector3();
 const tmpQuatA = new THREE.Quaternion();
+const deltaQuat = new THREE.Quaternion()
+const upVec = new THREE.Vector3();
 
 /// Keeps track of creating and destroying bodies in the 3D scene.
 export class CameraManager {
   readonly cameraController: OrbitControls;
   readonly viewTarget = new THREE.Object3D();
-  private targetSpatial: Spatial | null = null;
   private prevFocusDir = new THREE.Vector3(0, 1, 0);
   private prevFocusSpatial: Spatial | null = null;
   private readonly fakeCam;
+  public targetSpatial: Spatial | null = null;
+  public focusSpatial: Spatial | null = null;
 
   constructor(
     readonly lt: Lifetime,
@@ -33,9 +36,6 @@ export class CameraManager {
     this.fakeCam.matrixAutoUpdate = true; // Needed to make things smooth for some reason
     this.cameraController = new OrbitControls(this.fakeCam, domElement);
     this.fakeCam.position.set(20, 20, 10);
-    scene.cameraFocusBody.subscribeWithValueLifetime(lt, (valueLt, body) => {
-      this.targetSpatial = body ? body.spatial(valueLt) : null;
-    });
   }
 
   private transformGimbal(newUpVec: THREE.Vector3, deltaRotation: THREE.Quaternion) {
@@ -86,23 +86,23 @@ export class CameraManager {
       // tmpVecC is now relative velocity of target
       tmpVecB.copy(tmpVecC);
       tmpVecB.cross(tmpVecA);
-      // tmpVecB is now direction perpendicular to these
-      tmpVecC.copy(tmpVecB);
-      tmpVecC.cross(tmpVecA);
-      // tmpVecC is now perpendicular to A and B
-      tmpVecA.normalize();
       tmpVecB.normalize();
-      tmpVecC.normalize();
-      const quat = new THREE.Quaternion()
-      const vec = new THREE.Vector3();
-      vec.copy(tmpVecB);
-      if (this.prevFocusSpatial !== parentSpatial) {
-        this.prevFocusDir.copy(tmpVecA);
-        this.prevFocusSpatial = parentSpatial;
+      // tmpVecB is now direction perpendicular to these
+      const focusSpatial = this.focusSpatial ?? parentSpatial;
+      if (focusSpatial) {
+        focusSpatial.copyPositionInto(tmpVecA);
       }
-      quat.setFromUnitVectors(this.prevFocusDir, tmpVecA);
+      tmpVecA.sub(this.viewTarget.position);
+      tmpVecA.normalize();
+      // tmpVecA is now the direction of the focus body
+      upVec.copy(tmpVecB);
+      if (this.prevFocusSpatial !== focusSpatial) {
+        this.prevFocusDir.copy(tmpVecA);
+        this.prevFocusSpatial = focusSpatial;
+      }
+      deltaQuat.setFromUnitVectors(this.prevFocusDir, tmpVecA);
       this.prevFocusDir.copy(tmpVecA);
-      this.transformGimbal(vec, quat);
+      this.transformGimbal(upVec, deltaQuat);
     }
     this.updateCameraFromOrbitControls();
   }

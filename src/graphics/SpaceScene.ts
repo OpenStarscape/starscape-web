@@ -30,6 +30,14 @@ export class SpaceScene extends Scene {
         this.camera,
     );
 
+    this.cameraFocusBody.subscribeWithValueLifetime(lt, (valueLt, body) => {
+      this.cameraManager.targetSpatial = body ? body.spatial(valueLt) : null;
+    });
+
+    game.selectedBody.subscribeWithValueLifetime(lt, (valueLt, body) => {
+      this.cameraManager.focusSpatial = body ? body.spatial(valueLt) : null;
+    });
+
     game.bodies.subscribe(lt, ([_temLt, body]) => {
       newBodyVisual(this, this.game, body);
     });
