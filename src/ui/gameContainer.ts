@@ -29,7 +29,7 @@ export function gameContainer(lt: Lifetime, game: Game): HTMLElement {
   stack.appendChild(scene.div);
   scene.overlayRenderer.domElement.addEventListener('click', () => {
     game.selectedBody.set(null);
-  })
+  });
 
   stack.appendChild(overlay(lt, game));
 

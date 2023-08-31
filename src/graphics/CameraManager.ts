@@ -3,6 +3,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { Lifetime } from '../core';
 import { Spatial } from '../game';
 import { SpaceScene } from './SpaceScene';
+import { interceptDragClicks } from '../ui';
 import { axisVisualizer } from './debuggingHelpers';
 
 const tmpVecA = new THREE.Vector3();
@@ -26,6 +27,7 @@ export class CameraManager {
     readonly camera: THREE.Camera,
   ) {
     //axisVisualizer(lt, this.viewTarget);
+    interceptDragClicks(domElement);
     scene.addObject(lt, this.viewTarget);
     this.fakeCam = camera.clone();
     this.fakeCam.matrixAutoUpdate = true; // Needed to make things smooth for some reason
