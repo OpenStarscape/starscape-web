@@ -215,20 +215,16 @@ export class OrbitSpatial extends OrbitParams implements Spatial {
 
   copyOrbitMatrixInto(mat: THREE.Matrix4): boolean {
     if (this.paramsValid) {
-      if (this.eccentricity > 0.95) {
-        return false;
-      } else {
-        this.ensureCache(this.game.animation.gameTime());
-        mat.makeRotationZ(this.cachedEccentricAnomaly);
-        mat.premultiply(this.transform);
-        // Apply parent's position
-        if (this.parentSpatial) {
-          this.parentSpatial.copyPositionInto(tmpVecA);
-          tmpMatA.makeTranslation(tmpVecA);
-          mat.premultiply(tmpMatA);
-        }
-        return true;
+      this.ensureCache(this.game.animation.gameTime());
+      mat.makeRotationZ(this.cachedEccentricAnomaly);
+      mat.premultiply(this.transform);
+      // Apply parent's position
+      if (this.parentSpatial) {
+        this.parentSpatial.copyPositionInto(tmpVecA);
+        tmpMatA.makeTranslation(tmpVecA);
+        mat.premultiply(tmpMatA);
       }
+      return true;
     } else if (this.fallback !== null) {
       return this.fallback.copyOrbitMatrixInto(mat);
     } else {
