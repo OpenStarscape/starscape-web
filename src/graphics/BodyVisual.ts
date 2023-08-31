@@ -10,6 +10,7 @@ import { SpaceScene } from './SpaceScene';
 
 const yVec = new THREE.Vector3(0, 1, 0);
 const tmpVecA = new THREE.Vector3();
+const tmpQuatA = new THREE.Quaternion();
 const emptyGeom = new THREE.BufferGeometry();
 
 function createColorMaterialPair(
@@ -58,7 +59,10 @@ function scaleMeshToView(
 
 function pointObject3DInDirection(object: THREE.Object3D, direction: THREE.Vector3) {
   direction.normalize();
-  object.quaternion.setFromUnitVectors(yVec, direction);
+  tmpVecA.copy(yVec);
+  tmpVecA.applyQuaternion(object.quaternion);
+  tmpQuatA.setFromUnitVectors(tmpVecA, direction);
+  object.quaternion.premultiply(tmpQuatA);
 }
 
 export function newBodyVisual(scene: SpaceScene, game: Game, obj: SsObject) {
