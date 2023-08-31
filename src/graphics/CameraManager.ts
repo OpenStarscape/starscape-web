@@ -37,17 +37,11 @@ export class CameraManager {
   }
 
   private transformGimbal(newUpVec: THREE.Vector3, deltaRotation: THREE.Quaternion) {
-    newUpVec.normalize();
-    tmpVecA.setFromMatrixColumn(this.viewTarget.matrix, 2);
-    tmpVecA.normalize();
-    // tmpVecA is the current up vector of the gimbal
+    this.viewTarget.quaternion.premultiply(deltaRotation);
+    tmpVecA.set(0, 0, 1);
+    tmpVecA.applyQuaternion(this.viewTarget.quaternion);
     tmpQuatA.setFromUnitVectors(tmpVecA, newUpVec);
-    deltaRotation.premultiply(this.viewTarget.quaternion);
     this.viewTarget.quaternion.premultiply(tmpQuatA);
-    tmpQuatA.copy(this.viewTarget.quaternion);
-    tmpQuatA.invert();
-    deltaRotation.multiply(tmpQuatA);
-    this.fakeCam.position.applyQuaternion(deltaRotation);
   }
 
   private updateCameraFromOrbitControls() {
