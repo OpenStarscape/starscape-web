@@ -27,8 +27,9 @@ export function bodyHUD(lt: Lifetime, spatial: Spatial): HTMLElement {
   body.isSelected.subscribe(lt, selected => {
     div.classList.toggle('selected', selected);
   });
-  div.addEventListener('click', () => {
+  div.addEventListener('click', evt => {
     body.game.selectedBody.set(body);
+    evt.stopPropagation();
   });
   return div;
 }

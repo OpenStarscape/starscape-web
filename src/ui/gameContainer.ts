@@ -27,6 +27,9 @@ export function gameContainer(lt: Lifetime, game: Game): HTMLElement {
 
   const scene = new SpaceScene(lt, game);
   stack.appendChild(scene.div);
+  scene.overlayRenderer.domElement.addEventListener('click', () => {
+    game.selectedBody.set(null);
+  })
 
   stack.appendChild(overlay(lt, game));
 
