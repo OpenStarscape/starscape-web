@@ -4,7 +4,7 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
-    "three": "^0.154.0",
+    "three": "^0.155.0",
     "@types/three": "^0.154.0"
   },
   "devDependencies": {
