@@ -40,6 +40,9 @@ export class OrbitSpatial extends OrbitParams implements Spatial {
       if (params === null) {
         this.useFallback();
       } else {
+        if (this.fallbackLt) {
+          this.fallbackLt.kill();
+        }
         const parent = params[7];
         if (this.activeParent === parent) {
           this.setParams(
