@@ -7,6 +7,8 @@ import { ellipticalOrbit } from './ellipticalOrbit'
 import type { Game } from '../game'
 import type { Scene } from './Scene'
 import { SpaceScene } from './SpaceScene';
+import { CartesianSpatial } from '../game/CartesianSpatial'
+import { ConnectingLine } from './ConnectingLine'
 
 const yVec = new THREE.Vector3(0, 1, 0);
 const tmpVecA = new THREE.Vector3();
@@ -72,6 +74,11 @@ export function newBodyVisual(scene: SpaceScene, game: Game, obj: SsObject) {
   const spatial = body.spatial(lt);
   let displaySize = 0.001;
 
+  const cartSpatial = new CartesianSpatial(game, lt, body);
+  const errorLine = new ConnectingLine(lt, 7);
+  errorLine.mat.color.set('#FFFF00');
+  scene.addObject(lt, errorLine);
+
   const [farMat, nearMat] = createColorMaterialPair(lt, body.color);
   const hudElement = new CSS2DObject(bodyHUD(lt, spatial));
   hudElement.visible = false;
@@ -135,6 +142,10 @@ export function newBodyVisual(scene: SpaceScene, game: Game, obj: SsObject) {
     }
     mesh.updateMatrix();
     mesh.updateMatrixWorld();
+
+    spatial.copyPositionInto(errorLine.a);
+    cartSpatial.copyPositionInto(errorLine.b);
+    errorLine.update();
   });
 
   obj.property('class', String).getThen(lt, cls => {
