@@ -10,6 +10,7 @@ function mockGame() {
       return {
         spatial: () => {
           return {
+            onReady: (callback: () => void) => { callback(); },
             copyPositionInto: (_vec: THREE.Vector3) => {},
             copyVelocityInto: (_vec: THREE.Vector3) => {},
           }
