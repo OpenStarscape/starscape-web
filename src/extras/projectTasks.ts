@@ -54,23 +54,29 @@ function createSubtask(lt: Lifetime, game: Game, parent: Spatial) {
 function tasksContainer(lt: Lifetime, game: Game): HTMLElement {
   const scene = new SpaceScene(lt, game);
   scene.div.style.flexGrow = '1';
-  const createSubtaskButton = create.button('Create subtask', {disabled: true, click: () => {
+  const createSubtaskButton = create.button('Create subtask', {click: () => {
     const parent = game.selectedBody.get();
     if (parent) {
       createSubtask(lt, game, parent.spatial(lt));
     }
   }});
-  const nameField = create.input('text', {placeholder: 'Task name', disabled: true, input: () => {
+  const nameField = create.input('text', {placeholder: 'Task name', input: () => {
     const selected = game.selectedBody.get();
     if (selected) {
       selected.obj.property('name', {nullable: String}).set(nameField.value);
     }
   }});
-  nameField.placeholder
+  const destroyButton = create.button('Delete', {click: () => {
+    const selected = game.selectedBody.get();
+    if (selected) {
+      selected.obj.action('destroy', null).fire(null);
+    }
+  }})
   game.selectedBody.subscribeWithValueLifetime(lt, (valueLt, body) => {
     scene.cameraFocusBody.set(body);
     createSubtaskButton.disabled = body === null;
     nameField.disabled = body === null;
+    destroyButton.disabled = body === null;
     nameField.blur();
     if (body) {
       body.obj.property('name', {nullable: String}).subscribe(valueLt, name => {
@@ -84,6 +90,7 @@ function tasksContainer(lt: Lifetime, game: Game): HTMLElement {
     create.scrollBox([
       createSubtaskButton,
       nameField,
+      destroyButton,
     ], {height: '100%', width: '300px', flexGrow: '0'}),
     scene.div,
   ], {height: '100vh'});
