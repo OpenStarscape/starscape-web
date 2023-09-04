@@ -100,7 +100,7 @@ function setupApproach(
 
 integrationTest(suiteName, 'straight shot', (lt, game, scene, result) => {
   createShip(game, seekerName, new Vec3(0, 0, 0), new Vec3(0, 0, 0));
-  createShip(game, targetName, new Vec3(20, 0, 0), new Vec3(0, 0, 0));
+  createShip(game, targetName, new Vec3(100, 0, 0), new Vec3(0, 0, 0));
   setupApproach(lt, game, scene, seekerName, targetName, (seeker, target) => {
     Nav.applyState(seeker.body, {
       scheme: Nav.Scheme.Dock,
@@ -110,9 +110,9 @@ integrationTest(suiteName, 'straight shot', (lt, game, scene, result) => {
   passIfPausedBeforeTimeout(lt, game, result);
 });
 
-integrationTest(suiteName, 'straight shot with target accel', (lt, game, scene, result) => {
+integrationTest(suiteName, 'straight shot with target accel away', (lt, game, scene, result) => {
   createShip(game, seekerName, new Vec3(0, 0, 0), new Vec3(0, 0, 0));
-  createShip(game, targetName, new Vec3(20, 0, 0), new Vec3(0, 0, 0));
+  createShip(game, targetName, new Vec3(100, 0, 0), new Vec3(0, 0, 0));
   setupApproach(lt, game, scene, seekerName, targetName, (seeker, target) => {
     target.body.obj.property('accel', Vec3).set(new Vec3(maxAccel / 2, 0, 0));
     Nav.applyState(seeker.body, {
@@ -123,9 +123,22 @@ integrationTest(suiteName, 'straight shot with target accel', (lt, game, scene, 
   passIfPausedBeforeTimeout(lt, game, result);
 });
 
+integrationTest(suiteName, 'straight shot with target accel towards', (lt, game, scene, result) => {
+  createShip(game, seekerName, new Vec3(0, 0, 0), new Vec3(0, 0, 0));
+  createShip(game, targetName, new Vec3(100, 0, 0), new Vec3(0, 0, 0));
+  setupApproach(lt, game, scene, seekerName, targetName, (seeker, target) => {
+    target.body.obj.property('accel', Vec3).set(new Vec3(-maxAccel / 2, 0, 0));
+    Nav.applyState(seeker.body, {
+      scheme: Nav.Scheme.Dock,
+      target: target.body,
+    });
+  });
+  passIfPausedBeforeTimeout(lt, game, result);
+});
+
 integrationTest(suiteName, 'target accel to the side', (lt, game, scene, result) => {
   createShip(game, seekerName, new Vec3(0, 0, 0), new Vec3(0, 0, 0));
-  createShip(game, targetName, new Vec3(20, 0, 0), new Vec3(0, 0, 0));
+  createShip(game, targetName, new Vec3(100, 0, 0), new Vec3(0, 0, 0));
   setupApproach(lt, game, scene, seekerName, targetName, (seeker, target) => {
     target.body.obj.property('accel', Vec3).set(new Vec3(0, maxAccel / 2, 0));
     Nav.applyState(seeker.body, {
