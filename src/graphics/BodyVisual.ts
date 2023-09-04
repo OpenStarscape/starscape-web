@@ -65,6 +65,7 @@ function pointObject3DInDirection(object: THREE.Object3D, direction: THREE.Vecto
   tmpVecA.applyQuaternion(object.quaternion);
   tmpQuatA.setFromUnitVectors(tmpVecA, direction);
   object.quaternion.premultiply(tmpQuatA);
+  object.quaternion.normalize();
 }
 
 export function newBodyVisual(scene: SpaceScene, game: Game, obj: SsObject) {

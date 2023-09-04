@@ -44,6 +44,7 @@ export class CameraManager {
     tmpVecA.applyQuaternion(this.viewTarget.quaternion);
     tmpQuatA.setFromUnitVectors(tmpVecA, newUpVec);
     this.viewTarget.quaternion.premultiply(tmpQuatA);
+    this.viewTarget.quaternion.normalize();
   }
 
   private updateCameraFromOrbitControls() {
@@ -56,6 +57,7 @@ export class CameraManager {
     this.camera.quaternion.copy(this.fakeCam.quaternion);
     this.camera.position.applyMatrix4(this.viewTarget.matrix);
     this.camera.quaternion.premultiply(this.viewTarget.quaternion);
+    this.camera.quaternion.normalize();
     this.camera.updateMatrix();
     this.camera.updateMatrixWorld();
   }
