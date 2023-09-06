@@ -247,5 +247,52 @@
       "time": 178.14000000001732
     },
     "recorded_at": 1693866679
+  },
+  {
+    "Autopilot: straight shot": {
+      "passed": 1,
+      "time": 6.419999999999951
+    },
+    "Autopilot: straight shot with target accel away": {
+      "passed": 1,
+      "time": 7.85999999999992
+    },
+    "Autopilot: straight shot with target accel towards": {
+      "passed": 1,
+      "time": 15.299999999999763
+    },
+    "Autopilot: target accel to the side": {
+      "passed": 1,
+      "time": 11.099999999999852
+    },
+    "Autopilot: target accel to side with inital velocity": {
+      "passed": 1,
+      "time": 13.05999999999981
+    },
+    "Autopilot: quarter turn on flat circular": {
+      "passed": 1,
+      "time": 0.9600000000000005
+    },
+    "Autopilot: quarter turn on tilted circular": {
+      "passed": 1,
+      "time": 0.9600000000000005
+    },
+    "Autopilot: half turn on elliptical": {
+      "passed": 1,
+      "time": 1.2200000000000006
+    },
+    "Autopilot: far away from central body": {
+      "passed": 1,
+      "time": 1.3400000000000007
+    },
+    "Autopilot: far away from central body and target": {
+      "passed": 1,
+      "time": 7.359999999999931
+    },
+    "Autopilot: target orbiting planet orbiting sun": {
+      "passed": 1,
+      "time": 178.14000000001732
+    },
+    "recorded_at": 1693960718
   }
 ]
