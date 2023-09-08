@@ -29,6 +29,21 @@ body {
   scrollbar-width: thin;
 }
 
+.tab-list {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: 2px;
+  overflow: auto;
+  scrollbar-width: thin;
+}
+
+.tab-button.selected {
+  transform: none;
+  opacity: 100%;
+  background-color: #0fabb9;
+}
+
 .good {
   background-color: #00FF00;
 }
