@@ -1,3 +1,9 @@
+:root {
+  --panel-background: #202850a0;
+  --text: white;
+  --selected: #0fabb9
+}
+
 body {
   margin: 0;
   background-color: gray;
@@ -9,8 +15,11 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Toolkit */
+
 .h-box {
   display: flex;
+  flex-direction: row;
   align-items: stretch;
   justify-content: flex-start;
   flex-grow: 0;
@@ -29,6 +38,23 @@ body {
   scrollbar-width: thin;
 }
 
+.action-button {
+  all: unset;
+  cursor: pointer;
+  box-sizing: border-box;
+  padding: 0.5em;
+  font-size: 16pt;
+  border-radius: 0.5em;
+  background-color: #202020;
+  color: #20A0FF;
+  margin: 0.1em;
+}
+
+.action-button:disabled {
+  cursor: default;
+  color: black;
+}
+
 .tab-list {
   display: flex;
   align-items: stretch;
@@ -41,8 +67,43 @@ body {
 .tab-button.selected {
   transform: none;
   opacity: 100%;
-  background-color: #0fabb9;
+  background-color: var(--selected);
 }
+
+/* Game UI */
+
+.game-ui-root {
+  width: 100%;
+  height: 100%;
+}
+
+.game-ui-space-scene {
+  position: absolute;
+}
+
+.overlay-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  pointer-events: none;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+.panel {
+  display: flex;
+  flex-grow: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  overflow: auto;
+  scrollbar-width: thin;
+  background-color: var(--panel-background);
+  pointer-events: auto;
+  width: 20%;
+}
+
+/* Tests */
 
 .good {
   background-color: #00FF00;
@@ -59,6 +120,8 @@ body {
 .important {
   background-color: #FFFFFF;
 }
+
+/* SpaceScene */
 
 .body-div {
   width: 40px;
@@ -100,21 +163,4 @@ body {
   max-width: 100px;
   white-space: nowrap;
   transform: translateX(-50%);
-}
-
-.action-button {
-  all: unset;
-  cursor: pointer;
-  box-sizing: border-box;
-  padding: 0.5em;
-  font-size: 16pt;
-  border-radius: 0.5em;
-  background-color: #202020;
-  color: #20A0FF;
-  margin: 0.1em;
-}
-
-.action-button:disabled {
-  cursor: default;
-  color: black;
 }
