@@ -1,5 +1,6 @@
 export * from './errorMessage'
-export * from './gameContainer'
+export * from './gameUI'
+export * from './panel'
 export * from './godControls'
 export * from './gameStats'
 export * from './shipNameField'

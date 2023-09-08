@@ -21,6 +21,10 @@ export class SpaceScene extends Scene {
       this.normalRenderer.setClearColor('black');
     }
 
+    this.overlayRenderer.domElement.addEventListener('click', () => {
+      game.selectedBody.set(null);
+    });
+
     this.starfield = new Starfield(this);
     this.starfield.setVisible(true);
     this.cameraManager = new CameraManager(
