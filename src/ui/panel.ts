@@ -26,7 +26,7 @@ export function panel(lt: Lifetime, game: Game, panes: Conduit<[string, PaneBuil
         paneLt = null;
       });
     }
-  });
+  }, {class: 'panel-tab-list'});
   panelDiv.prepend(tabDiv);
   panes.subscribe(lt, panes => {
     paneMap.clear();

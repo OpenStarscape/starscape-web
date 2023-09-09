@@ -88,7 +88,6 @@ type ButtonProps = null | ElemProps & {
 export function button(text: string, props?: ButtonProps): HTMLButtonElement {
   const b = elem(document.createElement('button'), props);
   b.textContent = text;
-  b.classList.add('action-button');
   if (props) {
     if (props.disabled) {
       b.disabled = props.disabled;

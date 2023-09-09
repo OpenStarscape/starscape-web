@@ -167,10 +167,7 @@ function runAllTests(lt: Lifetime, game: Game, scene: SpaceScene) {
 function testListDiv(lt: Lifetime, game: Game, scene: SpaceScene): HTMLElement {
   const suiteListDiv = create.scrollBox([]);
   suiteListDiv.style.width = '300px';
-  const testResultsDiv = create.vBox([]);
-  testResultsDiv.style.position = 'absolute';
-  testResultsDiv.style.background = 'gray';
-  testResultsDiv.style.bottom = '0';
+  const testResultsDiv = create.hBox([], {class: 'test-results-div'});
   scene.div.appendChild(testResultsDiv);
   testList.forEach(test => {
     const suite = testSuites.get(test.suite);
@@ -186,7 +183,7 @@ function testListDiv(lt: Lifetime, game: Game, scene: SpaceScene): HTMLElement {
       suite.div.style.marginLeft = '10px';
       suiteListDiv.append(suite.div);
     }
-    const labelDiv = create.hBox([create.p(test.name)], {cursor: 'pointer', click: () => {
+    const labelDiv = create.hBox([create.p(test.name)], {cursor: 'pointer', class: 'single-test', click: () => {
       runTest(lt, test, game, scene);
     }});
     suite.div.append(labelDiv);
@@ -214,7 +211,7 @@ function testListDiv(lt: Lifetime, game: Game, scene: SpaceScene): HTMLElement {
       labelDiv.classList.toggle('exceptional', status === TestStatus.Exceeded);
       labelDiv.classList.toggle('good', status === TestStatus.Passed);
       labelDiv.classList.toggle('bad', status === TestStatus.Failed);
-      labelDiv.classList.toggle('important', status === TestStatus.Running);
+      labelDiv.classList.toggle('running', status === TestStatus.Running);
       labelDiv.scrollIntoView({behavior: "smooth", block: "nearest"});
     });
   });
@@ -282,9 +279,9 @@ function testContainer(lt: Lifetime, game: Game): HTMLElement {
     realTimeToggle(game),
     runButtons(lt, game, scene),
     create.button('Copy data', {id: 'copy-data-button', disabled: true, click: copyTestData})
-  ], {height: '100%', flexGrow: '0'});
+  ], {class: 'test-sidebar'});
   scene.div.style.flexGrow = '1';
-  return create.hBox([sidebarDiv, scene.div], {height: '100vh'});
+  return create.div([scene.div, sidebarDiv], {height: '100vh'});
 }
 
 function init() {
