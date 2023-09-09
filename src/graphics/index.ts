@@ -1,6 +1,0 @@
-export * from './Scene'
-export * from './BodyVisual'
-export * from './ConnectingLine'
-export * from './CameraManager'
-export * from './SpaceScene'
-export * from './Starfield'
